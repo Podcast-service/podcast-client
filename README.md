@@ -1,6 +1,18 @@
 # podcast-client
 
-Монорепозиторий на **pnpm + Turborepo + Bun** для **Podcast Client**.
+Монорепозиторий на **pnpm + Turborepo** для **Podcast Client** — веб и десктоп (Tauri) приложения с общим UI.
+
+## Структура
+
+```
+apps/
+  web/          — веб-приложение (Vite + React)
+  desktop/      — десктоп-приложение (Tauri + Vite + React)
+packages/
+  ui/           — общие React-компоненты
+  core/         — бизнес-логика
+  types/        — общие типы
+```
 
 ## Установка
 
@@ -8,16 +20,25 @@
 pnpm install
 ```
 
-## Dev-режим
+## Web
 
 ```bash
-pnpm dev
+# dev-сервер
+pnpm --filter @podcast/web dev
+
+# production-сборка
+pnpm --filter @podcast/web build
 ```
 
-## Сборка (production)
+## Desktop (Tauri)
+
+Требуется установленный [Rust](https://www.rust-lang.org/tools/install).
 
 ```bash
-pnpm build
+# dev-режим
+pnpm --filter @podcast/desktop tauri:dev
+
+# production-сборка
+pnpm --filter @podcast/desktop tauri:build
 ```
 
-Собирает проект в `apps/web/dist/`.
