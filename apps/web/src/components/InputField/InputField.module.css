@@ -1,0 +1,90 @@
+.field {
+    width: 100%;
+}
+
+.label {
+    display: block;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-main);
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-input-bg);
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border);
+    transition: 0.2s all ease;
+    box-sizing: border-box;
+}
+
+.inputWrapper:hover {
+    border-color: var(--color-border-hover);
+}
+
+.inputWrapper:has(:focus) {
+    border-color: var(--color-border-hover);
+}
+
+.inputWrapper.error {
+    border-color: var(--color-error);
+}
+
+.input {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-main);
+}
+
+.input::placeholder {
+    color: var(--color-placeholder);
+}
+
+.eyeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.eyeButton img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.bottomRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    min-height: 20px;
+}
+
+.errorMessage {
+    font-weight: 500;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    color: var(--color-error);
+    flex: 1;
+}
+
+.forgotlink {
+    font-size: 12px;
+    font-family: var(--font-primary);
+    color: #7A756A;
+    font-weight: 700;
+    flex-shrink: 0;
+}

@@ -1,0 +1,22 @@
+.logo {
+    position: fixed;
+    top: 32px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+}
+
+.icon {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.text {
+    font-size: 14px;
+    font-family: var(--font-secondary);
+    font-weight: 800;
+    color: var(--color-main);
+}

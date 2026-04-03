@@ -1,0 +1,90 @@
+.page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    gap: 100px;
+}
+
+.left_part {
+    flex: 1;
+    max-width: 470px;
+}
+
+.title {
+    font-size: 52px;
+    font-weight: 800;
+    font-family: var(--font-third);
+    margin-bottom: 16px;
+    color: var(--color-main);
+    white-space: nowrap;
+}
+
+.description {
+    font-size: 16px;
+    color: var(--color-text-footer);
+    font-family: var(--font-primary);
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.right_part {
+    flex: 1;
+    max-width: 400px;
+    width: 100%;
+}
+
+.formTitle {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: var(--font-third);
+    margin-bottom: 4px;
+    color: var(--color-main);
+}
+
+.formSubtitle {
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-primary);
+    margin-bottom: 16px;
+    margin-top: 0;
+    color: var(--color-text-footer);
+    line-height: 1.5;
+}
+
+.forgotPassword {
+    text-align: right;
+    margin-top: -12px;
+    margin-bottom: 16px;
+}
+
+
+.submitButton {
+    margin-bottom: 16px;
+    margin-top: 16px;
+}
+
+.register {
+    text-align: center;
+    font-weight: 400;
+    font-size: 14px;
+    font-family: var(--font-primary);
+    color: var(--color-text-footer);
+}
+
+.register .link {
+    color: var(--color-border-hover);
+    font-weight: 400;
+    font-size: 14px;
+}
+
