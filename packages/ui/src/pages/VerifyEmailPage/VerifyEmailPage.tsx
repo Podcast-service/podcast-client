@@ -21,7 +21,11 @@ const VerifyEmailPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
-  const userEmail = location.state?.email || "you@example.com";
+  const userEmail = location.state?.email;
+
+  useEffect(() => {
+    if (!userEmail) navigate("/register");
+  }, []);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;

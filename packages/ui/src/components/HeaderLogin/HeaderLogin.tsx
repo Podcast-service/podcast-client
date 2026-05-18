@@ -7,7 +7,7 @@ const HeaderLogin = () => {
         <header className={styles.headerLogin}>
             <div className="container">
                 <div className={styles.headerLoginWrap}>
-                    <img src={LogoSvg} alt="Logo Podcast" className={styles.icon}></img>
+                    <img src={LogoSvg} alt="Logo Podcast" className={styles.icon} />
                     <span className={styles.text}>Podcast</span>
                 </div>
             </div>

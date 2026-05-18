@@ -37,9 +37,7 @@ const LoginPage = () => {
 
     try {
       const tokens = await login(email.trim(), password);
-      console.log("tokens:", tokens);
       saveTokens(tokens);
-      console.log("saved!");
       navigate("/");
     } catch (err: any) {
       if (err.status === 403 && err.error === "email_not_verified") {

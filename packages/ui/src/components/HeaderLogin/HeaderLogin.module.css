@@ -20,7 +20,7 @@
     font-family: var(--font-nunito);
     font-weight: 800;
     color: var(--color-main);
-    letter-spacing: -0.2;
+    letter-spacing: -0.2px;
 }
 
 @media (max-width: 1024px) {
