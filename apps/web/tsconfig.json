@@ -25,6 +25,6 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-
+  "include": ["src", "../../packages/types/src/global.d.ts"],
   "exclude": ["dist", "node_modules"]
 }

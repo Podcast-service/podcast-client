@@ -1,0 +1,429 @@
+.main {
+    display: flex;
+    flex: 1;
+}
+
+.pageContainer {
+    flex: 1;
+    display: flex;
+}
+
+.mainWrap {
+    width: 100%;
+    flex: 1;
+
+    display: grid;
+    grid-template-columns: minmax(0, 375px) minmax(0, 400px);
+    justify-content: center;
+    align-items: center;
+    column-gap: 160px;
+
+    padding: 32px 40px 40px;
+    box-sizing: border-box;
+
+    transform: translateY(-15px);
+}
+
+.leftPart {
+    min-width: 0;
+}
+
+.leftWrap {
+    width: 100%;
+}
+
+.leftTextGroup {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    margin: 0 0 16px;
+    color: var(--color-border-hover);
+    font-family: var(--font-playfair);
+    font-size: 52px;
+    line-height: 69px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.description {
+    margin: 0;
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+    letter-spacing: -1.5px;
+}
+
+.rightPart {
+    min-width: 0;
+    transform: translateY(5px);
+}
+
+.rightWrap {
+    width: 100%;
+}
+
+.progressWrap {
+    margin-bottom: 8px;
+}
+
+.formTitle {
+    margin: 0 0 4px;
+    color: var(--color-main);
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    line-height: 38px;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+}
+
+.formSubtitle {
+    margin: 0 0 32px;
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+.infoBox {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 12px 12px;
+    margin-bottom: 32px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #B9CFC2;
+    background-color: var(--color-green-light);
+}
+
+.infoIcon {
+    width: 30px;
+    height: 30px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.tabLogo {
+    display: none;
+}
+
+.infoText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.infoLabel {
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.infoEmail {
+    color: var(--color-main);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 14px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+}
+
+.codeWrap {
+    padding: 0 28px;
+    margin-bottom: 32px;
+    box-sizing: border-box;
+}
+
+.confirmButton {
+    margin-bottom: 12px;
+}
+
+.backButton {
+    margin-bottom: 28px;
+}
+
+.resendBlock {
+    text-align: center;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    margin-bottom: 8px;
+    letter-spacing: -0.4px;
+}
+
+.resendText {
+    color: var(--color-text-footer);
+}
+
+.resendTimerText {
+    color: var(--color-load-border-secondary);
+}
+
+.resendButton {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-border-hover);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    text-decoration: none;
+    text-decoration-color: var(--color-border-hover);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 1px;
+    cursor: pointer;
+    letter-spacing: -0.8px;
+}
+
+.laterBlock {
+    text-align: center;
+}
+
+.laterLink {
+    color: var(--color-border-hover);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-decoration-color: var(--color-border-hover);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    letter-spacing: -0.4px;
+}
+
+.codeWrapError :global(input) {
+    border-color: var(--color-error);
+}
+
+.codeWrapError :global(input:focus) {
+    border-color: var(--color-error);
+}
+
+@keyframes otpShake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-3px); }
+    40% { transform: translateX(3px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+}
+
+.codeWrapShake {
+    animation: otpShake 0.25s ease;
+}
+
+
+@media (max-width: 1024px) {
+    .mainWrap {
+        grid-template-columns: minmax(0, 345px) minmax(0, 486px);
+        column-gap: 70px;
+        padding: 32px 40px;
+        transform: translateY(-70px);
+    }
+    .title {
+        font-size: 42px;
+        line-height: 56px;
+        letter-spacing: -0.5px;
+    }
+    .description {
+        font-size: 16px;
+        line-height: 22px;
+        letter-spacing: -1.5px;
+    }
+    .rightPart {
+        transform: translateY(30px);
+    }
+    .codeWrap {
+        padding: 0 70px;
+    }
+    .backButton {
+        margin-bottom: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        padding: 11vh 24px 32px;
+        transform: none;
+    }
+    .leftPart {
+        display: none;
+    }
+    .rightPart {
+        width: 100%;
+        max-width: 550px;
+        transform: none;
+    }
+    .tabLogo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 5.6vh;
+    }
+    .tabLogo img {
+        width: 90px;
+        height: 90px;
+        display: block;
+    }
+    .formTitle {
+        font-size: 32px;
+        line-height: 44px;
+        letter-spacing: -0.9px;
+        margin-bottom: 6px;
+    }
+    .formSubtitle {
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.9px;
+        margin-bottom: 36px;
+    }
+    .infoBox {
+        margin-bottom: 50px;
+        gap: 27px;
+    }
+    .infoLabel {
+        font-size: 16px;
+        line-height: 21px;
+        letter-spacing: 0.6px;
+    }
+    .infoEmail {
+        font-size: 19px;
+        line-height: 21px;
+        letter-spacing: 0.6px;
+    }
+    .infoIcon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .codeWrap {
+        padding: 0 56px;
+        margin-bottom: 50px;
+    }
+    
+}
+@media (max-width: 480px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        padding: 5vh 24px 24px;
+        transform: none;
+    }
+
+    .leftPart {
+        display: none;
+    }
+
+    .rightPart {
+        width: 100%;
+        max-width: none;
+        transform: none;
+    }
+
+    .tabLogo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 5.5vh;
+    }
+
+    .tabLogo img {
+        width: 74px;
+        height: 74px;
+        display: block;
+    }
+
+    .formTitle {
+        font-size: 28px;
+        line-height: 38px;
+        letter-spacing: -0.6px;
+        margin-bottom: 6px;
+    }
+
+    .formSubtitle {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+        margin-bottom: 18px;
+    }
+
+    .infoBox {
+        gap: 14px;
+        padding: 10px 12px;
+        margin-bottom: 20px;
+    }
+
+    .infoIcon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .infoLabel {
+        font-size: 11px;
+        line-height: 14px;
+        letter-spacing: 0.4px;
+    }
+
+    .infoEmail {
+        font-size: 13px;
+        line-height: 18px;
+        letter-spacing: -0.2px;
+    }
+
+    .codeWrap {
+        padding: 0;
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .confirmButton {
+        margin-bottom: 10px;
+    }
+
+    .backButton {
+        margin-bottom: 16px;
+    }
+
+    .resendBlock {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: -0.3px;
+        margin-bottom: 6px;
+    }
+
+    .resendButton {
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .resendTimerText {
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .laterLink {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: -0.3px;
+    }
+}

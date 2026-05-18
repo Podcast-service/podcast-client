@@ -1,0 +1,351 @@
+.main {
+    flex: 1;
+    display: flex;
+}
+
+.pageContainer {
+    flex: 1;
+    display: flex;
+}
+
+.mainWrap {
+    width: 100%;
+    flex: 1;
+
+    display: grid;
+    grid-template-columns: minmax(0, 470px) minmax(0, 400px);
+    justify-content: center;
+    align-items: center;
+    column-gap: 53px;
+
+    padding: 32px 40px 40px;
+    box-sizing: border-box;
+
+    transform: translateY(-15px);
+}
+
+
+.leftPart {
+    min-width: 0;
+}
+
+.title {
+    margin: 0 0 14px;
+
+    color: var(--color-secondary);
+    font-family: var(--font-playfair);
+    font-size: 52px;
+    line-height: 1.1;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -1.4px;
+}
+
+.description {
+    margin: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+    letter-spacing: -1px;
+}
+
+
+.rightPart {
+    min-width: 0;
+    transform: translateY(10px);
+}
+
+.formTitle {
+    margin: 0 0 4px;
+
+    color: var(--color-main);
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+}
+
+.formSubtitle {
+    margin: 0 0 22px;
+
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.authErrorText {
+    display: block;
+    margin-top: -12px;
+    margin-bottom: 8px;
+
+    color: var(--color-error);
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 600;
+}
+
+.submitButton {
+    margin-top: 8px;
+}
+
+.formFooter {
+    margin-top: 16px;
+}
+
+.register {
+    margin-bottom: 8px;
+
+    text-align: center;
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+.link {
+    color: var(--color-primary);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.forgotAccess {
+    text-align: center;
+}
+
+.forgotLink {
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.tabletLogo {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .mainWrap {
+        grid-template-columns: minmax(0,370px) minmax(0, 486px);
+        column-gap: 58px;
+
+        padding: 32px 40px 40px;
+        transform: translateY(-40px);
+    }
+
+    .rightPart {
+        transform: translateY(20px);
+    }
+
+    .title {
+        font-size: 42px;
+        line-height: 56px;
+        letter-spacing: -1.2px;
+        margin-bottom: 10px;
+    }
+
+    .description {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -1.2px;
+    }
+
+    .formTitle {
+        font-size: 26px;
+        line-height: 15px;
+        letter-spacing: -0.6px;
+        margin-bottom: 4px;
+    }
+
+    .formSubtitle {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+        margin-bottom: 24px;
+    }
+
+    .formFooter {
+        margin-top: 16px;
+    }
+    .submitButton {
+        margin-top: 4px;
+    }
+
+    .form {
+        gap: 4px;
+    }
+
+    .register,
+    .forgotLink {
+        font-size: 13px;
+        line-height: 18px;
+        letter-spacing: -0.5px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        padding: 12vh 24px 32px;
+        transform: none;
+    }
+
+    .authErrorText {
+        font-size: 14px;
+        line-height: 18px;
+        margin-top: -8px;
+    }
+
+
+    .leftPart {
+        display: none;
+    }
+
+    .rightPart {
+        width: 100%;
+        max-width: 550px;
+        transform: none;
+    }
+
+    .tabletLogo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 3vh;
+    }
+
+    .tabletLogo img {
+        width: 90px;
+        height: 90px;
+        display: block;
+    }
+
+    .formTitle {
+        font-size: 38px;
+        letter-spacing: -0.8px;
+        line-height: 52px;
+        margin-bottom: 4px;
+    }
+
+    .formSubtitle {
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.8px;
+        margin-bottom: 3vh;
+    }
+
+   .submitButton {
+        margin-top: 16px;
+    }
+
+    .formFooter {
+        margin-top: 3vh;
+    }
+
+    .register,
+    .forgotLink {
+        font-size: 18px;
+        line-height: 25px;
+        letter-spacing: -0.7px;
+    }
+
+    
+}
+
+
+@media (max-width: 480px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+
+        padding: 11vh 24px 24px;
+        transform: none;
+
+    }
+
+    .authErrorText {
+        font-size: 12px;
+        line-height: 18px;
+        margin-top: -12px;
+        margin-bottom: 0;
+    }
+
+    .leftPart {
+        display: none;
+    }
+
+    .rightPart {
+        width: 100%;
+        max-width: none;
+    }
+
+    .tabletLogo img {
+        width: 74px;
+        height: 74px;
+    }
+
+    .formTitle {
+        font-size: 28px;
+        line-height: 38px;
+        letter-spacing: -0.6px;
+        margin-bottom: 2px;
+        text-align: center;
+    }
+
+    .formSubtitle {
+        font-size: 14px;
+        line-height: 19px;
+        margin-bottom: 3vh;
+        letter-spacing: -0.6px;
+        text-align: center;
+    }
+
+    .formFooter {
+        margin-top: 1.5vh;
+    }
+
+    .register,
+    .forgotLink {
+        font-size: 13px;
+        line-height: 18px;
+        letter-spacing: -0.5px;
+    }
+
+    .register {
+        margin-bottom: 8px;
+    }
+
+    .submitButton {
+        margin-top: 8px;
+    }
+}
+
