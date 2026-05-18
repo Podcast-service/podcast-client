@@ -1,16 +1,3 @@
-import Logo from './components/Logo/Logo';
-import Footer from './components/Footer/Footer';
-import LoginPage from './pages/LoginPage/LoginPage';
-import './styles/global.css';
+import Frontend from "./frontend";
 
-function App() {
-    return (
-        <div className="app">
-            <Logo />
-            <LoginPage />
-            <Footer />
-        </div>
-    );
-}
-
-export default App;
+export default Frontend;

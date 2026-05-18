@@ -1,12 +1,13 @@
 .button {
-    padding: 12px 24px;
+    padding: 10px 24px;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-family: var(--font-primary);
+    font-family: var(--font-open-sans);
     width: 100%;
     border-radius: 8px;
+    box-sizing: border-box;
 }
 
 .primary {
@@ -22,13 +23,19 @@
 .primary.disabled {
     background-color: var(--color-disable-primary);
     color: var(--color-text-primary);
+}
+
+.disabled {
+    cursor: default;
+}
+
+.loading {
     cursor: default;
 }
 
 .primary.loading {
     background-color: var(--color-load-primary);
     color: var(--color-text-primary);
-    cursor: default;
 }
 
 .secondary {
@@ -55,3 +62,23 @@
     border: 1.5px solid var(--color-load-border-secondary);
     cursor: default;
 }
+
+
+@media (max-width: 768px) {
+    .button {
+        padding: 11px 18px;
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .button {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+        padding: 10px 16px;
+    }
+}
+

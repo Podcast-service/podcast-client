@@ -1,0 +1,43 @@
+.headerLogin {
+    width: 100%;
+    padding: 32px 40px;
+}
+
+.headerLoginWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.text {
+    font-size: 14px;
+    font-family: var(--font-nunito);
+    font-weight: 800;
+    color: var(--color-main);
+    letter-spacing: -0.2;
+}
+
+@media (max-width: 1024px) {
+    .icon {
+        width: 54px;
+        height: 54px;
+    }
+
+    .text {
+        font-size: 21px;
+        line-height: 29px;
+        letter-spacing: -0.8px;
+    }
+
+    .headerLoginWrap {
+    gap: 14px;
+    }
+}
+
+

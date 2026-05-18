@@ -1,1 +1,3 @@
-export { App } from "@podcast/ui";
+import Main from "./main";
+
+export default Main;

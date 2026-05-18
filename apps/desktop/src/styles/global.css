@@ -46,7 +46,6 @@ body {
 
 .app {
     min-height: 100vh;
-    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -61,6 +60,7 @@ body {
 .container {
     max-width: 1500px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .desktopHeader {
@@ -68,12 +68,6 @@ body {
 }
 
 @media (max-width: 768px) {
-    .desktopHeader {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
     .desktopHeader {
         display: none;
     }
