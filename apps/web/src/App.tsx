@@ -1,1 +1,3 @@
-export { App } from "@podcast/ui";
+import Frontend from "./frontend";
+
+export default Frontend;

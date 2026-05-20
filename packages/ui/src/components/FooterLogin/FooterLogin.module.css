@@ -1,0 +1,28 @@
+.footerLogin {
+    width: 100%;
+    padding: 25px 40px;
+}
+
+.footerLoginWrap {
+    display: flex;
+    align-items: center;
+}
+
+.text {
+    font-size: 13px;
+    font-weight: 200;
+    font-family: var(--font-primary);
+    color: var(--color-text-footer);
+    letter-spacing: -0.2px;
+}
+
+@media (max-width: 480px) {
+    .footerLogin {
+        padding: 25px 24px;
+    }
+    .text {
+        font-size: 10px;
+        line-height: 14px;
+        letter-spacing: -0.5px;
+    }
+}

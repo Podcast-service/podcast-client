@@ -1,0 +1,317 @@
+.main {
+    flex: 1;
+    display: flex;
+}
+
+.pageContainer {
+    flex: 1;
+    display: flex;
+}
+
+.mainWrap {
+    width: 100%;
+    flex: 1;
+
+    display: grid;
+    grid-template-columns: minmax(0, 520px) minmax(0, 400px);
+    justify-content: center;
+    align-items: center;
+    column-gap: 16px;
+
+    padding: 32px 40px 40px;
+    box-sizing: border-box;
+
+    transform: translateY(-20px);
+}
+
+.leftPart {
+    min-width: 0;
+}
+
+.leftTextGroup {
+    display: flex;
+    flex-direction: column;
+}
+
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin: 0 0 16px;
+}
+
+.titleMain,
+.titleAccent {
+    font-family: var(--font-playfair);
+    font-size: 52px;
+    line-height: 1.08;
+    font-weight: 900;
+    letter-spacing: -1.4px;
+}
+
+.titleMain {
+    color: var(--color-main);
+}
+
+.titleAccent {
+    color: var(--color-secondary);
+    font-style: italic;
+}
+
+.description {
+    max-width: 500px;
+    margin: 0;
+
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+    letter-spacing: -1.5px;
+}
+
+
+.rightPart {
+    min-width: 0;
+    transform: translateY(28px);
+}
+
+.progressWrap {
+    margin-bottom: 8px;
+}
+
+.formTitle {
+    margin: 0 0 6px;
+
+    color: var(--color-main);
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    line-height: 38px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+}
+
+.formSubtitle {
+    margin: 0 0 16px;
+
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.7px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkboxWrap {
+    margin-top: 10px;
+}
+
+.submitButton {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.loginBlock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+
+    text-align: center;
+}
+
+.loginText {
+    color: var(--color-text-footer);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+}
+
+.loginLink {
+    color: var(--color-border-hover);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+
+    text-decoration: underline;
+    text-decoration-color: var(--color-border-hover);
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+}
+
+.tabletLogo {
+    display: none;
+}
+
+.serverError {
+    display: block;
+    margin-top: 4px;
+    margin-bottom: 0;
+ 
+    color: var(--color-error);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    line-height: 10px;
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+    .mainWrap {
+        grid-template-columns: minmax(0,370px) minmax(0, 486px);
+        column-gap: 50px;
+
+        padding: 32px 40px;
+        transform: translateY(-30px);
+    }
+    .titleMain {
+        font-size: 42px;
+        line-height: 56px;
+        letter-spacing: -1.25px;
+    }
+    .titleAccent {
+        font-size: 40px;
+        line-height: 52px;
+        letter-spacing: -1.25px;
+    }
+    .description {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -1.25px;
+    }
+    .titleBlock {
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .rightPart {
+        transform: translateY(8px);
+    }
+
+    .submitButton {
+        margin-top: 14px;
+    }
+
+    .serverError {
+        margin-top: 8px;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        padding: 11vh 24px 32px;
+        transform: none;
+    }
+    .leftPart {
+        display: none;
+    }
+    .tabletLogo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 5.5vh;
+    }
+    .rightPart {
+        width: 100%;
+        max-width: 550px;
+        transform: none;
+    }
+    .tabletLogo img {
+        width: 90px;
+        height: 90px;
+        display: block;
+    }
+    .formTitle {
+        font-size: 32px;
+        line-height: 44px;
+        letter-spacing: -0.8px;
+        margin: 0 0 8px;
+    }
+    .formSubtitle {
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.9px;
+        margin-bottom: 2vh;
+    }
+    .checkboxWrap {
+        margin-top: 0;
+    }
+    .loginText {
+        font-size: 18px;
+        line-height: 25px;
+        letter-spacing: -0.7px;
+    }
+
+    .serverError {
+        font-size: 15px;
+        line-height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mainWrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        padding: 5vh 24px 24px;
+        transform: none;
+
+    }
+
+    .leftPart {
+        display: none;
+    }
+
+    .rightPart {
+        width: 100%;
+        max-width: none;
+    }
+    .tabletLogo img {
+        width: 74px;
+        height: 74px;
+    }
+    .formTitle {
+        font-size: 28px;
+        line-height: 38px;
+        letter-spacing: -0.6px;
+        margin: 0 0 4px;
+    }
+    .formSubtitle {
+        font-size: 13px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+        margin-bottom: 2vh;
+    }
+    .progressWrap {
+        margin-bottom: 12px;
+    }
+    .checkboxWrap {
+        margin-top: 6px;
+    }
+    .loginText {
+        font-size: 13px;
+        line-height: 18px;
+        letter-spacing: -0.5px;
+    }
+
+    .serverError {
+        font-size: 12px;
+        line-height: 10px;
+        margin-top: 10px;
+    }
+}

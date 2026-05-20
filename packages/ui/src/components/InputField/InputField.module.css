@@ -1,0 +1,178 @@
+.field {
+    width: 100%;
+}
+
+.label {
+    display: block;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-main);
+    letter-spacing: -0.5px;
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-input-bg);
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border);
+    transition: 0.2s all ease;
+    box-sizing: border-box;
+}
+
+.inputWrapper:hover {
+    border-color: var(--color-border-hover);
+}
+
+.inputWrapper:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.inputWrapper.error {
+    border-color: var(--color-error);
+}
+
+.input {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    line-height: 20px;
+
+    font-family: var(--font-open-sans);
+    background-color: transparent;
+    border: none;
+    color: var(--color-main);
+    outline: none;
+}
+
+.input::placeholder {
+    color: var(--color-placeholder);
+}
+
+.eyeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.eyeButton img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.bottomRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 20px;
+}
+
+.errorMessage {
+    font-weight: 600;
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    color: var(--color-error);
+    flex: 1;
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-input-bg) inset;
+    -webkit-text-fill-color: var(--color-main);
+    caret-color: var(--color-main);
+    border-radius: 8px;
+    transition: background-color 9999s ease-in-out 0s;
+    
+}
+
+.input:-webkit-autofill::first-line {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.input::-ms-reveal,
+.input::-ms-clear {
+    display: none;
+}
+
+
+@media (max-width: 768px) {
+    .label {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .bottomRow {
+        min-height: 30px;
+    }
+
+    .input {
+        padding: 15px 20px;
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.8px;
+    }
+
+    .input:-webkit-autofill::first-line {
+        font-size: 19px;
+        line-height: 26px;
+        letter-spacing: -0.8px;
+    }
+
+    .eyeButton img {
+        width: 24px;
+        height: 24px;
+    }
+    .errorMessage {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .label {
+        font-size: 13px;
+        letter-spacing: -0.6px;
+        line-height: 18px;
+        margin-bottom: 4px;
+    }
+
+    .input {
+        padding: 11px 15px;
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+    }
+
+    .input:-webkit-autofill::first-line {
+        font-size: 14px;
+        line-height: 19px;
+        letter-spacing: -0.6px;
+    }
+
+    .bottomRow {
+        min-height: 20px;
+    }
+
+    .eyeButton img {
+        width: 20px;
+        height: 20px;
+    }
+    .errorMessage {
+        font-size: 11px;
+    }
+
+}
+

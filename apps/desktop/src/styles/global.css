@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+
+:root {
+    --font-playfair: "Playfair Display", sans-serif;
+    --font-open-sans: "Open Sans", sans-serif;
+    --font-nunito: "Nunito", sans-serif;
+
+    --color-bg-page: #f0ede6;
+    
+    --color-text-primary: #FFFFFF;
+
+    --color-primary: #1b4332;
+    --color-primary-hover: #143728;
+    --color-disable-primary: #E0DBD0;
+    --color-load-primary: #8A9C94;
+
+    --color-secondary: #2D6A4F;
+    --color-hover-secondary: rgba(231, 252, 232, 0.215);
+    --color-hover-border-secondary: #365f4d;
+    --color-dis-border-secondary: #B5B0A6;
+    --color-load-secondary: rgba(236, 249, 237, 0.272);
+    --color-load-border-secondary: #8EA199;
+    --color-green-light: #D8F3DC;
+
+
+    --color-error: #D32F2F;
+    --color-main: #1a1a1a;
+    --color-border: #e0dbd0;
+    --color-placeholder: #b5b0a6;
+    --color-input-bg: #FFFFFF;
+    --color-border-hover: #1B4332; 
+
+    --color-text-footer: #7A756A;
+
+
+}
+
+body {
+    background-color: var(--color-bg-page);
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 1500px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.desktopHeader {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .desktopHeader {
+        display: none;
+    }
+}

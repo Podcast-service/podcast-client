@@ -1,0 +1,19 @@
+.stepProgress {
+    display: flex;
+    width: 100%;
+    gap: 5px;
+}
+
+.step {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+}
+
+.active {
+    background-color: var(--color-border-hover);
+}
+
+.inactive {
+    background-color: var(--color-border);
+}
