@@ -1,0 +1,247 @@
+.player {
+    position: sticky;
+    bottom: 0;
+    z-index: 150;
+
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 320px)
+        minmax(320px, 1fr)
+        minmax(180px, 240px);
+
+    align-items: center;
+    gap: 24px;
+
+    width: 100%;
+    min-height: 84px;
+    padding: 12px 32px;
+
+    background-color: var(--color-bg-page);
+    border-top: 1px solid var(--color-border);
+
+    box-sizing: border-box;
+}
+
+.trackInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 0;
+}
+
+.coverWrap {
+    width: 50px;
+    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
+
+    overflow: hidden;
+    border-radius: 8px;
+
+    background-color: var(--color-border);
+}
+
+.cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.trackText {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    min-width: 0;
+}
+
+.trackTitle {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    color: var(--color-primary);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trackEpisode {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 15px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-main);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    min-width: 0;
+}
+
+.controlButtons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.controlBtn,
+.extraBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.controlBtn img,
+.extraBtn img {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.extraBtn:disabled {
+    cursor: default;
+}
+
+.downloadLoading img {
+    animation: downloadSpin 1s linear infinite;
+}
+
+@keyframes downloadSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.playBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+.playBtn img {
+    width: 40px;
+    height: 40px;
+    display: block;
+}
+
+.progressWrap {
+    display: grid;
+    grid-template-columns: 42px minmax(120px, 1fr) 42px;
+    align-items: center;
+    gap: 14px;
+
+    width: min(100%, 520px);
+}
+
+.time {
+    font-family: var(--font-work-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-primary);
+
+    text-align: center;
+}
+
+.progressBar,
+.volumeBar {
+    position: relative;
+
+    height: 4px;
+
+    background-color: #B5B0A6;
+    border-radius: 999px;
+
+    overflow: hidden;
+}
+
+.progressFill,
+.volumeFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    height: 100%;
+
+    background-color: var(--color-primary);
+    border-radius: inherit;
+
+    pointer-events: none;
+}
+
+.progressInput,
+.volumeInput {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+
+    opacity: 0;
+    cursor: pointer;
+}
+
+.extra {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    min-width: 0;
+}
+
+.volumeWrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volumeIcon {
+    width: 18px;
+    height: 18px;
+    display: block;
+
+    flex-shrink: 0;
+}
+
+.volumeBar {
+    width: 96px;
+}

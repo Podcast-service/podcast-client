@@ -34,7 +34,7 @@ jobs:
 
       - name: Build and push
         run: |
-          docker build \
+          docker build --no-cache \
             -t malblsh/podcast_client:${{ steps.vars.outputs.SHA }} \
             -t malblsh/podcast_client:latest \
             .

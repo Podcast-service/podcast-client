@@ -1,0 +1,234 @@
+.wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+
+    width: 100%;
+}
+
+.wrapOnlySort {
+    justify-content: flex-end;
+}
+
+.tabsOuter {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    align-items: center;
+    column-gap: 8px;
+
+    flex: 1;
+    min-width: 0;
+}
+
+.tabsWrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    min-width: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: smooth;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tabsWrap::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    flex-shrink: 0;
+
+    padding: 10px 20px;
+
+    border-radius: 999px;
+    border: 1.5px solid #C1C8C2;
+
+    background-color: #F3F4F1;
+    color: #5E604D;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.tab:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.tabActive {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-primary);
+    font-weight: 700;
+}
+
+.tabActive:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: var(--color-text-primary);
+}
+
+.scrollBtn {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    transition: opacity 0.2s ease;
+}
+
+.scrollBtn:hover {
+    opacity: 0.9;
+}
+
+.scrollBtn img {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+.scrollBtnHidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.sortWrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.sortLabel {
+    white-space: nowrap;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    color: #414844;
+}
+
+.customSelect {
+    position: relative;
+}
+
+.customSelectBtn {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    min-height: 38px;
+    padding: 10px 20px;
+
+    border: 1.5px solid #C1C8C2;
+    border-radius: 999px;
+
+    background-color: var(--color-input-bg);
+    color: #012D1D;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.customSelectBtn:hover {
+    border-color: var(--color-primary);
+}
+
+.chevron {
+    width: 14px;
+    height: 14px;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 30;
+
+    min-width: 190px;
+    padding: 6px;
+
+    border: 1.5px solid #C1C8C2;
+    border-radius: 20px;
+
+    background-color: var(--color-input-bg);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12);
+}
+
+.dropdownItem {
+    width: 100%;
+
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: none;
+    color: #012D1D;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    text-align: left;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.dropdownItem:hover {
+    background-color: var(--color-hover-secondary);
+    color: var(--color-primary);
+}
+
+.dropdownItemActive {
+    background-color: var(--color-bg-page);
+    color: var(--color-primary);
+}

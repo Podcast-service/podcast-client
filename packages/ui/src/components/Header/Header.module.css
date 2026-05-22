@@ -1,0 +1,153 @@
+.header {
+    width: 100%;
+    background-color: var(--color-input-bg);
+    border-bottom: 1px solid var(--color-border-search);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.headerWrap {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 32px;
+    box-sizing: border-box;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.logoIcon {
+    width: 40px;
+    height: 40px;
+    display: block;
+}
+
+.logoText {
+    font-family: var(--font-nunito);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--color-main);
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-shrink: 0;
+}
+
+.navLink {
+    font-family: var(--font-work-sans);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-nav-link);
+    text-decoration: none;
+    letter-spacing: -0.4px;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.navLink:hover {
+    color: var(--color-primary);
+}
+
+.navLinkActive {
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+}
+
+.searchWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--color-bg-search);
+    border: 1.5px solid var(--color-border-search);
+    border-radius: 100px;
+    padding: 11px 16px;
+    transition: border-color 0.2s ease;
+    width: 350px;
+    box-sizing: border-box;
+}
+
+.searchWrap:focus-within {
+    border-color: var(--color-primary);
+}
+
+.searchIcon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.searchInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: var(--font-work-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-main);
+    letter-spacing: -0.4px;
+    min-width: 0;
+}
+
+.searchInput::placeholder {
+    color: #6B7280;
+}
+
+.settingsBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+
+.settingsIcon {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+.avatarWrap {
+    display: block;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
