@@ -171,6 +171,14 @@ const RECOMMENDED_PODCASTS = [
     coverUrl:
       "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&auto=format&fit=crop",
   },
+  {
+    id: "4",
+    title: "Web 3.0: Миф или новая реальность?",
+    category: "Технологии",
+    duration: "55 мин",
+    coverUrl:
+      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&auto=format&fit=crop",
+  },
 ];
 
 const MOCK_SORT = [
