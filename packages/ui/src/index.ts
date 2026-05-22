@@ -1,4 +1,5 @@
 export { App } from "./App";
+export { default as ScrollToTop } from "./components/ScrollToTop/ScrollToTop";
 export { default as HeaderLogin } from "./components/HeaderLogin/HeaderLogin";
 export { default as LoginPage } from "./pages/LoginPage/LoginPage";
 export { default as FooterLogin } from "./components/FooterLogin/FooterLogin";
@@ -7,3 +8,30 @@ export { default as VerifyEmailPage } from "./pages/VerifyEmailPage/VerifyEmailP
 export { default as ForgotPasswordPage } from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 export { default as ForgotPasswordVerifyPage  } from "./pages/ForgotPasswordVerifyPage/ForgotPasswordVerifyPage";
 export { default as ForgotPasswordResetPage   } from "./pages/ForgotPasswordResetPage/ForgotPasswordResetPage";
+export { default as MainPage   } from "./pages/MainPage/MainPage";
+export { default as PodcastsPage } from "./pages/PodcastsPage/PodcastsPage";
+export { default as AuthorsPage } from "./pages/AuthorsPage/AuthorsPage";
+export { default as PlaylistsPage } from "./pages/PlaylistsPage/PlaylistsPage";
+export { default as PodcastPage } from "./pages/PodcastPage/PodcastPage";
+export { default as AuthorPage } from "./pages/AuthorPage/AuthorPage";
+
+
+
+export { default as Header } from "./components/Header/Header";
+export { default as Footer } from "./components/Footer/Footer";
+export { default as PodcastCard } from "./components/PodcastCard/PodcastCard";
+export { default as AuthorCard } from "./components/AuthorCard/AuthorCard";
+export { default as SectionRow } from "./components/SectionRow/SectionRow";
+export { default as Player } from "./components/Player/Player";
+export { default as FilterTabs } from "./components/FilterTabs/FilterTabs";
+export { default as PodcastRow } from "./components/PodcastRow/PodcastRow";
+export { default as LoadMoreButton } from "./components/LoadMoreButton/LoadMoreButton";
+export { default as AuthorRow } from "./components/AuthorRow/AuthorRow";
+export { default as PlaylistRow } from "./components/PlaylistRow/PlaylistRow";
+export { default as PodcastHero } from "./components/PodcastHero/PodcastHero";
+export { default as PodcastTranscript } from "./components/PodcastTranscript/PodcastTranscript";
+export { default as RecommendedPodcasts } from "./components/RecommendedPodcasts/RecommendedPodcasts";
+export { default as PlaylistCard } from "./components/PlaylistCard/PlaylistCard";
+export { default as AuthorProfileHero } from "./components/AuthorProfileHero/AuthorProfileHero";
+export { default as AuthorPodcastsCarousel } from "./components/AuthorPodcastsCarousel/AuthorPodcastsCarousel";
+

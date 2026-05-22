@@ -1,0 +1,76 @@
+.page {
+    width: 100%;
+}
+
+.pageInner {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+
+    padding: 32px 44px 40px 0;
+    box-sizing: border-box;
+}
+
+.offsetContent {
+    padding-left: 44px;
+    box-sizing: border-box;
+}
+
+.allPodcasts {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.listHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.sectionTitle {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 36px;
+    letter-spacing: -0.5px;
+
+    color: var(--color-primary);
+}
+
+.searchInput {
+    width: 280px;
+    height: 40px;
+
+    padding: 0 14px;
+
+    border: 1.5px solid #C1C8C2;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: var(--color-main);
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+
+    outline: none;
+}
+
+.searchInput::placeholder {
+    color: #9CA3AF;
+}
+
+.searchInput:focus {
+    border-color: var(--color-primary);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}

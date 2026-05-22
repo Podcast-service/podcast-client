@@ -1,0 +1,199 @@
+.card {
+    width: 100%;
+    min-width: 0;
+}
+
+.cardLink {
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    min-width: 0;
+}
+
+
+.coverWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background-color: var(--color-border);
+}
+
+.cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .cover {
+    transform: scale(1.06);
+}
+
+.coverPlaceholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-border);
+}
+
+
+.duration {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 1;
+
+    padding: 3px 10px;
+    border-radius: 10px;
+
+    background-color: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.2px;
+}
+
+
+.progressBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background-color: #B3B3B3;
+    z-index: 1;
+}
+
+.progressFill {
+    height: 100%;
+    background-color: #50A15C;
+}
+
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    background-color: rgba(0, 0, 0, 0.35);
+
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.card:hover .overlay {
+    opacity: 1;
+}
+
+.overlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.overlayIcon {
+    width: 27px;
+    height: 27px;
+    display: block;
+}
+
+.overlayPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transform: translateY(8px);
+}
+
+.overlayPlayIcon {
+    width: 110px;
+    height: 110px;
+    display: block;
+}
+
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.title {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.author {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: -0.2px;
+    color: #6B7280;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.stats {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 8px;
+    min-width: 0;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
+    letter-spacing: -0.2px;
+    color: #434343;
+}
+
+.statIcon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    flex-shrink: 0;
+}

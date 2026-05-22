@@ -1,0 +1,59 @@
+.page {
+    width: 100%;
+}
+
+.pageInner {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+
+    padding: 80px 32px;
+    box-sizing: border-box;
+}
+
+.content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    align-items: flex-start;
+    gap: 48px;
+}
+
+.mainColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+
+    min-width: 0;
+}
+
+.sideColumn {
+    min-width: 0;
+}
+
+.about {
+    width: 100%;
+}
+
+.sectionTitle {
+    margin: 0 0 16px;
+
+    font-family: var(--font-open-sans);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+
+    color: var(--color-primary);
+}
+
+.aboutText {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+    letter-spacing: -0.3px;
+
+    color: #414844;
+}
