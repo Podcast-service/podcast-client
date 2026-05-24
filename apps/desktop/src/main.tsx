@@ -34,8 +34,6 @@ import {
   AuthorPage,
 } from "@podcast/ui";
 
-import { TestPanel } from "./cef/TestPanel";
-
 import "./styles/global.css";
 
 interface ActivePodcast {
@@ -623,15 +621,7 @@ function Main() {
       </Route>
 
       <Route element={<MainLayout />}>
-        <Route
-          path="/"
-          element={
-            <>
-              <MainPage />
-              <TestPanel />
-            </>
-          }
-        />
+        <Route path="/" element={<MainPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />
         <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
