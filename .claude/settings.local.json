@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Admin/cef-rs/**)",
+      "Read(//c/Users/Admin/**)",
+      "Bash(find /c/Users/Admin -maxdepth 3 -type d -name \"cef-rs\" 2>/dev/null | head -5)",
+      "Bash(git -C /c/Users/Admin/cef-rs log --oneline -5)",
+      "WebFetch(domain:v2.tauri.app)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "Bash(cargo check *)",
+      "Bash(pwsh -ExecutionPolicy Bypass -File scripts/build-cef-host.ps1)",
+      "PowerShell(& \"c:\\\\Users\\\\Admin\\\\podcast-client\\\\apps\\\\desktop\\\\scripts\\\\build-cef-host.ps1\" 2>&1)",
+      "PowerShell(& \"c:\\\\Users\\\\Admin\\\\podcast-client\\\\apps\\\\desktop\\\\scripts\\\\build-cef-host.ps1\")",
+      "PowerShell($d = \"c:\\\\Users\\\\Admin\\\\podcast-client\\\\apps\\\\desktop\\\\cef-host\\\\target\\\\debug\\\\build\\\\cef-dll-sys-0fd5bef83cd13544\"; Get-ChildItem $d -Force | Select-Object Name; Write-Host \"---\"; Get-ChildItem \"$d\\\\out\" -Force -ErrorAction SilentlyContinue | Select-Object Name)",
+      "PowerShell($out = \"c:\\\\Users\\\\Admin\\\\podcast-client\\\\apps\\\\desktop\\\\cef-host\\\\target\\\\debug\\\\build\\\\cef-dll-sys-758ce7330518fbdd\\\\out\"; Get-ChildItem $out -Force | Select-Object Name, Mode; Write-Host \"---\"; Get-ChildItem \\(Join-Path $out \"cef_windows_x86_64\"\\) -Force -ErrorAction SilentlyContinue | Select-Object -First 30 Name)",
+      "PowerShell($loc = \"c:\\\\Users\\\\Admin\\\\podcast-client\\\\apps\\\\desktop\\\\cef-host\\\\target\\\\bundle\\\\cef-host\\\\locales\"; Test-Path $loc; \\(Get-ChildItem $loc -Force\\).Count; Get-ChildItem $loc -Force | Select-Object -First 5 Name, Length)"
+    ]
+  }
+}

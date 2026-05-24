@@ -15,6 +15,9 @@ use tokio::{
     sync::{Mutex, oneshot},
 };
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 /// Long-lived handle to the cef-host sidecar process. Cloned freely via `Arc`.
 pub struct CefSidecar {
     stdin: Mutex<ChildStdin>,
@@ -32,38 +35,69 @@ pub struct CefSidecarSlot(pub Mutex<Option<Arc<CefSidecar>>>);
 impl CefSidecar {
     /// Resolve the path to the bundled `cef-host` executable.
     /// In dev: env var `CEF_HOST_BIN` overrides; otherwise default to the dev bundle path
-    /// relative to this crate (`../cef-host/target/bundle/cef-host.app/Contents/MacOS/cef-host`).
-    /// In prod: `<app-resources>/cef-host.app/Contents/MacOS/cef-host`.
+    /// relative to this crate.
+    ///   - macOS:   `../cef-host/target/bundle/cef-host.app/Contents/MacOS/cef-host`
+    ///   - Windows: `../cef-host/target/bundle/cef-host/cef-host.exe`
+    /// In prod: bundled as a resource inside the Tauri app.
+    ///   - macOS:   `<app-resources>/cef-host.app/Contents/MacOS/cef-host`
+    ///   - Windows: `<app-resources>/cef-host/cef-host.exe`
     fn resolve_binary(app: &AppHandle) -> Result<PathBuf, String> {
         if let Ok(path) = std::env::var("CEF_HOST_BIN") {
             return Ok(PathBuf::from(path));
         }
 
-        // Try the dev bundle path first (relative to src-tauri).
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let dev_path = manifest_dir
-            .join("..")
-            .join("cef-host")
-            .join("target")
-            .join("bundle")
-            .join("cef-host.app")
-            .join("Contents")
-            .join("MacOS")
-            .join("cef-host");
+
+        #[cfg(target_os = "macos")]
+        let (dev_path, prod_rel) = (
+            manifest_dir
+                .join("..")
+                .join("cef-host")
+                .join("target")
+                .join("bundle")
+                .join("cef-host.app")
+                .join("Contents")
+                .join("MacOS")
+                .join("cef-host"),
+            PathBuf::from("cef-host.app")
+                .join("Contents")
+                .join("MacOS")
+                .join("cef-host"),
+        );
+
+        #[cfg(target_os = "windows")]
+        let (dev_path, prod_rel) = (
+            manifest_dir
+                .join("..")
+                .join("cef-host")
+                .join("target")
+                .join("bundle")
+                .join("cef-host")
+                .join("cef-host.exe"),
+            PathBuf::from("cef-host").join("cef-host.exe"),
+        );
+
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let (dev_path, prod_rel) = (
+            manifest_dir
+                .join("..")
+                .join("cef-host")
+                .join("target")
+                .join("bundle")
+                .join("cef-host")
+                .join("cef-host"),
+            PathBuf::from("cef-host").join("cef-host"),
+        );
+
         if dev_path.exists() {
             return Ok(dev_path);
         }
 
-        // Production: bundled as a resource inside the Tauri .app.
         let resource_dir = app
             .path()
             .resource_dir()
             .map_err(|e| format!("resource_dir: {e}"))?;
-        let prod_path = resource_dir
-            .join("cef-host.app")
-            .join("Contents")
-            .join("MacOS")
-            .join("cef-host");
+        let prod_path = resource_dir.join(&prod_rel);
         if prod_path.exists() {
             return Ok(prod_path);
         }
@@ -94,6 +128,17 @@ impl CefSidecar {
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
             .kill_on_drop(true);
+
+        // On Windows the CEF dlls and locales/ sit next to cef-host.exe inside the
+        // bundle dir; setting CWD there lets the loader find them no matter where the
+        // Tauri parent was launched from. Also suppress the flash of a console window.
+        #[cfg(windows)]
+        {
+            if let Some(bundle_dir) = bin.parent() {
+                cmd.current_dir(bundle_dir);
+            }
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
 
         let mut child = cmd.spawn().map_err(|e| format!("spawn cef-host: {e}"))?;
         let stdin = child.stdin.take().ok_or("missing stdin")?;

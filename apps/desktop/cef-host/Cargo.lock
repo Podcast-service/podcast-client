@@ -173,6 +173,8 @@ dependencies = [
 [[package]]
 name = "cef"
 version = "148.1.0+147.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f69f182b13a846048af7eb44b231c36ce316b2823ad0455e947f9ba955b2984f"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -191,6 +193,8 @@ dependencies = [
 [[package]]
 name = "cef-dll-sys"
 version = "148.1.0+147.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e528ba9dfc0c7a28c820a6bb3f7c80611eaaa11e6b4f8d13913b2c527edf559d"
 dependencies = [
  "anyhow",
  "cmake",
@@ -208,6 +212,7 @@ dependencies = [
  "objc2-foundation",
  "serde",
  "serde_json",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -363,6 +368,8 @@ dependencies = [
 [[package]]
 name = "download-cef"
 version = "2.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c169adf067a787e1f1c58ed62906a557de85388bee4b54fb878b722ff606b113"
 dependencies = [
  "bzip2",
  "clap",

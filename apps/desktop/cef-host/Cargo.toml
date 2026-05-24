@@ -14,6 +14,10 @@ path = "src/main.rs"
 name = "cef_host_helper"
 path = "src/bin/cef_host_helper.rs"
 
+[[bin]]
+name = "bundle_cef_host"
+path = "src/bin/bundle_cef_host.rs"
+
 [features]
 default = []
 
@@ -21,7 +25,7 @@ default = []
 helper_name = "cef_host_helper"
 
 [dependencies]
-cef = { path = "/Users/q1zin/cef-rs/cef", default-features = false, features = ["build-util"] }
+cef = { version = "148.1.0+147.0.14", default-features = false, features = ["build-util"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
@@ -35,4 +39,10 @@ objc2-app-kit = { version = "0.3.2", default-features = false, features = [
     "NSUserInterfaceValidation",
     "NSView",
     "NSWindow",
+] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
 ] }

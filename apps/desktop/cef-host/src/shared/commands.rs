@@ -214,7 +214,16 @@ fn handle_show(req: &Request) -> CmdResult {
         // Re-center on every show so the window appears in the middle of the user's
         // current display (handles monitor changes between sessions).
         window.center_window(Some(&Size { width: 1024, height: 768 }));
+        // The only reason this window is ever shown is to let the user complete a
+        // Google sign-in flow; keep it topmost so it doesn't slip behind the main app.
+        window.set_always_on_top(1);
         window.show();
+        // The window was created HIDDEN — `show()` alone can leave it in a minimized
+        // state on Windows (Chrome runtime maps HIDDEN → minimized internally), so
+        // explicitly restore + bring-to-front + activate to surface it to the user.
+        window.restore();
+        window.bring_to_top();
+        window.activate();
     })
 }
 
