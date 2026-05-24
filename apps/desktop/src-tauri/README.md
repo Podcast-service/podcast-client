@@ -1,24 +1,33 @@
-# CEF: публикация RSS в YouTube Music
+# CEF: интеграция с Google / YouTube Music
 
-Эта инструкция как из React-кода Tauri-приложения отправить RSS-фид подкаста в библиотеку пользователя на YouTube Music. Всё остальное про CEF (low-level Tauri-команды `cef_open`/`cef_navigate`/...) тут намеренно не описывается — пользуйтесь готовой функцией.
+В Tauri-приложении доступны три высокоуровневые функции, использующие встроенный Chromium (`cef-host`) для работы с залогиненным Google-аккаунтом пользователя:
 
-## Что это делает
+| Функция                 | Что делает                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `publishToYoutubeMusic` | Публикует RSS-фид в библиотеку подкастов YouTube Music                                  |
+| `getCurrentGoogleUser`  | Возвращает email + имя текущего залогиненного аккаунта (или `null`)                     |
+| `logoutFromGoogle`      | Разлогинивает все Google-сессии в профиле CEF                                           |
 
-Под капотом запускается sidecar-процесс `cef-host` (встроенный Chromium), он открывает `music.youtube.com/library/podcasts`, при необходимости показывает окно входа в Google, перехватывает у YouTube `Authorization`-заголовок (`SAPISIDHASH`) и POST'ит RSS-ссылку в `https://music.youtube.com/youtubei/v1/flow` (`FEmusic_podcasts_add_by_url`). После завершения процесс CEF закрывается.
+Все три используют один общий профиль (cookies, сессия) в `<app-data>/cef-profile`, поэтому состояние логина персистится между запусками приложения. Low-level Tauri-команды (`cef_open`/`cef_navigate`/...) тут намеренно не описаны — пользуйтесь готовыми функциями.
 
-Профиль (cookies, сессия) сохраняется в `<app-data>/cef-profile`, поэтому второй и последующие запуски проходят без входа.
+## Публикация RSS в YouTube Music
 
-## Минимальный пример
+### Что это делает
+
+Под капотом запускается sidecar-процесс `cef-host` (встроенный Chromium), он открывает `music.youtube.com/library/podcasts`, при необходимости показывает окно входа в Google, перехватывает у YouTube `Authorization`-заголовок (`SAPISIDHASH`) и POST'ит RSS-ссылку в `https://music.youtube.com/youtubei/v1/flow` (`FEmusic_podcasts_add_by_url`). После успешной публикации, прежде чем выключить sidecar, в той же сессии переходим на `myaccount.google.com` и читаем email — он отдаётся вызывающему.
+
+### Минимальный пример
 
 ```ts
 import { publishToYoutubeMusic } from "@/cef/publishYoutubeMusic";
 
-await publishToYoutubeMusic("https://castapp.ru/feed/abcd1234");
+const r = await publishToYoutubeMusic("https://castapp.ru/feed/abcd1234");
+console.log(r.status, r.toast, r.user?.email);
 ```
 
-Если всё хорошо — Promise зарезолвится объектом `{ status: 200, toast: "..." }`. Если что-то пошло не так — Promise отклонится с `Error`.
+Если всё хорошо — Promise зарезолвится объектом `{ status: 200, toast: "...", user: { email, name } }`. Если что-то пошло не так — Promise отклонится с `Error`.
 
-## С отображением статусов
+### С отображением статусов
 
 ```ts
 import {
@@ -48,7 +57,7 @@ await publishToYoutubeMusic(rssUrl, {
 
 Стадия `awaiting-login` интересна тем, что в этот момент CEF-окно реально видно пользователю, и он сам кликает по Google-формам. Как только он завершит вход и редирект вернёт на `music.youtube.com`, окно скрывается и процесс продолжается с фазы `adding` автоматически.
 
-## Полная сигнатура
+### Полная сигнатура
 
 ```ts
 function publishToYoutubeMusic(
@@ -56,14 +65,19 @@ function publishToYoutubeMusic(
   options?: {
     onStage?: (stage: PublishStage, message: string) => void;
   },
-): Promise<{ status: number; toast: string | null }>;
+): Promise<{
+  status: number;
+  toast: string | null;
+  user: { email: string; name: string | null } | null;
+}>;
 ```
 
 - `rssUrl` — обязателен, формат `https://castapp.ru/feed/<id_playlist>`. Пустая строка → `Error("rssUrl is required")`.
 - `status` — HTTP-статус ответа `/youtubei/v1/flow` (200 при успехе).
 - `toast` — текст всплывашки от YouTube («Подкаст добавлен в библиотеку») или `null`.
+- `user` — Google-аккаунт, под которым была сделана публикация. `null` если по какой-то причине не удалось прочитать (но публикация сама уже прошла).
 
-## Типичный React-пример
+### Типичный React-пример
 
 ```tsx
 import { useState } from "react";
@@ -96,16 +110,51 @@ function PublishButton({ rssUrl }: { rssUrl: string }) {
 }
 ```
 
+## Кто сейчас залогинен
+
+```ts
+import { getCurrentGoogleUser } from "@/cef/getCurrentGoogleUser";
+
+const user = await getCurrentGoogleUser();
+if (user) console.log(user.email, user.name);
+else console.log("не залогинен");
+```
+
+Запускает скрытое CEF-окно на `myaccount.google.com`, ждёт первый `load_end`:
+
+- финальный URL остался на `myaccount.google.com` → парсит email + имя из `aria-label` account chip (с фолбэком на скан `body.innerText`), возвращает `{ email, name }`;
+- редирект на sign-in или куда-то ещё → возвращает `null`.
+
+В конце вызывается `cef_shutdown`. Занимает ~2-4 сек в зависимости от сети.
+
+## Выход из аккаунта
+
+```ts
+import { logoutFromGoogle } from "@/cef/logoutGoogle";
+
+await logoutFromGoogle({
+  onStage: (stage, message) => console.log(stage, message),
+});
+```
+
+Запускает скрытое CEF-окно на `https://accounts.google.com/Logout?continue=...`, ждёт пока редиректы выведут за пределы `/Logout`, потом выключает sidecar. После этого SAPISID и прочие auth-cookies удалены, следующий `publishToYoutubeMusic` снова покажет sign-in.
+
+`onStage` опционален; стадии: `opening` → `logging-out` → `done` / `error`.
+
 ## Что важно помнить
 
-- **Только desktop.** Функция импортирует `@tauri-apps/api` и валится в браузере. В shared-пакеты её тащить не надо — она живёт в `apps/desktop/src/cef/`.
-- **Одна публикация за раз.** Внутри держится один пул CEF-листенеров на процесс; параллельный вызов будет работать, но статусы перемешаются. Блокируйте кнопку, пока Promise не зарезолвится.
-- **Sidecar тушится сам.** После `done` или `error` вызывается `cef_shutdown` — следующий запуск стартует чистый процесс. Руками гасить не нужно.
+- **Только desktop.** Все три функции импортируют `@tauri-apps/api` и валятся в браузере. В shared-пакеты их тащить не надо — они живут в `apps/desktop/src/cef/`.
+- **Одна операция за раз.** Sidecar — один процесс на приложение. Параллельный вызов publish + logout/who-am-i ломает обоих. Блокируйте UI пока Promise не зарезолвится.
+- **Sidecar тушится сам.** После `done` или `error` (и в `finally` у `getCurrentGoogleUser`/`logoutFromGoogle`) вызывается `cef_shutdown` — следующий вызов стартует чистый процесс.
 - **Долгий вход.** Если пользователь застрял на `awaiting-login`, ждём до 10 минут — достаточно для самого медленного 2FA. После — `Error("load_end timeout")`.
 - **Если RSS невалидный** или YouTube вернёт не-200 — придёт `Error("HTTP 4xx ... body=...")` с распарсенным телом ответа от YouTube, чтобы можно было понять причину.
+- **`user` в `PublishResult` может быть `null`** даже при успехе — myaccount.google.com может не подгрузиться, но публикация в этот момент уже состоялась. Не используйте поле `user` как индикатор успеха — для этого есть `status`/throw.
 
 ## Ссылки
 
-- [`apps/desktop/src/cef/publishYoutubeMusic.ts`](../src/cef/publishYoutubeMusic.ts) — реализация (можно подсмотреть JS-скрипты, которые исполняются внутри CEF).
-- [`apps/desktop/src/cef/TestPanel.tsx`](../src/cef/TestPanel.tsx) — пример с инпутом и статусами (плавающая панель на `/`).
-- [`src/cef.rs`](./src/cef.rs) — Tauri-команды (нужны только если хочется добавить новый CEF-сценарий помимо публикации RSS).
+- [`apps/desktop/src/cef/publishYoutubeMusic.ts`](../src/cef/publishYoutubeMusic.ts) — публикация (можно подсмотреть JS-скрипты, которые исполняются внутри CEF).
+- [`apps/desktop/src/cef/getCurrentGoogleUser.ts`](../src/cef/getCurrentGoogleUser.ts) — чтение текущего аккаунта; также экспортирует `readGoogleUserInBrowser(browserId)` для переиспользования уже открытой сессии.
+- [`apps/desktop/src/cef/logoutGoogle.ts`](../src/cef/logoutGoogle.ts) — выход из аккаунта.
+- [`apps/desktop/src/cef/cefSession.ts`](../src/cef/cefSession.ts) — общие хелперы (`setupCefListeners`, `waitForLoadEnd`, `runQuery`); регистрация Tauri-листенеров происходит один раз на загрузку модуля.
+- [`apps/desktop/src/cef/TestPanel.tsx`](../src/cef/TestPanel.tsx) — пример со всеми тремя функциями (плавающая панель на `/`).
+- [`src/cef.rs`](./src/cef.rs) — Tauri-команды (нужны только если хочется добавить новый CEF-сценарий).
