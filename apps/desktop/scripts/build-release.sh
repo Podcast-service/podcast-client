@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build a distributable macOS .app:
-#   1. cef-host as a release .app bundle (cef-rs's bundle-cef-app produces a debug
-#      layout; we replace the binaries with release builds in-place).
+#   1. cef-host release .app (built via the local bundle_cef_host bin —
+#      no external cef-rs clone required).
 #   2. Tauri release build (frontend talks to the server backend).
 #   3. Copy cef-host.app into MyApp.app/Contents/Resources/.
 #   4. Strip the quarantine xattr and zip the result.
@@ -13,42 +13,26 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CEF_RS_PATH="${CEF_RS_PATH:-$HOME/cef-rs}"
 BACKEND_TARGET="${VITE_BACKEND_TARGET:-server}"
 
-if [ ! -d "$CEF_RS_PATH" ]; then
-    echo "CEF_RS_PATH ($CEF_RS_PATH) does not exist. Clone cef-rs there or set CEF_RS_PATH."
-    exit 1
-fi
-
 # ---------------------------------------------------------------------------
-# 1. cef-host bundle (debug layout from bundle-cef-app, then swap to release)
+# 1. cef-host release .app
 # ---------------------------------------------------------------------------
-echo "==> Bundling cef-host structure (frameworks + helpers)..."
-"$ROOT/scripts/build-cef-host.sh" >/dev/null
-
-echo "==> Building release binaries for cef-host..."
-(
-    cd "$ROOT/cef-host"
-    cargo build --release --bin cef-host --bin cef_host_helper
-)
+echo "==> Building cef-host release bundle..."
+"$ROOT/scripts/build-cef-host.sh" --release
 
 CEF_BUNDLE="$ROOT/cef-host/target/bundle/cef-host.app"
-RELEASE_DIR="$ROOT/cef-host/target/release"
-
-echo "==> Replacing debug binaries with release..."
-cp "$RELEASE_DIR/cef-host" "$CEF_BUNDLE/Contents/MacOS/cef-host"
-for kind in "" " (GPU)" " (Renderer)" " (Plugin)" " (Alerts)"; do
-    HELPER_APP="$CEF_BUNDLE/Contents/Frameworks/cef-host Helper${kind}.app"
-    cp "$RELEASE_DIR/cef_host_helper" "$HELPER_APP/Contents/MacOS/cef-host Helper${kind}"
-done
+if [ ! -d "$CEF_BUNDLE" ]; then
+    echo "Expected cef-host.app at $CEF_BUNDLE — build-cef-host.sh did not produce it."
+    exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # 2. Tauri release build
 # ---------------------------------------------------------------------------
 echo "==> Building Tauri (frontend target: $BACKEND_TARGET)..."
 cd "$ROOT"
-VITE_BACKEND_TARGET="$BACKEND_TARGET" bun run tauri:build:"$BACKEND_TARGET"
+VITE_BACKEND_TARGET="$BACKEND_TARGET" pnpm tauri build
 
 # Find the produced .app — there may be variants per arch under bundle/macos
 APP_BUNDLE=$(find "$ROOT/src-tauri/target/release/bundle/macos" -maxdepth 1 -name "*.app" -type d | head -1)
@@ -76,26 +60,41 @@ echo "==> Stripping quarantine xattrs (local copy)..."
 xattr -dr com.apple.quarantine "$APP_BUNDLE" 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 5. Zip for distribution
+# 5. DMG for distribution.
+#    Built from the patched .app via hdiutil (compressed read-only UDZO). We
+#    don't reuse Tauri's own dmg output because it's produced before we embed
+#    cef-host.app, so it ships without the sidecar.
 # ---------------------------------------------------------------------------
 DIST_DIR="$ROOT/dist-release"
 mkdir -p "$DIST_DIR"
-ZIP_PATH="$DIST_DIR/${APP_NAME%.app}.zip"
-rm -f "$ZIP_PATH"
-echo "==> Zipping to $ZIP_PATH..."
-ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ZIP_PATH"
+VOLNAME="${APP_NAME%.app}"
+DMG_PATH="$DIST_DIR/${VOLNAME}.dmg"
+DMG_STAGE="$(mktemp -d)"
+trap 'rm -rf "$DMG_STAGE"' EXIT
 
-SIZE=$(du -sh "$ZIP_PATH" | awk '{print $1}')
+cp -R "$APP_BUNDLE" "$DMG_STAGE/"
+ln -s /Applications "$DMG_STAGE/Applications"
+
+rm -f "$DMG_PATH"
+echo "==> Building $DMG_PATH..."
+hdiutil create \
+    -volname "$VOLNAME" \
+    -srcfolder "$DMG_STAGE" \
+    -ov \
+    -format UDZO \
+    "$DMG_PATH" >/dev/null
+
+SIZE=$(du -sh "$DMG_PATH" | awk '{print $1}')
 
 cat <<EOF
 
 ============================================================
 Built: $APP_BUNDLE
-Zip:   $ZIP_PATH ($SIZE)
+DMG:   $DMG_PATH ($SIZE)
 Backend target: $BACKEND_TARGET
 
-Give your friend the zip. Tell them:
-  1. Unzip and move "$APP_NAME" to /Applications (or anywhere).
+Give your friend the dmg. Tell them:
+  1. Open the .dmg and drag "$APP_NAME" into the Applications shortcut.
   2. First launch will fail Gatekeeper. Either:
        • Right-click the app → Open → confirm in the dialog, OR
        • Run in Terminal:

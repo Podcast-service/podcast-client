@@ -1,24 +1,42 @@
 #!/usr/bin/env bash
 # Build the cef-host sidecar and bundle it into a macOS .app
 # (Chromium Embedded Framework + helper subprocesses).
+#
+# Uses the local `bundle_cef_host` bin (lives inside cef-host itself), which
+# reuses cef-dll-sys's already-downloaded CEF binaries — no external cef-rs
+# checkout, no `cargo install`, no version drift.
+#
+# Usage: ./scripts/build-cef-host.sh [--release|-r]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CEF_RS_PATH="${CEF_RS_PATH:-$HOME/cef-rs}"
+CEF_HOST_DIR="$ROOT/cef-host"
+BUNDLE_OUT="$CEF_HOST_DIR/target/bundle"
 
-cd "$ROOT/cef-host"
+RELEASE=0
+for arg in "$@"; do
+    case "$arg" in
+        --release|-r) RELEASE=1 ;;
+    esac
+done
 
-# bundle-cef-app reads `package.metadata.cef.bundle` from the *current* Cargo manifest
-# (so cwd must be the cef-host crate), then invokes `cargo build --bin <name>` for both
-# the main executable and the helper, and finally constructs the macOS bundle layout.
-cargo run \
-    --manifest-path "$CEF_RS_PATH/Cargo.toml" \
-    -p cef \
-    --bin bundle-cef-app \
-    --features build-util \
-    -- \
-    cef-host \
-    -o "$ROOT/cef-host/target/bundle"
+# Ignore a system-wide CEF_PATH that may point at a different CEF version.
+# Without CEF_PATH, cef-dll-sys downloads the exact CEF release matching the
+# `cef` crate version into its OUT_DIR, so symbols always line up.
+unset CEF_PATH
+
+cd "$CEF_HOST_DIR"
+
+bundle_args=(run --bin bundle_cef_host -- -o "$BUNDLE_OUT")
+if [ "$RELEASE" -eq 1 ]; then
+    bundle_args+=(--release)
+    profile_label="release"
+else
+    profile_label="debug"
+fi
+
+echo "==> Running bundle_cef_host ($profile_label)..."
+cargo "${bundle_args[@]}"
 
 echo
-echo "Built: $ROOT/cef-host/target/bundle/cef-host.app"
+echo "Built: $BUNDLE_OUT/cef-host.app"

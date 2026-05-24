@@ -210,6 +210,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
+ "semver",
  "serde",
  "serde_json",
  "windows-sys 0.61.2",
