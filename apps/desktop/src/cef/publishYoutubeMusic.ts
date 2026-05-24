@@ -1,5 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { runQuery, setupCefListeners, waitForLoadEnd } from "./cefSession";
+import {
+  readGoogleUserInBrowser,
+  type GoogleUser,
+} from "./getCurrentGoogleUser";
 
 export type PublishStage =
   | "opening"
@@ -158,6 +162,12 @@ const ADD_RSS_SCRIPT = (rssUrl: string) => `
 export interface PublishResult {
   status: number;
   toast: string | null;
+  /**
+   * The Google account used to publish. Read from the same CEF session right
+   * before shutdown — null if we couldn't determine it (e.g. myaccount.google.com
+   * was unreachable). The publish itself still succeeded in that case.
+   */
+  user: GoogleUser | null;
 }
 
 /**
@@ -223,11 +233,19 @@ export async function publishToYoutubeMusic(
     await invoke("cef_navigate", { browserId, url: YT_MUSIC_LIBRARY_URL });
     await waitForLoadEnd(browserId, (url) => url.includes("/library/podcasts"));
     await runQuery(browserId, INSTALL_AUTH_HOOK_SCRIPT);
-    const result = (await runQuery(browserId, ADD_RSS_SCRIPT(rssUrl), 30000)) as PublishResult;
+    const addResult = (await runQuery(
+      browserId,
+      ADD_RSS_SCRIPT(rssUrl),
+      30000,
+    )) as { status: number; toast: string | null };
+
+    // Read the publishing account from the same authenticated session before
+    // tearing it down. Non-fatal if it fails — the publish already succeeded.
+    const user = await readGoogleUserInBrowser(browserId).catch(() => null);
 
     await invoke("cef_shutdown").catch(() => {});
     stage("done", "Podcast added to YouTube Music");
-    return result;
+    return { ...addResult, user };
   } catch (err) {
     stage("error", err instanceof Error ? err.message : String(err));
     await invoke("cef_shutdown").catch(() => {});

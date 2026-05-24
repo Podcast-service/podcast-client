@@ -60,6 +60,7 @@ export function TestPanel() {
       setResult(
         `HTTP ${res.status}${res.toast ? ` — ${res.toast}` : ""}`,
       );
+      setCurrentUser(res.user);
     } catch (err) {
       setResult(err instanceof Error ? err.message : String(err));
     } finally {

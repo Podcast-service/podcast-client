@@ -32,8 +32,6 @@ const EXTRACT_SCRIPT = `
       if (!a.includes('@')) continue;
       const emailMatch = a.match(/([\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,})/);
       if (!emailMatch) continue;
-      // "Prefix: Name (email)" or "Prefix Name (email)" — pull text between
-      // ':' (or string start) and the '(' before the email.
       let name = null;
       const colon = a.match(/[:\\u2013\\u2014\\-]\\s*([^()]+?)\\s*\\(/);
       const lead = a.match(/^([^()@:]+?)\\s*\\(/);
@@ -60,6 +58,26 @@ const EXTRACT_SCRIPT = `
 `;
 
 /**
+ * Drives an existing CEF browser to myaccount.google.com and extracts the
+ * signed-in account. Caller owns the browser lifecycle — useful when piggy-
+ * backing on a session that's already authenticated (e.g. right after a
+ * successful publish flow).
+ */
+export async function readGoogleUserInBrowser(
+  browserId: number,
+): Promise<GoogleUser | null> {
+  await invoke("cef_navigate", { browserId, url: MYACCOUNT_URL });
+  const { url } = await waitForLoadEnd(browserId, undefined, 60_000);
+  if (!/myaccount\.google\.com/i.test(url)) return null;
+  const result = (await runQuery(
+    browserId,
+    EXTRACT_SCRIPT,
+    15_000,
+  )) as GoogleUser | null;
+  return result ?? null;
+}
+
+/**
  * Opens a hidden CEF window and reads the email (and display name, if
  * available) of the currently signed-in Google account. Returns `null` if no
  * account is signed in. Shuts the sidecar down before returning either way.
@@ -70,13 +88,8 @@ export async function getCurrentGoogleUser(): Promise<GoogleUser | null> {
     const open = await invoke<{ browser_id: number }>("cef_open", {
       url: MYACCOUNT_URL,
     });
-    // No URL filter — we resolve on the first main-frame load_end and decide
-    // based on where Google actually parked us. Anything that isn't on
-    // myaccount.google.com (sign-in page, consent screen, captcha, …) is
-    // treated as "not signed in".
     const { url } = await waitForLoadEnd(open.browser_id, undefined, 60_000);
     if (!/myaccount\.google\.com/i.test(url)) return null;
-
     const result = (await runQuery(
       open.browser_id,
       EXTRACT_SCRIPT,
