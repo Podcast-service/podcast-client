@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./PodcastRow.module.css";
 import LikeActiveSvg from "../../assets/icons/likePodRow.svg";
 import LikeDefaultSvg from "../../assets/icons/defHeart.svg";
@@ -8,6 +8,7 @@ import PlaySvg from "../../assets/icons/play.svg";
 import PauseSvg from "../../assets/icons/pause.svg";
 import PlusSvg from "../../assets/icons/plus.svg";
 import DefaultBookSvg from "../../assets/icons/defaultBook.svg";
+import EditSvg from "../../assets/icons/edit.svg";
 
 interface PodcastRowProps {
   id: string;
@@ -22,9 +23,11 @@ interface PodcastRowProps {
   isCompleted?: boolean;
   isLiked?: boolean;
   isPlaying?: boolean;
+  isOwner?: boolean;
   onPlayClick?: () => void;
   onLikeClick?: () => void;
   onAddClick?: () => void;
+  onEditClick?: () => void;
 }
 
 const formatDuration = (duration: string): string => {
@@ -68,16 +71,28 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
   isCompleted = false,
   isLiked = false,
   isPlaying = false,
+  isOwner = false,
   onPlayClick,
   onLikeClick,
   onAddClick,
+  onEditClick,
 }) => {
+  const navigate = useNavigate();
+
   const hasProgress = progress !== undefined && progress > 0 && !isCompleted;
+
+  const handleEditClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    navigate(`/podcasts/${id}/edit`);
+
+    onEditClick?.();
+  };
 
   return (
     <article className={styles.row}>
       <Link to={`/podcasts/${id}`} className={styles.rowLink}>
-
         <div className={styles.coverWrap}>
           {coverUrl ? (
             <img src={coverUrl} alt={title} className={styles.cover} />
@@ -96,25 +111,33 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
           <div className={styles.meta}>
             <span className={styles.metaItem}>{date}</span>
             <span className={styles.metaItem}>{formatDuration(duration)}</span>
-            {category && (
-              <>
-                <span className={styles.tag}>{category}</span>
-              </>
-            )}
+
+            {category && <span className={styles.tag}>{category}</span>}
           </div>
 
           {hasProgress && (
             <div className={styles.progressWrap}>
               <div className={styles.progressBar}>
-                <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              <span className={styles.timeLeft}>{calcTimeLeft(duration, progress!)}</span>
+
+              <span className={styles.timeLeft}>
+                {calcTimeLeft(duration, progress)}
+              </span>
             </div>
           )}
 
           {isCompleted && (
             <div className={styles.completed}>
-              <img src={CheckSvg} alt="" aria-hidden="true" className={styles.checkIcon} />
+              <img
+                src={CheckSvg}
+                alt=""
+                aria-hidden="true"
+                className={styles.checkIcon}
+              />
               <span>Прослушано</span>
             </div>
           )}
@@ -122,13 +145,34 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
       </Link>
 
       <div className={styles.actions}>
+        {isOwner && (
+          <button
+            type="button"
+            className={styles.actionBtn}
+            onClick={handleEditClick}
+            aria-label="Редактировать подкаст"
+          >
+            <img
+              src={EditSvg}
+              alt=""
+              aria-hidden="true"
+              className={styles.actionIcon}
+            />
+          </button>
+        )}
+
         <button
           type="button"
           className={styles.actionBtn}
           onClick={onAddClick}
           aria-label="Добавить в плейлист"
         >
-          <img src={PlusSvg} alt="" aria-hidden="true" className={styles.actionIcon} />
+          <img
+            src={PlusSvg}
+            alt=""
+            aria-hidden="true"
+            className={styles.actionIcon}
+          />
         </button>
 
         <button

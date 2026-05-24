@@ -14,9 +14,18 @@ export { default as AuthorsPage } from "./pages/AuthorsPage/AuthorsPage";
 export { default as PlaylistsPage } from "./pages/PlaylistsPage/PlaylistsPage";
 export { default as PodcastPage } from "./pages/PodcastPage/PodcastPage";
 export { default as AuthorPage } from "./pages/AuthorPage/AuthorPage";
+export { default as ProfilePage } from "./pages/ProfilePage/ProfilePage";
+export { default as ProfileLikesPage } from "./pages/ProfileLikesPage/ProfileLikesPage";
+export { default as ProfilePlaylistsPage } from "./pages/ProfilePlaylistsPage/ProfilePlaylistsPage";
+export { default as ProfileSubscriptionsPage } from "./pages/ProfileSubscriptionsPage/ProfileSubscriptionsPage";
+export { default as ProfileHistoryPage } from "./pages/ProfileHistoryPage/ProfileHistoryPage";
+export { default as ProfileSettingsPage } from "./pages/ProfileSettingsPage/ProfileSettingsPage";
 
 
 
+export { default as ProfileNav } from "./components/ProfileNav/ProfileNav";
+export { default as ProfileHero } from "./components/ProfileHero/ProfileHero";
+export { default as LoginPromptModal } from "./components/LoginPromptModal/LoginPromptModal";
 export { default as Header } from "./components/Header/Header";
 export { default as Footer } from "./components/Footer/Footer";
 export { default as PodcastCard } from "./components/PodcastCard/PodcastCard";
@@ -34,4 +43,8 @@ export { default as RecommendedPodcasts } from "./components/RecommendedPodcasts
 export { default as PlaylistCard } from "./components/PlaylistCard/PlaylistCard";
 export { default as AuthorProfileHero } from "./components/AuthorProfileHero/AuthorProfileHero";
 export { default as AuthorPodcastsCarousel } from "./components/AuthorPodcastsCarousel/AuthorPodcastsCarousel";
+export { default as AuthorPodcastDraftRow } from "./components/AuthorPodcastDraftRow/AuthorPodcastDraftRow";
+export { default as ProfileSettingsHero } from "./components/ProfileSettingsHero/ProfileSettingsHero";
+export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSessions";
+
 

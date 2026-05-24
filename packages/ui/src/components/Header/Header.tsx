@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Header.module.css";
 import LogoSvg from "../../assets/icons/logo.svg";
 import SearchSvg from "../../assets/icons/search.svg";
 import SettingsSvg from "../../assets/icons/settings.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
 
 interface HeaderProps {
   avatarUrl?: string;
   onSearchClick?: () => void;
+  isAuthenticated?: boolean;
 }
 
 const NAV_ITEMS = [
@@ -19,9 +21,23 @@ const NAV_ITEMS = [
   { label: "Мои рекомендации", path: "/recommendation" },
 ];
 
-const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
+const Header: React.FC<HeaderProps> = ({
+  avatarUrl,
+  onSearchClick,
+  isAuthenticated = true,
+}) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAvatarClick = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <header className={styles.header}>
@@ -63,16 +79,25 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
             <img src={SettingsSvg} alt="" aria-hidden="true" className={styles.settingsIcon} />
           </button>
 
-          <Link to="/profile" className={styles.avatarWrap}>
+          <button
+            type="button"
+            className={styles.avatarWrap}
+            onClick={handleAvatarClick}
+            aria-label="Профиль"
+          >
             <img
               src={avatarUrl || DefaultAvatarSvg}
               alt="Профиль"
               className={styles.avatar}
             />
-          </Link>
+          </button>
         </div>
 
       </div>
+
+      {isModalOpen && (
+        <LoginPromptModal onClose={() => setIsModalOpen(false)} />
+      )}
     </header>
   );
 };
