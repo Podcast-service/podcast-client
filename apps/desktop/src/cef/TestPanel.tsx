@@ -4,6 +4,7 @@ import {
   type PublishStage,
 } from "./publishYoutubeMusic";
 import { logoutFromGoogle, type LogoutStage } from "./logoutGoogle";
+import { getCurrentGoogleUser, type GoogleUser } from "./getCurrentGoogleUser";
 
 type Stage = PublishStage | LogoutStage;
 
@@ -35,6 +36,9 @@ export function TestPanel() {
   const [message, setMessage] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<GoogleUser | null | undefined>(
+    undefined,
+  );
 
   async function handlePublish() {
     if (!rssUrl.trim()) {
@@ -75,6 +79,23 @@ export function TestPanel() {
           setMessage(m);
         },
       });
+      setCurrentUser(null);
+    } catch (err) {
+      setResult(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function handleWhoAmI() {
+    setRunning(true);
+    setResult("");
+    setStage(null);
+    setMessage("");
+    setCurrentUser(undefined);
+    try {
+      const user = await getCurrentGoogleUser();
+      setCurrentUser(user);
     } catch (err) {
       setResult(err instanceof Error ? err.message : String(err));
     } finally {
@@ -152,6 +173,26 @@ export function TestPanel() {
 
       <button
         type="button"
+        onClick={handleWhoAmI}
+        disabled={running}
+        style={{
+          width: "100%",
+          marginTop: 8,
+          padding: "9px 12px",
+          borderRadius: 6,
+          border: "1px solid #444",
+          background: running ? "#1a1a1f" : "transparent",
+          color: "#fff",
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: running ? "not-allowed" : "pointer",
+        }}
+      >
+        Кто авторизован
+      </button>
+
+      <button
+        type="button"
         onClick={handleLogout}
         disabled={running}
         style={{
@@ -169,6 +210,47 @@ export function TestPanel() {
       >
         Выйти из Google
       </button>
+
+      {currentUser !== undefined && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "8px 10px",
+            borderRadius: 6,
+            background: "#1a1a1f",
+            borderLeft: `3px solid ${currentUser ? "#10b981" : "#888"}`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+              color: currentUser ? "#10b981" : "#888",
+              fontWeight: 600,
+              marginBottom: 2,
+            }}
+          >
+            Google аккаунт
+          </div>
+          {currentUser ? (
+            <>
+              <div style={{ fontSize: 12, wordBreak: "break-word" }}>
+                {currentUser.email}
+              </div>
+              {currentUser.name && (
+                <div style={{ fontSize: 11, opacity: 0.6 }}>
+                  {currentUser.name}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ fontSize: 12, opacity: 0.85 }}>
+              Не авторизован
+            </div>
+          )}
+        </div>
+      )}
 
       {stage && (
         <div
