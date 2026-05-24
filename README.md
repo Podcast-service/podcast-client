@@ -33,10 +33,10 @@ pnpm --filter @podcast/web build
 
 ## Desktop (Tauri)
 
-Требуется установленный [Rust](https://www.rust-lang.org/tools/install).
+Требуется установленный [Rust](https://www.rust-lang.org/tools/install). Для CEF-функций (публикация в YouTube Music, чтение/выход из Google-аккаунта) дополнительно собирается sidecar `cef-host` со встроенным Chromium — это происходит автоматически.
 
 ```bash
-# dev-режим
+# dev-режим (соберёт cef-host если ещё не собран, потом запустит tauri dev)
 pnpm --filter @podcast/desktop tauri:dev
 
 # production-сборка

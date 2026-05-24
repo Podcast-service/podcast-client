@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "../cef-host/target/bundle/cef-host/": "cef-host"
+    }
+  }
+}
