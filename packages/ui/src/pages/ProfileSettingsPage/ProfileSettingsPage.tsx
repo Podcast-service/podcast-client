@@ -183,7 +183,7 @@ const ProfileSettingsPage: React.FC = () => {
         const refreshToken = localStorage.getItem("refreshToken");
 
         try {
-            await fetch("http://31.130.132.89/auth/logout", {
+            await fetch("http://186.246.30.30/auth/logout", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

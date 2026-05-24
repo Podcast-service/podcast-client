@@ -1,4 +1,4 @@
-const BASE_URL = "http://31.130.132.89";
+const BASE_URL = "http://186.246.30.30";
 
 export interface AuthTokens {
   access_token: string;
