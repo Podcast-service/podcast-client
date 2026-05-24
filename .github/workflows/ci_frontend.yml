@@ -15,10 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build check
-        run: |
-          docker build --network=host \
-            -t ghcr.io/podcast-service/podcast_client:pr-${{ github.event.pull_request.number }} \
-            .
+        run: docker build -t ghcr.io/podcast-service/podcast_client:pr-${{ github.event.pull_request.number }} .
 
   deploy:
     if: github.event.pull_request.merged == true
@@ -37,7 +34,7 @@ jobs:
 
       - name: Build and push
         run: |
-          docker build --network=host \
+          docker build \
             -t ghcr.io/podcast-service/podcast_client:${{ steps.vars.outputs.SHA }} \
             -t ghcr.io/podcast-service/podcast_client:latest \
             .
