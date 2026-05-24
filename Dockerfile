@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Устанавливаем pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.33.0
 
 WORKDIR /app
 
