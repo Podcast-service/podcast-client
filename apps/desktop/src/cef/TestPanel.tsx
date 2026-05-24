@@ -3,30 +3,35 @@ import {
   publishToYoutubeMusic,
   type PublishStage,
 } from "./publishYoutubeMusic";
+import { logoutFromGoogle, type LogoutStage } from "./logoutGoogle";
 
-const STAGE_LABELS: Record<PublishStage, string> = {
+type Stage = PublishStage | LogoutStage;
+
+const STAGE_LABELS: Record<Stage, string> = {
   opening: "Запуск браузера",
   loading: "Загрузка YouTube Music",
   "checking-login": "Проверка авторизации",
   "awaiting-login": "Ожидание входа в Google",
   adding: "Добавление RSS",
+  "logging-out": "Выход из Google",
   done: "Готово",
   error: "Ошибка",
 };
 
-const STAGE_COLORS: Record<PublishStage, string> = {
+const STAGE_COLORS: Record<Stage, string> = {
   opening: "#3b82f6",
   loading: "#3b82f6",
   "checking-login": "#3b82f6",
   "awaiting-login": "#f59e0b",
   adding: "#3b82f6",
+  "logging-out": "#3b82f6",
   done: "#10b981",
   error: "#ef4444",
 };
 
 export function TestPanel() {
   const [rssUrl, setRssUrl] = useState("https://castapp.ru/feed/");
-  const [stage, setStage] = useState<PublishStage | null>(null);
+  const [stage, setStage] = useState<Stage | null>(null);
   const [message, setMessage] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<string>("");
@@ -51,6 +56,25 @@ export function TestPanel() {
       setResult(
         `HTTP ${res.status}${res.toast ? ` — ${res.toast}` : ""}`,
       );
+    } catch (err) {
+      setResult(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function handleLogout() {
+    setRunning(true);
+    setResult("");
+    setStage(null);
+    setMessage("");
+    try {
+      await logoutFromGoogle({
+        onStage: (s, m) => {
+          setStage(s);
+          setMessage(m);
+        },
+      });
     } catch (err) {
       setResult(err instanceof Error ? err.message : String(err));
     } finally {
@@ -124,6 +148,26 @@ export function TestPanel() {
         }}
       >
         {running ? "Выполняется…" : "Опубликовать в YouTube Music"}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={running}
+        style={{
+          width: "100%",
+          marginTop: 8,
+          padding: "9px 12px",
+          borderRadius: 6,
+          border: "1px solid #444",
+          background: running ? "#1a1a1f" : "transparent",
+          color: "#fff",
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: running ? "not-allowed" : "pointer",
+        }}
+      >
+        Выйти из Google
       </button>
 
       {stage && (

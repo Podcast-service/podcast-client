@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { runQuery, setupCefListeners, waitForLoadEnd } from "./cefSession";
 
 export type PublishStage =
   | "opening"
@@ -19,78 +19,6 @@ const YT_MUSIC_LIBRARY_URL = "https://music.youtube.com/library/podcasts";
 const GOOGLE_SIGNIN_URL =
   "https://accounts.google.com/ServiceLogin?service=youtube&continue=" +
   encodeURIComponent(YT_MUSIC_LIBRARY_URL);
-
-type CefEventPayload = { browser_id?: number; [key: string]: unknown };
-type JsCallback = {
-  browser_id?: number;
-  payload: { tag: string; ok?: unknown; err?: string };
-};
-
-const pendingJsCallbacks = new Map<string, (cb: JsCallback) => void>();
-let cefListenersUnlisten: UnlistenFn[] = [];
-let loadEndListeners: Array<(payload: CefEventPayload) => void> = [];
-
-async function setupCefListeners() {
-  if (cefListenersUnlisten.length > 0) return;
-  const unlistenLoad = await listen<CefEventPayload>("cef://load_end", (e) => {
-    for (const listener of loadEndListeners) listener(e.payload);
-  });
-  const unlistenJs = await listen<JsCallback>("cef://js_callback", (e) => {
-    const payload = e.payload;
-    const tag = payload.payload?.tag;
-    if (!tag) return;
-    const resolver = pendingJsCallbacks.get(tag);
-    if (resolver) {
-      pendingJsCallbacks.delete(tag);
-      resolver(payload);
-    }
-  });
-  cefListenersUnlisten.push(unlistenLoad, unlistenJs);
-}
-
-function waitForLoadEnd(
-  browserId: number,
-  urlMatch?: (url: string) => boolean,
-  timeoutMs = 30000,
-) {
-  return new Promise<{ url: string; http_status: number }>((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      loadEndListeners = loadEndListeners.filter((l) => l !== listener);
-      reject(new Error("load_end timeout"));
-    }, timeoutMs);
-    const listener = (payload: CefEventPayload) => {
-      if (payload.browser_id !== browserId) return;
-      const url = String(payload.url ?? "");
-      if (urlMatch && !urlMatch(url)) return;
-      loadEndListeners = loadEndListeners.filter((l) => l !== listener);
-      window.clearTimeout(timer);
-      resolve({ url, http_status: Number(payload.http_status ?? 0) });
-    };
-    loadEndListeners.push(listener);
-  });
-}
-
-async function runQuery(
-  browserId: number,
-  code: string,
-  timeoutMs = 30000,
-): Promise<unknown> {
-  const tag = `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const promise = new Promise<JsCallback>((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      pendingJsCallbacks.delete(tag);
-      reject(new Error("js_callback timeout"));
-    }, timeoutMs);
-    pendingJsCallbacks.set(tag, (cb) => {
-      window.clearTimeout(timer);
-      resolve(cb);
-    });
-  });
-  await invoke("cef_query", { browserId, code, tag });
-  const result = await promise;
-  if (result.payload?.err) throw new Error(result.payload.err);
-  return result.payload?.ok ?? null;
-}
 
 // Login signal: only trust ytcfg.LOGGED_IN. The SAPISID cookie has Domain=.google.com,
 // so it's visible from accounts.google.com mid-signin — we'd falsely think login is done
