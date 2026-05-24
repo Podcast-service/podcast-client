@@ -29,7 +29,6 @@ export const clearTokens = () => {
 export const getAccessToken = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
 
-// ───── Helpers ─────
 
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = await res.json();

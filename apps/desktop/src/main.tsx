@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 import {
   HeaderLogin,
@@ -32,6 +32,16 @@ import {
   AuthorProfileHero,
   AuthorPodcastsCarousel,
   AuthorPage,
+  ProfileHero,
+  ProfileNav,
+  ProfilePage,
+  ProfileLikesPage,
+  ProfilePlaylistsPage,
+  ProfileSubscriptionsPage,
+  ProfileHistoryPage,
+  AuthorPodcastDraftRow,
+  ActiveSessions,
+  ProfileSettingsPage,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -171,12 +181,39 @@ const RECOMMENDED_PODCASTS = [
     coverUrl:
       "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&auto=format&fit=crop",
   },
+  {
+    id: "4",
+    title: "Web 3.0: Миф или новая реальность?",
+    category: "Технологии",
+    duration: "55 мин",
+    coverUrl:
+      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&auto=format&fit=crop",
+  },
 ];
 
 const MOCK_SORT = [
   { id: "popular", label: "Популярные" },
   { id: "new", label: "Новые" },
   { id: "old", label: "Старые" },
+];
+
+const MOCK_SESSIONS = [
+  {
+    id: "1",
+    deviceName: 'MacBook Pro 16"',
+    deviceInfo: "Chrome • MacOS",
+    ipAddress: "Москва, Россия",
+    lastActivity: "Сейчас онлайн",
+    isCurrent: true,
+  },
+  {
+    id: "2",
+    deviceName: "iPhone 15 Pro",
+    deviceInfo: "Safari • iOS",
+    ipAddress: "Санкт-Петербург, Россия",
+    lastActivity: "2 часа назад",
+    isCurrent: false,
+  },
 ];
 
 const TRANSCRIPT_ITEMS = [
@@ -225,6 +262,7 @@ const AUTHOR_AVATAR =
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop";
 
 function DevPage() {
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeSort, setActiveSort] = useState("popular");
 
@@ -240,6 +278,42 @@ function DevPage() {
           gap: "48px",
         }}
       >
+
+<section>
+  <h2
+    style={{
+      marginBottom: "16px",
+      fontFamily: "var(--font-open-sans)",
+      fontSize: "18px",
+      fontWeight: 700,
+    }}
+  >
+    ProfileHero
+  </h2>
+
+  <ProfileHero
+  username="Alex Johnson"
+  email="alex@example.com"
+  avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
+  isAuthor={false} // поменяй на true чтобы проверить скрытие кнопки
+/>
+
+<section>
+  <h2
+    style={{
+      marginBottom: "16px",
+      fontFamily: "var(--font-open-sans)",
+      fontSize: "18px",
+      fontWeight: 700,
+    }}
+  >
+    ProfileNav
+  </h2>
+
+  <ProfileNav />
+</section>
+
+</section>
         {/* FilterTabs */}
         <section>
           <h2
@@ -331,6 +405,24 @@ function DevPage() {
     playlists={AUTHOR_PLAYLISTS}
   />
 </section>
+
+<section>
+  <h2
+    style={{
+      marginBottom: "16px",
+      fontFamily: "var(--font-open-sans)",
+      fontSize: "18px",
+      fontWeight: 700,
+    }}
+  >
+    ActiveSessions
+  </h2>
+
+  <ActiveSessions sessions={MOCK_SESSIONS} />
+</section>
+
+
+
 
         {/* AuthorRow */}
         <section>
@@ -510,6 +602,36 @@ function DevPage() {
   onShareClick={() => {}}
 />
 
+<section>
+  <h2
+    style={{
+      marginBottom: "16px",
+      fontFamily: "var(--font-open-sans)",
+      fontSize: "18px",
+      fontWeight: 700,
+    }}
+  >
+    AuthorPodcastDraftRow
+  </h2>
+
+  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <AuthorPodcastDraftRow
+      id="processing-1"
+      title="Как справиться с прокрастинацией"
+      category="Саморазвитие"
+      status="processing"
+    />
+
+    <AuthorPodcastDraftRow
+      id="ready-1"
+      title="Как справиться с прокрастинацией"
+      category="Саморазвитие"
+      status="ready"
+    />
+  </div>
+</section>
+
+
         {/* PodcastRow */}
         <section>
           <h2
@@ -533,6 +655,24 @@ function DevPage() {
               category="Саморазвитие"
               coverUrl={COVER}
             />
+
+            <PodcastRow
+  id="owner-published-1"
+  title="Мой опубликованный подкаст"
+  author="Вы"
+  date="12 окт 2023"
+  duration="45:00"
+  category="Саморазвитие"
+  coverUrl={COVER}
+  progress={66}
+  isOwner={true}
+  isLiked={false}
+  isPlaying={false}
+  onEditClick={() => {}}
+  onAddClick={() => {}}
+  onLikeClick={() => {}}
+  onPlayClick={() => {}}
+/>
 
             <PodcastRow
               id="2"
@@ -627,6 +767,15 @@ function Main() {
         <Route path="/playlists" element={<PlaylistsPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
         <Route path="/authors/:authorId" element={<AuthorPage />} />
+
+        <Route path="/profile" element={<ProfilePage />}>
+          <Route index element={<Navigate to="likes" replace />} />
+          <Route path="likes" element={<ProfileLikesPage />} />
+          <Route path="playlists" element={<ProfilePlaylistsPage />} />
+          <Route path="subscriptions" element={<ProfileSubscriptionsPage />} />
+          <Route path="history" element={<ProfileHistoryPage />} />
+        </Route>
+        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
 
         <Route path="/dev" element={<DevPage />} />
       </Route>

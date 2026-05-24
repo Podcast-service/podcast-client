@@ -1,0 +1,19 @@
+.page {
+    width: 100%;
+}
+
+.pageInner {
+    display: flex;
+    flex-direction: column;
+
+    padding: 0 32px 80px;
+    box-sizing: border-box;
+}
+
+.hero {
+    padding-top: 8px;
+}
+
+.content {
+    padding-top: 32px;
+}
