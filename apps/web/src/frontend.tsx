@@ -42,6 +42,14 @@ import {
   AuthorPodcastDraftRow,
   ActiveSessions,
   ProfileSettingsPage,
+  OtpEmailModal,
+  ToastProvider,
+  PlaylistHero,
+  PlaylistPage,
+  BecomeAuthorSuccessModal,
+  BecomeAuthorPage,
+  ProfileAuthorHero,
+  ProfileMyPodcastsPage,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -72,24 +80,26 @@ function MainLayout() {
   const [activePodcast, setActivePodcast] = useState<ActivePodcast | null>(null);
 
   return (
-    <div className="app appMain">
-      <Header />
-      <main className="mainContent">
-        <Outlet context={{ playPodcast: setActivePodcast }} />
-      </main>
-      <Player
-        isVisible={Boolean(activePodcast)}
-        title={activePodcast?.title}
-        episode={activePodcast?.author}
-        totalTime={activePodcast?.duration}
-        coverUrl={activePodcast?.coverUrl}
-        currentTime="0:00"
-        progress={0}
-        volume={80}
-        downloadStatus="idle"
-      />
-      <Footer />
-    </div>
+    <ToastProvider>
+      <div className="app appMain">
+        <Header />
+        <main className="mainContent">
+          <Outlet context={{ playPodcast: setActivePodcast }} />
+        </main>
+        <Player
+          isVisible={Boolean(activePodcast)}
+          title={activePodcast?.title}
+          episode={activePodcast?.author}
+          totalTime={activePodcast?.duration}
+          coverUrl={activePodcast?.coverUrl}
+          currentTime="0:00"
+          progress={0}
+          volume={80}
+          downloadStatus="idle"
+        />
+        <Footer />
+      </div>
+    </ToastProvider>
   );
 }
 
@@ -262,11 +272,12 @@ const AUTHOR_AVATAR =
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop";
 
 function DevPage() {
-  const [isModalOpen, setIsModalOpen] = useState(true);
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeSort, setActiveSort] = useState("popular");
 
   const [isAuthorSubscribed, setIsAuthorSubscribed] = useState(false);
+  const [isOtpOpen, setIsOtpOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   return (
     <div className="container">
@@ -298,6 +309,31 @@ function DevPage() {
   isAuthor={false} // поменяй на true чтобы проверить скрытие кнопки
 />
 
+<button onClick={() => setIsOtpOpen(true)}>Открыть OTP модалку</button>
+
+{isOtpOpen && (
+    <OtpEmailModal
+        email="test@example.com"
+        onConfirm={async (code) => {
+            if (code !== "123456") {
+                throw new Error();
+            }
+            setIsOtpOpen(false);
+        }}
+        onClose={() => setIsOtpOpen(false)}
+    />
+)}
+
+<button onClick={() => setIsSuccessModalOpen(true)}>
+    Открыть модалку успеха
+</button>
+
+{isSuccessModalOpen && (
+    <BecomeAuthorSuccessModal
+        onContinue={() => setIsSuccessModalOpen(false)}
+    />
+)}
+
 <section>
   <h2
     style={{
@@ -311,6 +347,93 @@ function DevPage() {
   </h2>
 
   <ProfileNav />
+</section>
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistHero — чужой плейлист
+  </h2>
+  <PlaylistHero
+    title="Стратегия тишины"
+    author="Александр Соколов"
+    description="A curated selection of the most compelling investigative journalism."
+    coverUrl={COVER}
+    isPrivate={false}
+    isOwner={false}
+    episodesCount={12}
+    totalDuration="54"
+    createdAt="14 Октября 2024"
+    listeners={12450}
+    isAdded={false}
+    onPlayAll={() => {}}
+    onAddClick={() => {}}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistHero — ты владелец (пользователь)
+  </h2>
+  <PlaylistHero
+    title="Стратегия тишины"
+    author="Вы"
+    description="A curated selection of the most compelling investigative journalism."
+    coverUrl={COVER}
+    isPrivate={true}
+    isOwner={true}
+    isAuthor={false}
+    episodesCount={12}
+    totalDuration="54"
+    createdAt="14 Октября 2024"
+    listeners={12450}
+    onPlayAll={() => {}}
+    onEdit={() => {}}
+    onDelete={() => {}}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistHero — ты владелец (автор)
+  </h2>
+  <PlaylistHero
+    title="Стратегия тишины"
+    author="Вы"
+    description="A curated selection of the most compelling investigative journalism."
+    coverUrl={COVER}
+    isPrivate={false}
+    isOwner={true}
+    isAuthor={true}
+    episodesCount={12}
+    totalDuration="54"
+    createdAt="14 Октября 2024"
+    listeners={12450}
+    onPlayAll={() => {}}
+    onEdit={() => {}}
+    onDelete={() => {}}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistHero — чужой плейлист (добавлен)
+  </h2>
+  <PlaylistHero
+    title="Стратегия тишины"
+    author="Александр Соколов"
+    description="A curated selection of the most compelling investigative journalism."
+    coverUrl={COVER}
+    isPrivate={false}
+    isOwner={false}
+    episodesCount={12}
+    totalDuration="54"
+    createdAt="14 Октября 2024"
+    listeners={12450}
+    isAdded={true}
+    onPlayAll={() => {}}
+    onAddClick={() => {}}
+  />
 </section>
 
 </section>
@@ -631,6 +754,94 @@ function DevPage() {
   </div>
 </section>
 
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistCard — все состояния
+  </h2>
+
+  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "24px" }}>
+
+    {/* Чужой, не добавлен */}
+    <PlaylistCard
+      id="1"
+      title="Доброе утро"
+      author="Мария Смирнова"
+      episodesCount={24}
+      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
+      listeners={12300}
+      likes={2500}
+      dislikes={243}
+      isOwner={false}
+      isAdded={false}
+      onAddClick={() => {}}
+    />
+
+    {/* Чужой, добавлен */}
+    <PlaylistCard
+      id="2"
+      title="Социальные нормы"
+      author="Мария Смирнова"
+      episodesCount={24}
+      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
+      listeners={12300}
+      likes={2500}
+      dislikes={243}
+      isOwner={false}
+      isAdded={true}
+      onAddClick={() => {}}
+    />
+
+    {/* Твой — пользователь (приватный) */}
+    <PlaylistCard
+      id="3"
+      title="Лидерство и Рост"
+      author="Вы"
+      episodesCount={24}
+      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
+      listeners={12300}
+      likes={2500}
+      dislikes={243}
+      isOwner={true}
+      isAuthor={false}
+      isPrivate={true}
+      onEditClick={() => {}}
+    />
+
+    {/* Твой — автор (публичный) */}
+    <PlaylistCard
+      id="4"
+      title="Лидерство и Рост"
+      author="Вы"
+      episodesCount={24}
+      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
+      listeners={12300}
+      likes={2500}
+      dislikes={243}
+      isOwner={true}
+      isAuthor={true}
+      isPrivate={false}
+      onEditClick={() => {}}
+    />
+
+  </div>
+</section>
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    ProfileAuthorHero
+  </h2>
+
+  <ProfileAuthorHero
+    authorName="Александр Соколов"
+    email="alex@example.com"
+    avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
+    bio="Практикующий психолог и исследователь человеческого поведения. В своих подкастах Александр исследует глубины сознания, когнитивные искажения и способы достижения внутреннего спокойствия в современном мире."
+    subscribers={124000}
+    onShareClick={() => {}}
+  />
+</section>
+
 
         {/* PodcastRow */}
         <section>
@@ -764,18 +975,22 @@ function Frontend() {
         <Route path="/" element={<MainPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />
         <Route path="/authors" element={<AuthorsPage />} />
+        <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
         <Route path="/authors/:authorId" element={<AuthorPage />} />
+        <Route path="/become-author" element={<BecomeAuthorPage />} />
 
+
+        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
         <Route path="/profile" element={<ProfilePage />}>
-          <Route index element={<Navigate to="likes" replace />} />
+          <Route index element={<Navigate to="podcasts" replace />} />
+          <Route path="podcasts" element={<ProfileMyPodcastsPage />} />
           <Route path="likes" element={<ProfileLikesPage />} />
           <Route path="playlists" element={<ProfilePlaylistsPage />} />
           <Route path="subscriptions" element={<ProfileSubscriptionsPage />} />
           <Route path="history" element={<ProfileHistoryPage />} />
         </Route>
-        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
 
         <Route path="/dev" element={<DevPage />} />
       </Route>

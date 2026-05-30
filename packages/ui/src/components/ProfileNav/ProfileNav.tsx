@@ -2,18 +2,23 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./ProfileNav.module.css";
 
-const NAV_ITEMS = [
-    { label: "Мои лайки", path: "likes" },
-    { label: "Мои плейлисты", path: "playlists" },
-    { label: "Подписки", path: "subscriptions" },
-    { label: "История", path: "history" },
-];
+interface ProfileNavProps {
+    isAuthor?: boolean;
+}
 
-const ProfileNav: React.FC = () => {
+const ProfileNav: React.FC<ProfileNavProps> = ({ isAuthor = false }) => {
+    const navItems = [
+        ...(isAuthor ? [{ label: "Мои подкасты", path: "podcasts" }] : []),
+        { label: "Мои лайки", path: "likes" },
+        { label: "Мои плейлисты", path: "playlists" },
+        { label: "Подписки", path: "subscriptions" },
+        { label: "История", path: "history" },
+    ];
+
     return (
         <nav className={styles.nav}>
             <div className={styles.list}>
-                {NAV_ITEMS.map((item) => (
+                {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}

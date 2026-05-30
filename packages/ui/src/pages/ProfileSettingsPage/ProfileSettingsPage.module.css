@@ -6,38 +6,32 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-
-    padding: 0 40px 80px;
+    padding: 40px 80px;
     box-sizing: border-box;
 }
+
 
 .section {
     width: 100%;
-
+    background-color: var(--color-input-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
     padding: 24px;
-
-    border: 1px solid #C1C8C2;
-    border-radius: 8px;
-
-    background-color: #ffffff;
-
-    box-sizing: border-box;
 }
 
-.sectionTitleRow {
+.sectionHeader {
     display: flex;
     align-items: center;
     gap: 8px;
-
     margin-bottom: 24px;
 }
 
 .sectionIcon {
-    width: 18px;
-    height: 18px;
-
-    display: block;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
+    display: block;
 }
 
 .sectionTitle {
@@ -52,162 +46,156 @@
     color: var(--color-main);
 }
 
-.infoForm {
+.sectionBody {
     display: flex;
     flex-direction: column;
+    gap: 4px;
 }
 
-.primaryBtn {
-    margin-bottom: 4px;
-    margin-top: 4px;
+
+.fieldRow {
+    width: 100%;
 }
 
-.primaryBtn,
-.passwordBtn,
-.secondaryBtn,
-.logoutBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: fit-content;
-
-    padding: 10px 32px;
-
-    border: none;
-    border-radius: 8px;
-
-    background-color: var(--color-primary);
-    color: #ffffff;
-
-    font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 800;
-    line-height: 20px;
-    letter-spacing: -0.3px;
-
-    cursor: pointer;
-
-    transition: background-color 0.2s ease;
-}
-
-.primaryBtn:hover,
-.passwordBtn:hover,
-.logoutBtn:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.successMessage {
-    font-family: var(--font-open-sans);
-    margin-top: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.2px;
-
-    color: var(--color-secondary);
-}
-
-.passwordForm {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.passwordGrid {
+.fieldRowDouble {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
 }
 
-.emailStatus {
+.emailVerifyBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.emailVerifyStatus {
     display: flex;
     align-items: center;
     gap: 8px;
-
-    margin-top: 16px;
 }
 
-.emailIcon {
+.emailVerifyIcon {
     width: 24px;
     height: 24px;
-
-    display: block;
     flex-shrink: 0;
+    display: block;
 }
 
-.emailSuccess,
-.emailError {
-    font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.2px;
-}
-
-.emailSuccess {
-    color: var(--color-secondary);
-}
-
-.emailError {
-    color: var(--color-error);
-}
-
-.emailText {
-    margin: 12px 0 0;
-
-    font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-    letter-spacing: -0.2px;
-
-    color: #414844;
-}
-
-.secondaryBtn {
-    margin-top: 16px;
-
-    border: 1.5px solid var(--color-secondary);
-
-    background-color: transparent;
-    color: var(--color-secondary);
-}
-
-.secondaryBtn:hover {
-    background-color: var(--color-hover-secondary);
-}
-
-.actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-
-    padding-top: 16px;
-}
-
-.logoutBtn {
-    min-width: 280px;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 20px;
-    letter-spacing: -0.6px;
-}
-
-.deleteBtn {
-    padding: 0;
-
-    border: none;
-    background: none;
-
+.emailVerifiedLabel {
     font-family: var(--font-open-sans);
     font-size: 16px;
-    font-weight: 400;
-    line-height: 24px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.3px;
+
+    color: var(--color-primary);
+}
+
+.emailNotVerifiedLabel {
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
     letter-spacing: -0.3px;
 
     color: var(--color-error);
+}
+
+.emailVerifyText {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #717973;
+}
+
+.emailVerifyAction {
+    margin-top: 8px;
+    width: fit-content;
+}
+
+
+.accountActions {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+
+}
+
+.deleteBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    align-self: center;
+
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-error);
+    text-decoration: none;
+    text-underline-offset: 2px;
+
+    transition: opacity 0.15s ease;
+}
+
+.deleteBtn:hover {
+    opacity: 0.7;
+}
+
+.btnPrimary {
+    width: fit-content;
+    padding: 10px 24px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
 
     cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnPrimary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btnSecondary {
+    width: fit-content;
+    padding: 10px 24px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnSecondary:hover {
+    background-color: var(--color-secondary);
+    color: #ffffff;
 }
