@@ -1,0 +1,186 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    background-color: rgba(26, 26, 26, 0.5);
+    backdrop-filter: blur(2px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.modal {
+    background-color: var(--color-input-bg);
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+
+    padding: 40px;
+
+    width: 100%;
+    max-width: 480px;
+
+    display: flex;
+    flex-direction: column;
+
+    box-sizing: border-box;
+}
+
+.title {
+    margin: 0 0 8px;
+
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 36px;
+    letter-spacing: -0.6px;
+
+    color: var(--color-main);
+}
+
+.subtitle {
+    margin: 0 0 24px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #717973;
+}
+
+.emailBlock {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 14px 16px;
+    margin-bottom: 28px;
+
+    background-color: #E8F5EE;
+    border-radius: 10px;
+    border: 1px solid #B9EAD5;
+}
+
+.emailIcon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.emailText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.emailLabel {
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 14px;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+
+    color: var(--color-secondary);
+}
+
+.emailValue {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-primary);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inputWrap {
+    margin-bottom: 24px;
+}
+
+.actions {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.resendRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.resendLabel {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 20px;
+
+    color: #717973;
+}
+
+.resendCooldown {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+
+    color: var(--color-placeholder);
+}
+
+.resendBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    transition: color 0.15s ease;
+}
+
+.resendBtn:hover {
+    color: var(--color-primary-hover);
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-6px); }
+    30%       { transform: translateX(6px); }
+    45%       { transform: translateX(-5px); }
+    60%       { transform: translateX(5px); }
+    75%       { transform: translateX(-3px); }
+    90%       { transform: translateX(3px); }
+}
+
+.shake :global(input) {
+    border-color: var(--color-error);
+}
+ 
+.shake :global(input:focus) {
+    border-color: var(--color-error);
+}

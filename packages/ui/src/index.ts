@@ -20,9 +20,18 @@ export { default as ProfilePlaylistsPage } from "./pages/ProfilePlaylistsPage/Pr
 export { default as ProfileSubscriptionsPage } from "./pages/ProfileSubscriptionsPage/ProfileSubscriptionsPage";
 export { default as ProfileHistoryPage } from "./pages/ProfileHistoryPage/ProfileHistoryPage";
 export { default as ProfileSettingsPage } from "./pages/ProfileSettingsPage/ProfileSettingsPage";
+export { default as PlaylistPage } from "./pages/PlaylistPage/PlaylistPage";
+export { default as BecomeAuthorPage } from "./pages/BecomeAuthorPage/BecomeAuthorPage";
+export { default as ProfileMyPodcastsPage } from "./pages/ProfileMyPodcastsPage/ProfileMyPodcastsPage";
 
 
 
+
+export { default as ProfileAuthorHero } from "./components/ProfileAuthorHero/ProfileAuthorHero";
+export { default as BecomeAuthorSuccessModal } from "./components/BecomeAuthorSuccessModal/BecomeAuthorSuccessModal";
+export { default as PlaylistHero } from "./components/PlaylistHero/PlaylistHero";
+export { ToastProvider } from "./components/Toast/ToastProvider";
+export { default as OtpEmailModal } from "./components/OtpEmailModal/OtpEmailModal";
 export { default as ProfileNav } from "./components/ProfileNav/ProfileNav";
 export { default as ProfileHero } from "./components/ProfileHero/ProfileHero";
 export { default as LoginPromptModal } from "./components/LoginPromptModal/LoginPromptModal";

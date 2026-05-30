@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import PlaylistCard from "../../components/PlaylistCard/PlaylistCard";
 import styles from "./ProfilePlaylistsPage.module.css";
 
@@ -16,6 +17,7 @@ const MOCK_PLAYLISTS = [
         likes: 2400,
         dislikes: 120,
         isPrivate: true,
+        isOwner: true,
     },
     {
         id: "2",
@@ -26,15 +28,34 @@ const MOCK_PLAYLISTS = [
         listeners: 8900,
         likes: 1300,
         dislikes: 52,
+        isOwner: true,
     },
 ];
 
 const ProfilePlaylistsPage: React.FC = () => {
+    const navigate = useNavigate();
+
     return (
-        <div className={styles.grid}>
-            {MOCK_PLAYLISTS.map((playlist) => (
-                <PlaylistCard key={playlist.id} {...playlist} />
-            ))}
+        <div className={styles.page}>
+            <div className={styles.header}>
+                <button
+                    type="button"
+                    className={styles.createBtn}
+                    onClick={() => navigate("/playlists/create")}
+                >
+                    Создать плейлист
+                </button>
+            </div>
+
+            <div className={styles.grid}>
+                {MOCK_PLAYLISTS.map((playlist) => (
+                    <PlaylistCard
+                        key={playlist.id}
+                        {...playlist}
+                        onEditClick={() => navigate(`/playlists/${playlist.id}/edit`)}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

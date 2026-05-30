@@ -5,6 +5,8 @@ import eyeClosed from "../../assets/icons/eyeClose.svg";
 
 interface InputFieldProps {
     label: string;
+    hint?: string;
+    labelClassName?: string;
     type?: "text" | "email" | "password";
     name?: string;
     autoComplete?: string;
@@ -18,6 +20,8 @@ interface InputFieldProps {
 
 const InputField: React.FC<InputFieldProps> = ({
     label,
+    hint,
+    labelClassName,
     type = "text",
     name,
     autoComplete,
@@ -38,10 +42,10 @@ const InputField: React.FC<InputFieldProps> = ({
 
     return (
         <div className={styles.field}>
-            <label htmlFor={inputId} className={styles.label}>
+            <label htmlFor={inputId} className={`${styles.label} ${labelClassName ?? ""}`}>
                 {label}
             </label>
-
+            {hint && <p className={styles.hint}>{hint}</p>}
             <div className={`${styles.inputWrapper} ${error ? styles.error : ""}`}>
                 <input
                     id={inputId}

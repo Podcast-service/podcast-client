@@ -4,6 +4,7 @@ import styles from "./PlaylistCard.module.css";
 
 import PlusSvg from "../../assets/icons/plus.svg";
 import CheckSvg from "../../assets/icons/check.svg";
+import EditSvg from "../../assets/icons/edit.svg";
 import LockSvg from "../../assets/icons/lock.svg";
 import ListenersSvg from "../../assets/icons/listeners.svg";
 import LikeSvg from "../../assets/icons/like.svg";
@@ -21,14 +22,16 @@ interface PlaylistCardProps {
   dislikes?: number;
   isAdded?: boolean;
   isPrivate?: boolean;
+  isOwner?: boolean;
+  isAuthor?: boolean;
   onAddClick?: () => void;
+  onEditClick?: () => void;
 }
 
 const formatStat = (value: number) => {
   if (value >= 1000) {
     return `${(value / 1000).toFixed(1).replace(".", ",")} к`;
   }
-
   return value.toString();
 };
 
@@ -36,7 +39,6 @@ const formatEpisodesCount = (count: number) => {
   if (count % 10 === 1 && count % 100 !== 11) {
     return `${count} эпизод`;
   }
-
   if (
     count % 10 >= 2 &&
     count % 10 <= 4 &&
@@ -44,7 +46,6 @@ const formatEpisodesCount = (count: number) => {
   ) {
     return `${count} эпизода`;
   }
-
   return `${count} эпизодов`;
 };
 
@@ -59,7 +60,10 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
   dislikes,
   isAdded = false,
   isPrivate = false,
+  isOwner = false,
+  isAuthor = false,
   onAddClick,
+  onEditClick,
 }) => {
   return (
     <article className={styles.card}>
@@ -96,15 +100,32 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
               <p className={styles.author}>{author}</p>
             </div>
 
-            {!isPrivate && (
+            {isOwner ? (
               <button
                 type="button"
                 className={styles.addBtn}
-                onClick={(event) => {
-                  event.preventDefault();
+                onClick={(e) => {
+                  e.preventDefault();
+                  onEditClick?.();
+                }}
+                aria-label="Редактировать плейлист"
+              >
+                <img
+                  src={EditSvg}
+                  alt=""
+                  aria-hidden="true"
+                  className={styles.addIcon}
+                />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.addBtn}
+                onClick={(e) => {
+                  e.preventDefault();
                   onAddClick?.();
                 }}
-                aria-label={isAdded ? "Плейлист добавлен" : "Добавить плейлист"}
+                aria-label={isAdded ? "Убрать из моих плейлистов" : "Добавить в мои плейлисты"}
               >
                 <img
                   src={isAdded ? CheckSvg : PlusSvg}
@@ -119,36 +140,21 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
           <div className={styles.stats} aria-label="Статистика плейлиста">
             {listeners !== undefined && (
               <span className={styles.stat}>
-                <img
-                  src={ListenersSvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.statIcon}
-                />
+                <img src={ListenersSvg} alt="" aria-hidden="true" className={styles.statIcon} />
                 {formatStat(listeners)}
               </span>
             )}
 
             {likes !== undefined && (
               <span className={styles.stat}>
-                <img
-                  src={LikeSvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.statIcon}
-                />
+                <img src={LikeSvg} alt="" aria-hidden="true" className={styles.statIcon} />
                 {formatStat(likes)}
               </span>
             )}
 
             {dislikes !== undefined && (
               <span className={styles.stat}>
-                <img
-                  src={DislikeSvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.statIcon}
-                />
+                <img src={DislikeSvg} alt="" aria-hidden="true" className={styles.statIcon} />
                 {formatStat(dislikes)}
               </span>
             )}

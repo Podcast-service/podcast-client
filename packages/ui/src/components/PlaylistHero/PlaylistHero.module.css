@@ -1,0 +1,316 @@
+.hero {
+    display: flex;
+    flex-direction: row;
+    gap: 48px;
+    align-items: flex-start;
+
+    width: 100%;
+    padding: 40px 0;
+
+    border-bottom: 1px solid var(--color-border);
+
+    box-sizing: border-box;
+}
+
+
+.coverWrap {
+    width: 400px;
+    height: 400px;
+    flex-shrink: 0;
+
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.coverPlaceholder {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--color-bg-page);
+}
+
+.coverPlaceholderIcon {
+    width: 80px;
+    height: 80px;
+    display: block;
+    opacity: 0.5;
+}
+
+
+.info {
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+.statusBadge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    width: fit-content;
+
+    padding: 8px 16px;
+
+    background-color: #EDF7F1;
+    border-radius: 20px;
+    border: 1px solid #1B4332;
+}
+
+.statusIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.statusLabel {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: -0.1px;
+
+    color: #414844;
+}
+
+
+.title {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 60px;
+    letter-spacing: -0.6px;
+
+    color: var(--color-main);
+}
+
+.author {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #1B4332;
+}
+
+.description {
+    margin: 0;
+    max-width: 620px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+    letter-spacing: -0.2px;
+
+    color: #414844;
+}
+
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px; 
+
+    margin-top: 4px;
+    margin-bottom: 40px;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.metaIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.metaText {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: -0.1px;
+
+    color: #414844;
+}
+
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+}
+
+.btnPlay {
+    padding: 10px 48px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnPlay:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btnAdd {
+    padding: 10px 44px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnAdd:hover {
+    background-color: #F5FEF6;
+}
+
+.btnRemove {
+    padding: 10px 44px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #717973;
+    background-color: transparent;
+    border: 1.5px solid #C1C8C2;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btnRemove:hover {
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+.btnEdit {
+    padding: 10px 40px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnEdit:hover {
+    background-color: #F5FEF6;
+}
+
+.btnDelete {
+    padding: 10px 40px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-error);
+    background-color: #FDECEA;
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnDelete:hover {
+    background-color: var(--color-error);
+    color: #ffffff;
+}
+
+.btnYoutube {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+ 
+    width: fit-content;
+    padding: 12px 24px;
+ 
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+ 
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+ 
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+ 
+.btnYoutube:hover {
+    background-color: var(--color-primary-hover);
+}
+ 
+.youtubeIcon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: block;
+}
