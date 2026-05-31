@@ -25,9 +25,11 @@ export { default as BecomeAuthorPage } from "./pages/BecomeAuthorPage/BecomeAuth
 export { default as ProfileMyPodcastsPage } from "./pages/ProfileMyPodcastsPage/ProfileMyPodcastsPage";
 export { default as CreatePlaylistPage } from "./pages/CreatePlaylistPage/CreatePlaylistPage";
 export { default as EditPlaylistPage } from "./pages/EditPlaylistPage/EditPlaylistPage";
+export { default as CreatePodcastPage } from "./pages/CreatePodcastPage/CreatePodcastPage";
 
 
 
+export { default as TextUploadBlock } from "./components/TextUploadBlock/TextUploadBlock";
 export { default as AudioUploadBlock } from "./components/AudioUploadBlock/AudioUploadBlock";
 export { default as PodcastPublishStatus } from "./components/PodcastPublishStatus/PodcastPublishStatus";
 export { default as CreatePodcastForm } from "./components/CreatePodcastForm/CreatePodcastForm";

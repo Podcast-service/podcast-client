@@ -57,6 +57,8 @@ import {
   CreatePodcastForm,
   PodcastPublishStatus,
   AudioUploadBlock,
+  TextUploadBlock,
+  CreatePodcastPage,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -291,6 +293,33 @@ function DevPage() {
   const [isPrivate, setIsPrivate] = useState(true);
   const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">("likes");
 
+  const [publishStatus, setPublishStatus] = useState<"draft" | "processing" | "ready" | "published" | "error">("draft");
+
+const [formData] = useState({ speakersCount: 2 });
+
+const handleGenerate = (data: {
+  speakers: string[];
+  blocks: { speakerId: string; text: string }[];
+  coverFile: File | null;
+}) => {
+  console.log("generate:", data);
+  setPublishStatus("processing");
+  setTimeout(() => setPublishStatus("ready"), 3000);
+};
+
+const handlePublish = () => {
+  console.log("publish");
+  setPublishStatus("published");
+};
+
+const handleCancelGeneration = () => {
+  console.log("cancel generation");
+  setPublishStatus("error");
+};
+
+const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processing" | "ready" | "published" | "error">("draft");
+
+
   return (
     <div className="container">
       <div
@@ -345,6 +374,7 @@ function DevPage() {
         onContinue={() => setIsSuccessModalOpen(false)}
     />
 )}
+
 
 
 
@@ -847,24 +877,6 @@ function DevPage() {
 />
 
 
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    AudioUploadBlock
-  </h2>
-
-  <div style={{ maxWidth: "700px" }}>
-    <AudioUploadBlock
-      publishStatus="ready"
-      onAudioChange={(file) => console.log("audio:", file)}
-      onCoverChange={(file) => console.log("cover:", file)}
-      onPublish={() => console.log("publish")}
-      onCancel={() => {}}
-    />
-  </div>
-</section>
-
-
 <section>
   <h2
     style={{
@@ -1108,7 +1120,7 @@ function Frontend() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainPage />} />
 
-        <Route path="/podcasts/create" element={<div>Создание подкаста — скоро</div>} />
+        <Route path="/podcasts/create" element={<CreatePodcastPage />} />
         <Route path="/podcasts/:podcastId/edit" element={<div>Редактирование подкаста — скоро</div>} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
 

@@ -107,7 +107,7 @@ const RegisterPage = () => {
               </h5>
 
               <p className={styles.description}>
-                Загрузите один раз — Podcast сам разошлет его на другие
+                Загрузите один раз - Podcast сам разошлет его на другие
                 платформы
               </p>
             </div>
@@ -123,7 +123,7 @@ const RegisterPage = () => {
 
             <h1 className={styles.formTitle}>Создайте аккаунт</h1>
             <p className={styles.formSubtitle}>
-              Заполните данные — это займет меньше минуты
+              Заполните данные - это займет меньше минуты
             </p>
 
             <form className={styles.form} onSubmit={handleSubmit} noValidate>
