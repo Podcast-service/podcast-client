@@ -10,7 +10,7 @@ import { useToast } from "../../components/Toast/useToast";
 
 interface Podcast {
     id: string;
-    authorUsername: string;
+    authorId: string;
     title: string;
     author: string;
     date: string;
@@ -28,7 +28,7 @@ interface MainLayoutContext {
 
 const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
 
-const CURRENT_USERNAME = "alex_johnson";
+const CURRENT_AUTHOR_ID = "author_123";
 
 const MOCK_PLAYLIST = {
     id: "1",
@@ -48,7 +48,7 @@ const MOCK_PLAYLIST = {
 const MOCK_PODCASTS: Podcast[] = [
     {
         id: "1",
-        authorUsername: "alex_johnson",
+        authorId: "author_123",
         title: "Как справиться с прокрастинацией",
         author: "Александр Соколов",
         date: "12 окт 2023",
@@ -58,7 +58,7 @@ const MOCK_PODCASTS: Podcast[] = [
     },
     {
         id: "2",
-        authorUsername: "alex_johnson",
+        authorId: "author_123",
         title: "Искусство глубокого сна",
         author: "Александр Соколов",
         date: "5 окт 2023",
@@ -69,7 +69,7 @@ const MOCK_PODCASTS: Podcast[] = [
     },
     {
         id: "3",
-        authorUsername: "other_user",
+        authorId: "author_other1",
         title: "Почему мы забываем важное?",
         author: "Мария Смирнова",
         date: "28 сент 2023",
@@ -92,7 +92,7 @@ const PlaylistPage: React.FC = () => {
 
     const { isOwner, isAuthor } = MOCK_PLAYLIST;
 
-    const canPublishToYoutube = isOwner && isAuthor && MOCK_PODCASTS.every(p => p.authorUsername === CURRENT_USERNAME);
+    const canPublishToYoutube = isOwner && isAuthor && MOCK_PODCASTS.every(p => p.authorId === CURRENT_AUTHOR_ID);
 
     const handlePlayAll = () => {
         if (MOCK_PODCASTS.length > 0) {

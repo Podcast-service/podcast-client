@@ -28,7 +28,7 @@ import YoutubeSvg from "../../assets/icons/youtube.svg";
 
 interface Podcast {
     id: string;
-    authorUsername: string;
+    authorId: string;
     title: string;
     author: string;
     coverUrl?: string;
@@ -37,7 +37,7 @@ interface Podcast {
 
 const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
 
-const CURRENT_USERNAME = "alex_johnson";
+const CURRENT_AUTHOR_ID = "author_123";
 
 const MOCK_USER = {
     isAuthor: true,
@@ -50,27 +50,27 @@ const MOCK_PLAYLIST = {
 };
 
 const MOCK_LIKED: Podcast[] = [
-    { id: "1", authorUsername: "other_user", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorUsername: "other_user", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorUsername: "other_user2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
+    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
+    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
+    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
 ];
 
 const MOCK_ALL: Podcast[] = [
-    { id: "1", authorUsername: "other_user", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorUsername: "other_user", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorUsername: "other_user2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
-    { id: "4", authorUsername: "other_user", title: "Эмпатия в цифровой век", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "5", authorUsername: "alex_johnson", title: "Квантовый мир", author: "Александр Соколов", coverUrl: COVER },
+    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
+    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
+    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
+    { id: "4", authorId: "author_other1", title: "Эмпатия в цифровой век", author: "Виктор Соколов", coverUrl: COVER },
+    { id: "5", authorId: "author_123", title: "Квантовый мир", author: "Александр Соколов", coverUrl: COVER },
 ];
 
 const MOCK_MINE: Podcast[] = [
-    { id: "6", authorUsername: "alex_johnson", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
-    { id: "7", authorUsername: "alex_johnson", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
+    { id: "6", authorId: "author_123", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
+    { id: "7", authorId: "author_123", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
 ];
 
 const INITIAL_ADDED: Podcast[] = [
-    { id: "6", authorUsername: "alex_johnson", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
-    { id: "7", authorUsername: "alex_johnson", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
+    { id: "6", authorId: "author_123", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
+    { id: "7", authorId: "author_123", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
 ];
 
 
@@ -100,7 +100,7 @@ const EditPlaylistPage: React.FC = () => {
     );
 
 
-    const allPodcastsAreOwn = addedList.every((p) => p.authorUsername === CURRENT_USERNAME);
+    const allPodcastsAreOwn = addedList.every((p) => p.authorId === CURRENT_AUTHOR_ID);
     const canPublishToYoutube = MOCK_USER.isAuthor && allPodcastsAreOwn && addedList.length > 0;
 
     const getSourceList = (): Podcast[] => {
