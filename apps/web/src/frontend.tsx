@@ -15,50 +15,37 @@ import {
   Footer,
   Player,
   MainPage,
-  PodcastsPage,
   FilterTabs,
-  PodcastRow,
   AuthorRow,
-  LoadMoreButton,
   AuthorsPage,
   PlaylistRow,
   PlaylistsPage,
   ScrollToTop,
   PodcastHero,
-  PodcastTranscript,
-  RecommendedPodcasts,
   PodcastPage,
-  PlaylistCard,
-  AuthorProfileHero,
-  AuthorPodcastsCarousel,
   AuthorPage,
   ProfileHero,
-  ProfileNav,
   ProfilePage,
   ProfileLikesPage,
   ProfilePlaylistsPage,
   ProfileSubscriptionsPage,
   ProfileHistoryPage,
-  AuthorPodcastDraftRow,
   ActiveSessions,
   ProfileSettingsPage,
   OtpEmailModal,
   ToastProvider,
-  PlaylistHero,
   PlaylistPage,
   BecomeAuthorSuccessModal,
   BecomeAuthorPage,
-  ProfileAuthorHero,
   ProfileMyPodcastsPage,
-  PlaylistPodcastRow,
-  CreatePlaylistHeader,
   CreatePlaylistPage,
   EditPlaylistPage,
-  CreatePodcastForm,
   PodcastPublishStatus,
-  AudioUploadBlock,
-  TextUploadBlock,
   CreatePodcastPage,
+  EditPodcastPage,
+  DownloadAppBanner,
+  PodcastsPage,
+  DownloadAppPage,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -95,6 +82,11 @@ function MainLayout() {
         <main className="mainContent">
           <Outlet context={{ playPodcast: setActivePodcast }} />
         </main>
+        <DownloadAppBanner
+          isPlayerVisible={Boolean(activePodcast)}
+          onDownloadClick={() => {}}
+        />
+
         <Player
           isVisible={Boolean(activePodcast)}
           title={activePodcast?.title}
@@ -288,38 +280,6 @@ function DevPage() {
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  const [playlistName, setPlaylistName] = useState("");
-  const [playlistDescription, setPlaylistDescription] = useState("");
-  const [isPrivate, setIsPrivate] = useState(true);
-  const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">("likes");
-
-  const [publishStatus, setPublishStatus] = useState<"draft" | "processing" | "ready" | "published" | "error">("draft");
-
-const [formData] = useState({ speakersCount: 2 });
-
-const handleGenerate = (data: {
-  speakers: string[];
-  blocks: { speakerId: string; text: string }[];
-  coverFile: File | null;
-}) => {
-  console.log("generate:", data);
-  setPublishStatus("processing");
-  setTimeout(() => setPublishStatus("ready"), 3000);
-};
-
-const handlePublish = () => {
-  console.log("publish");
-  setPublishStatus("published");
-};
-
-const handleCancelGeneration = () => {
-  console.log("cancel generation");
-  setPublishStatus("error");
-};
-
-const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processing" | "ready" | "published" | "error">("draft");
-
-
   return (
     <div className="container">
       <div
@@ -376,218 +336,12 @@ const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processi
 )}
 
 
-
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    CreatePodcastForm
-  </h2>
-
-  <CreatePodcastForm
-    categories={[
-      { id: "psychology", label: "Психология" },
-      { id: "science", label: "Наука" },
-      { id: "tech", label: "Технологии" },
-      { id: "business", label: "Бизнес" },
-    ]}
-    onSave={(data) => console.log("save:", data)}
-    onCancel={() => {}}
-  />
-</section>
-
-
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    CreatePlaylistHeader — пользователь
-  </h2>
-  <CreatePlaylistHeader
-    isAuthor={false}
-    activeTab={activeTab}
-    onTabChange={setActiveTab}
-    name={playlistName}
-    onNameChange={setPlaylistName}
-    description={playlistDescription}
-    onDescriptionChange={setPlaylistDescription}
-    isPrivate={true}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    CreatePlaylistHeader — автор
-  </h2>
-  <CreatePlaylistHeader
-    isAuthor={true}
-    activeTab={activeTab}
-    onTabChange={setActiveTab}
-    name={playlistName}
-    onNameChange={setPlaylistName}
-    description={playlistDescription}
-    onDescriptionChange={setPlaylistDescription}
-    isPrivate={isPrivate}
-    onPrivacyChange={setIsPrivate}
-  />
-</section>
-
-
 <PodcastPublishStatus status="draft" />
 <PodcastPublishStatus status="processing" />
 <PodcastPublishStatus status="ready" />
 <PodcastPublishStatus status="published" publishedAt="2024-10-14T12:20:00" />
 <PodcastPublishStatus status="error" />
 
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistPodcastRow — selector (не добавлен)
-  </h2>
-  <PlaylistPodcastRow
-    id="1"
-    title="Как справиться с прокрастинацией"
-    author="Виктор Соколов"
-    coverUrl={COVER}
-    variant="selector"
-    isAdded={false}
-    isPlaying={false}
-    onAddClick={() => {}}
-    onPlayClick={() => {}}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistPodcastRow — selector (добавлен)
-  </h2>
-  <PlaylistPodcastRow
-    id="2"
-    title="Как справиться с прокрастинацией"
-    author="Виктор Соколов"
-    coverUrl={COVER}
-    variant="selector"
-    isAdded={true}
-    isPlaying={false}
-    onAddClick={() => {}}
-    onPlayClick={() => {}}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistPodcastRow — added
-  </h2>
-  <PlaylistPodcastRow
-    id="3"
-    title="Как справиться с прокрастинацией"
-    author="Виктор Соколов"
-    coverUrl={COVER}
-    variant="added"
-    onRemoveClick={() => {}}
-  />
-</section>
-
-
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    ProfileNav
-  </h2>
-
-  <ProfileNav />
-</section>
-
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistHero — чужой плейлист
-  </h2>
-  <PlaylistHero
-    title="Стратегия тишины"
-    author="Александр Соколов"
-    description="A curated selection of the most compelling investigative journalism."
-    coverUrl={COVER}
-    isPrivate={false}
-    isOwner={false}
-    episodesCount={12}
-    totalDuration="54"
-    createdAt="14 Октября 2024"
-    listeners={12450}
-    isAdded={false}
-    onPlayAll={() => {}}
-    onAddClick={() => {}}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistHero — ты владелец (пользователь)
-  </h2>
-  <PlaylistHero
-    title="Стратегия тишины"
-    author="Вы"
-    description="A curated selection of the most compelling investigative journalism."
-    coverUrl={COVER}
-    isPrivate={true}
-    isOwner={true}
-    isAuthor={false}
-    episodesCount={12}
-    totalDuration="54"
-    createdAt="14 Октября 2024"
-    listeners={12450}
-    onPlayAll={() => {}}
-    onEdit={() => {}}
-    onDelete={() => {}}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistHero — ты владелец (автор)
-  </h2>
-  <PlaylistHero
-    title="Стратегия тишины"
-    author="Вы"
-    description="A curated selection of the most compelling investigative journalism."
-    coverUrl={COVER}
-    isPrivate={false}
-    isOwner={true}
-    isAuthor={true}
-    episodesCount={12}
-    totalDuration="54"
-    createdAt="14 Октября 2024"
-    listeners={12450}
-    onPlayAll={() => {}}
-    onEdit={() => {}}
-    onDelete={() => {}}
-  />
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistHero — чужой плейлист (добавлен)
-  </h2>
-  <PlaylistHero
-    title="Стратегия тишины"
-    author="Александр Соколов"
-    description="A curated selection of the most compelling investigative journalism."
-    coverUrl={COVER}
-    isPrivate={false}
-    isOwner={false}
-    episodesCount={12}
-    totalDuration="54"
-    createdAt="14 Октября 2024"
-    listeners={12450}
-    isAdded={true}
-    onPlayAll={() => {}}
-    onAddClick={() => {}}
-  />
-</section>
 
 </section>
         <section>
@@ -647,39 +401,6 @@ const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processi
   />
 </section>
 
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    RecommendedPodcasts
-  </h2>
-
-  <div style={{ maxWidth: "520px" }}>
-    <RecommendedPodcasts podcasts={RECOMMENDED_PODCASTS} />
-  </div>
-</section>
-
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    AuthorPodcastsCarousel
-  </h2>
-
-  <AuthorPodcastsCarousel
-    playlists={AUTHOR_PLAYLISTS}
-  />
-</section>
 
 <section>
   <h2
@@ -695,9 +416,6 @@ const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processi
 
   <ActiveSessions sessions={MOCK_SESSIONS} />
 </section>
-
-
-
 
         <section>
           <h2
@@ -734,6 +452,12 @@ const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processi
             />
           </div>
         </section>
+
+
+
+
+
+
 
         <section>
   <h2
@@ -791,309 +515,6 @@ const [audioPublishStatus, setAudioPublishStatus] = useState<"draft" | "processi
   </div>
 </section>
 
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    PodcastTranscript
-  </h2>
-
-  <PodcastTranscript items={TRANSCRIPT_ITEMS} initialVisibleCount={4} />
-</section>
-
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    PlaylistCard
-  </h2>
-
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-      gap: "24px",
-    }}
-  >
-    <PlaylistCard
-      id="1"
-      title="Лидерство и Рост"
-      author="Мария Смирнова"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isAdded={false}
-      onAddClick={() => {}}
-    />
-
-    <PlaylistCard
-      id="2"
-      title="Лидерство и Рост"
-      author="Мария Смирнова"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isAdded={true}
-      onAddClick={() => {}}
-    />
-
-    <PlaylistCard
-      id="3"
-      title="Лидерство и Рост"
-      author="Вы"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isPrivate={true}
-    />
-  </div>
-</section>
-
-<AuthorProfileHero
-  name="Александр Соколов"
-  category="Психология"
-  description="Практикующий психолог и исследователь человеческого поведения. В своих подкастах Александр исследует глубины сознания, когнитивные искажения и способы достижения внутреннего спокойствия в современном мире."
-  subscribers={124500}
-  avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
-  isSubscribed={false}
-  onSubscribeClick={() => {}}
-  onShareClick={() => {}}
-/>
-
-
-<section>
-  <h2
-    style={{
-      marginBottom: "16px",
-      fontFamily: "var(--font-open-sans)",
-      fontSize: "18px",
-      fontWeight: 700,
-    }}
-  >
-    AuthorPodcastDraftRow
-  </h2>
-
-  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-    <AuthorPodcastDraftRow
-      id="processing-1"
-      title="Как справиться с прокрастинацией"
-      category="Саморазвитие"
-      status="processing"
-    />
-
-    <AuthorPodcastDraftRow
-      id="ready-1"
-      title="Как справиться с прокрастинацией"
-      category="Саморазвитие"
-      status="ready"
-    />
-  </div>
-</section>
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    PlaylistCard — все состояния
-  </h2>
-
-  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "24px" }}>
-
-    <PlaylistCard
-      id="1"
-      title="Доброе утро"
-      author="Мария Смирнова"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isOwner={false}
-      isAdded={false}
-      onAddClick={() => {}}
-    />
-
-    <PlaylistCard
-      id="2"
-      title="Социальные нормы"
-      author="Мария Смирнова"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isOwner={false}
-      isAdded={true}
-      onAddClick={() => {}}
-    />
-
-    <PlaylistCard
-      id="3"
-      title="Лидерство и Рост"
-      author="Вы"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isOwner={true}
-      isAuthor={false}
-      isPrivate={true}
-      onEditClick={() => {}}
-    />
-
-    <PlaylistCard
-      id="4"
-      title="Лидерство и Рост"
-      author="Вы"
-      episodesCount={24}
-      coverUrl="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
-      listeners={12300}
-      likes={2500}
-      dislikes={243}
-      isOwner={true}
-      isAuthor={true}
-      isPrivate={false}
-      onEditClick={() => {}}
-    />
-
-  </div>
-</section>
-
-
-<section>
-  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
-    ProfileAuthorHero
-  </h2>
-
-  <ProfileAuthorHero
-    authorName="Александр Соколов"
-    email="alex@example.com"
-    avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
-    bio="Практикующий психолог и исследователь человеческого поведения. В своих подкастах Александр исследует глубины сознания, когнитивные искажения и способы достижения внутреннего спокойствия в современном мире."
-    subscribers={124000}
-    onShareClick={() => {}}
-  />
-</section>
-
-
-        <section>
-          <h2
-            style={{
-              marginBottom: "16px",
-              fontFamily: "var(--font-open-sans)",
-              fontSize: "18px",
-              fontWeight: 700,
-            }}
-          >
-            PodcastRow — варианты
-          </h2>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <PodcastRow
-              id="1"
-              title="Как справиться с прокрастинацией"
-              author="Виктор Соколов"
-              date="12 окт 2023"
-              duration="45:00"
-              category="Саморазвитие"
-              coverUrl={COVER}
-            />
-
-            <PodcastRow
-  id="owner-published-1"
-  title="Мой опубликованный подкаст"
-  author="Вы"
-  date="12 окт 2023"
-  duration="45:00"
-  category="Саморазвитие"
-  coverUrl={COVER}
-  progress={66}
-  isOwner={true}
-  isLiked={false}
-  isPlaying={false}
-  onEditClick={() => {}}
-  onAddClick={() => {}}
-  onLikeClick={() => {}}
-  onPlayClick={() => {}}
-/>
-
-            <PodcastRow
-              id="2"
-              title="Искусство глубокого сна"
-              author="Виктор Соколов"
-              date="12 окт 2023"
-              duration="45:00"
-              category="Саморазвитие"
-              coverUrl={COVER}
-              progress={66}
-            />
-
-            <PodcastRow
-              id="3"
-              title="Почему мы забываем важное?"
-              author="Виктор Соколов"
-              date="12 окт 2023"
-              duration="45:00"
-              category="Саморазвитие"
-              coverUrl={COVER}
-              isLiked={true}
-            />
-
-            <PodcastRow
-              id="4"
-              title="Эмпатия в цифровой век"
-              author="Виктор Соколов"
-              date="12 окт 2023"
-              duration="45:00"
-              category="Саморазвитие"
-              coverUrl={COVER}
-              isCompleted={true}
-            />
-
-            <PodcastRow
-              id="5"
-              title="Подкаст без обложки"
-              author="Виктор Соколов"
-              date="12 окт 2023"
-              duration="1:02:30"
-              category="Наука"
-            />
-          </div>
-        </section>
-
-        <section>
-          <h2
-            style={{
-              marginBottom: "16px",
-              fontFamily: "var(--font-open-sans)",
-              fontSize: "18px",
-              fontWeight: 700,
-            }}
-          >
-            LoadMoreButton
-          </h2>
-
-          <LoadMoreButton onClick={() => {}} />
-
-          <div style={{ marginTop: "12px" }}>
-            <LoadMoreButton onClick={() => {}} loading={true} />
-          </div>
-        </section>
       </div>
     </div>
   );
@@ -1119,9 +540,11 @@ function Frontend() {
 
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainPage />} />
+        <Route path="/download" element={<DownloadAppPage />} />
 
+        <Route path="/podcasts" element={<PodcastsPage />} />
         <Route path="/podcasts/create" element={<CreatePodcastPage />} />
-        <Route path="/podcasts/:podcastId/edit" element={<div>Редактирование подкаста — скоро</div>} />
+        <Route path="/podcasts/:podcastId/edit" element={<EditPodcastPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
 
         <Route path="/authors" element={<AuthorsPage />} />

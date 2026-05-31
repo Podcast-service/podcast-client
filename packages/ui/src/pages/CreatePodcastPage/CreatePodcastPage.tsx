@@ -10,7 +10,6 @@ import PodcastPublishStatus from "../../components/PodcastPublishStatus/PodcastP
 import LeftSvg from "../../assets/icons/left.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
 
-
 type FileType = "audio" | "text";
 type PublishStatus = "draft" | "processing" | "ready" | "published" | "error";
 
@@ -33,13 +32,11 @@ const CATEGORIES = [
     { id: "sport", label: "Спорт" },
 ];
 
-
 const CreatePodcastPage: React.FC = () => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<FormData | null>(null);
     const [publishStatus, setPublishStatus] = useState<PublishStatus>("draft");
-
 
     const handleFormSave = (data: {
         title: string;
@@ -52,12 +49,10 @@ const CreatePodcastPage: React.FC = () => {
         setPublishStatus("draft");
     };
 
-
     const handleAudioChange = (file: File) => {
         console.log("audio file:", file.name);
         setPublishStatus("processing");
     };
-
 
     const handleGenerate = (data: {
         speakers: string[];
@@ -68,18 +63,15 @@ const CreatePodcastPage: React.FC = () => {
         setPublishStatus("processing");
     };
 
-
     const handlePublish = () => {
         setPublishStatus("published");
     };
-
 
     return (
         <div className={styles.page}>
             <div className={`container ${styles.pageInner}`}>
 
-                <div className={styles.leftBlock}>
-
+                <div className={styles.header}>
                     <div className={styles.topBar}>
                         <button
                             type="button"
@@ -119,83 +111,55 @@ const CreatePodcastPage: React.FC = () => {
                     </div>
 
                     <h1 className={styles.pageTitle}>Создать подкаст</h1>
-                    <p className={styles.pageDesc}>
-                        Заполните информацию и загрузите файл
-                    </p>
-
-                    <div className={styles.card}>
-
-                        <CreatePodcastForm
-                            categories={CATEGORIES}
-                            onSave={handleFormSave}
-                            onCancel={() => navigate(-1)}
-                        />
-
-                        {formData && (
-                            <>
-                                <div className={styles.divider} />
-
-                                {formData.fileType === "audio" ? (
-                                    <AudioUploadBlock
-                                        publishStatus={publishStatus}
-                                        onAudioChange={handleAudioChange}
-                                        onCoverChange={(file) =>
-                                            console.log("cover:", file.name)
-                                        }
-                                        onPublish={handlePublish}
-                                        onCancel={() => navigate(-1)}
-                                    />
-                                ) : (
-                                    <TextUploadBlock
-                                        speakersCount={formData.speakersCount}
-                                        publishStatus={publishStatus}
-                                        onCoverChange={(file) =>
-                                            console.log("cover:", file.name)
-                                        }
-                                        onGenerate={handleGenerate}
-                                        onPublish={handlePublish}
-                                        onCancel={() => navigate(-1)}
-                                                    />
-                                )}
-                            </>
-                        )}
-                    </div>
+                    <p className={styles.pageDesc}>Заполните информацию и загрузите файл</p>
                 </div>
 
-                <div className={styles.rightBlock}>
+                <div className={styles.columns}>
 
-                    <PodcastPublishStatus status={publishStatus} />
+                    <div className={styles.leftBlock}>
+                        <div className={styles.card}>
 
-                    <div className={styles.warningCard}>
-                        <img
-                            src={WarningSvg}
-                            alt=""
-                            aria-hidden="true"
-                            className={styles.warningIcon}
-                        />
-                        <p className={styles.warningText}>
-                            Подкаст будет доступен для прослушивания сразу после
-                            нажатия кнопки «Опубликовать». Вы сможете отредактировать
-                            детали позже.
-                        </p>
+                            <CreatePodcastForm
+                                categories={CATEGORIES}
+                                onSave={handleFormSave}
+                                onCancel={() => navigate(-1)}
+                            />
+
+                            {formData && (
+                                <>
+                                    <div className={styles.divider} />
+
+                                    {formData.fileType === "audio" ? (
+                                        <AudioUploadBlock
+                                            publishStatus={publishStatus}
+                                            onAudioChange={handleAudioChange}
+                                            onCoverChange={(file) =>
+                                                console.log("cover:", file.name)
+                                            }
+                                            onPublish={handlePublish}
+                                            onCancel={() => navigate(-1)}
+                                        />
+                                    ) : (
+                                        <TextUploadBlock
+                                            speakersCount={formData.speakersCount}
+                                            publishStatus={publishStatus}
+                                            onCoverChange={(file) =>
+                                                console.log("cover:", file.name)
+                                            }
+                                            onGenerate={handleGenerate}
+                                            onPublish={handlePublish}
+                                            onCancel={() => navigate(-1)}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    {formData?.fileType === "audio" && (
-                        <div className={styles.warningCard}>
-                            <img
-                                src={WarningSvg}
-                                alt=""
-                                aria-hidden="true"
-                                className={styles.warningIcon}
-                            />
-                            <p className={styles.warningText}>
-                                Мы начнем готовить транскрипт, как только вы опубликуете
-                                подкаст - он появится на странице подкаста автоматически.
-                            </p>
-                        </div>
-                    )}
+                    <div className={styles.rightBlock}>
 
-                    {formData?.fileType === "text" && (
+                        <PodcastPublishStatus status={publishStatus} />
+
                         <div className={styles.warningCard}>
                             <img
                                 src={WarningSvg}
@@ -204,12 +168,44 @@ const CreatePodcastPage: React.FC = () => {
                                 className={styles.warningIcon}
                             />
                             <p className={styles.warningText}>
-                                Когда все реплики спикеров будут заполнены - нажмите
-                                «Генерация подкаста». Мы озвучим текст и подготовим
-                                готовый аудиофайл для ваших слушателей.
+                                Подкаст будет доступен для прослушивания сразу после
+                                нажатия кнопки «Опубликовать». Вы сможете отредактировать
+                                детали позже.
                             </p>
                         </div>
-                    )}
+
+                        {formData?.fileType === "audio" && (
+                            <div className={styles.warningCard}>
+                                <img
+                                    src={WarningSvg}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className={styles.warningIcon}
+                                />
+                                <p className={styles.warningText}>
+                                    Мы начнем готовить транскрипт, как только вы опубликуете
+                                    подкаст — он появится на странице подкаста автоматически.
+                                </p>
+                            </div>
+                        )}
+
+                        {formData?.fileType === "text" && (
+                            <div className={styles.warningCard}>
+                                <img
+                                    src={WarningSvg}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className={styles.warningIcon}
+                                />
+                                <p className={styles.warningText}>
+                                    Когда все реплики спикеров будут заполнены — нажмите
+                                    «Генерация подкаста». Мы озвучим текст и подготовим
+                                    готовый аудиофайл для ваших слушателей.
+                                </p>
+                            </div>
+                        )}
+
+                    </div>
 
                 </div>
 
