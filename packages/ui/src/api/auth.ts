@@ -40,6 +40,16 @@ export const clearTokens = () => {
   emitAuthChange();
 };
 
+/**
+ * Перезаписать только access-token, оставив refresh-token прежним.
+ * Нужно, когда бэкенд выдаёт новый access (например, после выдачи роли
+ * author через POST /authors/me) — в нём обновлённые claims/роли.
+ */
+export const setAccessToken = (accessToken: string) => {
+  localStorage.setItem("access_token", accessToken);
+  emitAuthChange();
+};
+
 export const getAccessToken = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
 

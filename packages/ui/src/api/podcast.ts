@@ -1,4 +1,4 @@
-import { getAccessToken, clearTokens } from "./auth";
+import { getAccessToken, clearTokens, setAccessToken } from "./auth";
 
 /**
  * Базовый путь podcast-core. По умолчанию относительный (/podcast/v1):
@@ -719,11 +719,29 @@ export interface CreateAuthorProfileRequest {
   description?: string | null;
 }
 
-/** Стать автором. POST /authors/me (требует роль AUTHOR в токене). */
-export function createAuthorProfile(
+/**
+ * Ответ POST /authors/me: auth-service выдаёт новый access_token с ролью
+ * author, а podcast-service возвращает (или создаёт) профиль автора.
+ */
+export interface BecomeAuthorResponse {
+  access_token: string;
+  expires_in: number;
+  author_profile: AuthorProfileResponse;
+}
+
+/**
+ * Стать автором. POST /authors/me.
+ * В ответе приходит новый access_token (уже с ролью author) — перезаписываем
+ * сохранённый токен, чтобы последующие запросы шли с обновлёнными правами.
+ */
+export async function createAuthorProfile(
   body: CreateAuthorProfileRequest
-): Promise<AuthorProfileResponse> {
-  return apiSend<AuthorProfileResponse>("POST", "/authors/me", body);
+): Promise<BecomeAuthorResponse> {
+  const res = await apiSend<BecomeAuthorResponse>("POST", "/authors/me", body);
+  if (res?.access_token) {
+    setAccessToken(res.access_token);
+  }
+  return res;
 }
 
 /** Обновить профиль автора. PUT /authors/me. */
