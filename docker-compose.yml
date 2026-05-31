@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # OTLP endpoint коллектора, доступный из браузера (OTLP/HTTP, порт 4318).
+        VITE_OTEL_EXPORTER_OTLP_ENDPOINT: ${VITE_OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}
     ports:
       - "80:80"
     restart: unless-stopped

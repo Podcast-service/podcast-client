@@ -28,6 +28,11 @@ COPY packages ./packages
 # Доустанавливаем зависимости после копирования исходников
 RUN pnpm install --frozen-lockfile
 
+# OTLP endpoint коллектора для браузера (инлайнится Vite на этапе сборки).
+# По умолчанию — порт коллектора, опубликованный на хосте.
+ARG VITE_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+ENV VITE_OTEL_EXPORTER_OTLP_ENDPOINT=$VITE_OTEL_EXPORTER_OTLP_ENDPOINT
+
 # Собираем приложение
 RUN pnpm --filter @podcast/web build
 
