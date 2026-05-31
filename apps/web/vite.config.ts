@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // ключевой момент
+    host: true,
   },
   preview: {
     host: true,

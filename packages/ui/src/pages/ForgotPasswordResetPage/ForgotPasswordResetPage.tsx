@@ -79,7 +79,7 @@ const ForgotPasswordResetPage = () => {
               <span className={styles.titleMain}>Новый </span>
               <span className={styles.titleAccent}>пароль.</span>
             </h1>
-            <p className={styles.description}>Придумайте надёжный пароль.</p>
+            <p className={styles.description}>Придумайте надежный пароль.</p>
           </section>
 
           <section className={styles.rightPart}>

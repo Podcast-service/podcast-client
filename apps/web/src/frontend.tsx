@@ -50,6 +50,14 @@ import {
   BecomeAuthorPage,
   ProfileAuthorHero,
   ProfileMyPodcastsPage,
+  PlaylistPodcastRow,
+  CreatePlaylistHeader,
+  CreatePlaylistPage,
+  EditPlaylistPage,
+  CreatePodcastForm,
+  PodcastPublishStatus,
+  AudioUploadBlock,
+  TextUploadBlock,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -279,6 +287,11 @@ function DevPage() {
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
+  const [playlistName, setPlaylistName] = useState("");
+  const [playlistDescription, setPlaylistDescription] = useState("");
+  const [isPrivate, setIsPrivate] = useState(true);
+  const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">("likes");
+
   return (
     <div className="container">
       <div
@@ -306,7 +319,7 @@ function DevPage() {
   username="Alex Johnson"
   email="alex@example.com"
   avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
-  isAuthor={false} // поменяй на true чтобы проверить скрытие кнопки
+  isAuthor={false}
 />
 
 <button onClick={() => setIsOtpOpen(true)}>Открыть OTP модалку</button>
@@ -333,6 +346,117 @@ function DevPage() {
         onContinue={() => setIsSuccessModalOpen(false)}
     />
 )}
+
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    CreatePodcastForm
+  </h2>
+
+  <CreatePodcastForm
+    categories={[
+      { id: "psychology", label: "Психология" },
+      { id: "science", label: "Наука" },
+      { id: "tech", label: "Технологии" },
+      { id: "business", label: "Бизнес" },
+    ]}
+    onSave={(data) => console.log("save:", data)}
+    onCancel={() => {}}
+  />
+</section>
+
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    CreatePlaylistHeader — пользователь
+  </h2>
+  <CreatePlaylistHeader
+    isAuthor={false}
+    activeTab={activeTab}
+    onTabChange={setActiveTab}
+    name={playlistName}
+    onNameChange={setPlaylistName}
+    description={playlistDescription}
+    onDescriptionChange={setPlaylistDescription}
+    isPrivate={true}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    CreatePlaylistHeader — автор
+  </h2>
+  <CreatePlaylistHeader
+    isAuthor={true}
+    activeTab={activeTab}
+    onTabChange={setActiveTab}
+    name={playlistName}
+    onNameChange={setPlaylistName}
+    description={playlistDescription}
+    onDescriptionChange={setPlaylistDescription}
+    isPrivate={isPrivate}
+    onPrivacyChange={setIsPrivate}
+  />
+</section>
+
+
+<PodcastPublishStatus status="draft" />
+<PodcastPublishStatus status="processing" />
+<PodcastPublishStatus status="ready" />
+<PodcastPublishStatus status="published" publishedAt="2024-10-14T12:20:00" />
+<PodcastPublishStatus status="error" />
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistPodcastRow — selector (не добавлен)
+  </h2>
+  <PlaylistPodcastRow
+    id="1"
+    title="Как справиться с прокрастинацией"
+    author="Виктор Соколов"
+    coverUrl={COVER}
+    variant="selector"
+    isAdded={false}
+    isPlaying={false}
+    onAddClick={() => {}}
+    onPlayClick={() => {}}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistPodcastRow — selector (добавлен)
+  </h2>
+  <PlaylistPodcastRow
+    id="2"
+    title="Как справиться с прокрастинацией"
+    author="Виктор Соколов"
+    coverUrl={COVER}
+    variant="selector"
+    isAdded={true}
+    isPlaying={false}
+    onAddClick={() => {}}
+    onPlayClick={() => {}}
+  />
+</section>
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    PlaylistPodcastRow — added
+  </h2>
+  <PlaylistPodcastRow
+    id="3"
+    title="Как справиться с прокрастинацией"
+    author="Виктор Соколов"
+    coverUrl={COVER}
+    variant="added"
+    onRemoveClick={() => {}}
+  />
+</section>
+
 
 <section>
   <h2
@@ -437,7 +561,6 @@ function DevPage() {
 </section>
 
 </section>
-        {/* FilterTabs */}
         <section>
           <h2
             style={{
@@ -547,7 +670,6 @@ function DevPage() {
 
 
 
-        {/* AuthorRow */}
         <section>
           <h2
             style={{
@@ -725,6 +847,25 @@ function DevPage() {
   onShareClick={() => {}}
 />
 
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    AudioUploadBlock
+  </h2>
+
+  <div style={{ maxWidth: "700px" }}>
+    <AudioUploadBlock
+      publishStatus="ready"
+      onAudioChange={(file) => console.log("audio:", file)}
+      onCoverChange={(file) => console.log("cover:", file)}
+      onPublish={() => console.log("publish")}
+      onCancel={() => {}}
+    />
+  </div>
+</section>
+
+
 <section>
   <h2
     style={{
@@ -761,7 +902,6 @@ function DevPage() {
 
   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "24px" }}>
 
-    {/* Чужой, не добавлен */}
     <PlaylistCard
       id="1"
       title="Доброе утро"
@@ -776,7 +916,6 @@ function DevPage() {
       onAddClick={() => {}}
     />
 
-    {/* Чужой, добавлен */}
     <PlaylistCard
       id="2"
       title="Социальные нормы"
@@ -791,7 +930,6 @@ function DevPage() {
       onAddClick={() => {}}
     />
 
-    {/* Твой — пользователь (приватный) */}
     <PlaylistCard
       id="3"
       title="Лидерство и Рост"
@@ -807,7 +945,6 @@ function DevPage() {
       onEditClick={() => {}}
     />
 
-    {/* Твой — автор (публичный) */}
     <PlaylistCard
       id="4"
       title="Лидерство и Рост"
@@ -843,7 +980,6 @@ function DevPage() {
 </section>
 
 
-        {/* PodcastRow */}
         <section>
           <h2
             style={{
@@ -929,7 +1065,6 @@ function DevPage() {
           </div>
         </section>
 
-        {/* LoadMoreButton */}
         <section>
           <h2
             style={{
@@ -973,14 +1108,20 @@ function Frontend() {
 
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainPage />} />
-        <Route path="/podcasts" element={<PodcastsPage />} />
+
+        <Route path="/podcasts/create" element={<div>Создание подкаста — скоро</div>} />
+        <Route path="/podcasts/:podcastId/edit" element={<div>Редактирование подкаста — скоро</div>} />
+        <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
+
         <Route path="/authors" element={<AuthorsPage />} />
+        <Route path="/authors/:authorId" element={<AuthorPage />} />
+
+        <Route path="/playlists/create" element={<CreatePlaylistPage />} />
+        <Route path="/playlists/:playlistId/edit" element={<EditPlaylistPage />} />
         <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
-        <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
-        <Route path="/authors/:authorId" element={<AuthorPage />} />
-        <Route path="/become-author" element={<BecomeAuthorPage />} />
 
+        <Route path="/become-author" element={<BecomeAuthorPage />} />
 
         <Route path="/profile/edit" element={<ProfileSettingsPage />} />
         <Route path="/profile" element={<ProfilePage />}>

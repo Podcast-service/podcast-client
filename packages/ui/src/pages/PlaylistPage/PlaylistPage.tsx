@@ -10,7 +10,7 @@ import { useToast } from "../../components/Toast/useToast";
 
 interface Podcast {
     id: string;
-    authorId: string;
+    authorUsername: string;
     title: string;
     author: string;
     date: string;
@@ -28,11 +28,13 @@ interface MainLayoutContext {
 
 const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
 
+const CURRENT_USERNAME = "alex_johnson";
+
 const MOCK_PLAYLIST = {
     id: "1",
     title: "Стратегия тишины",
     author: "Александр Соколов",
-    description: "A curated selection of the most compelling investigative journalism and atmospheric storytelling pieces. From forgotten historical mysteries to contemporary deep-dives, these episodes are best enjoyed after the sun goes down.",
+    description: "A curated selection of the most compelling investigative journalism and atmospheric storytelling pieces.",
     coverUrl: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?q=80&w=800&auto=format&fit=crop",
     isPrivate: false,
     isOwner: true,
@@ -46,9 +48,9 @@ const MOCK_PLAYLIST = {
 const MOCK_PODCASTS: Podcast[] = [
     {
         id: "1",
+        authorUsername: "alex_johnson",
         title: "Как справиться с прокрастинацией",
-        authorId: "user_123",
-        author: "Виктория",
+        author: "Александр Соколов",
         date: "12 окт 2023",
         duration: "45:00",
         category: "Саморазвитие",
@@ -56,9 +58,9 @@ const MOCK_PODCASTS: Podcast[] = [
     },
     {
         id: "2",
+        authorUsername: "alex_johnson",
         title: "Искусство глубокого сна",
-        authorId: "user_123",
-        author: "Вы",
+        author: "Александр Соколов",
         date: "5 окт 2023",
         duration: "38:00",
         category: "Здоровье",
@@ -67,38 +69,16 @@ const MOCK_PODCASTS: Podcast[] = [
     },
     {
         id: "3",
+        authorUsername: "other_user",
         title: "Почему мы забываем важное?",
-        authorId: "user_123",
-        author: "Вы",
+        author: "Мария Смирнова",
         date: "28 сент 2023",
         duration: "52:00",
         category: "Психология",
         coverUrl: COVER,
         isLiked: true,
     },
-    {
-        id: "4",
-        title: "Эмпатия в цифровой век",
-        authorId: "user_123",
-        author: "Вы",
-        date: "20 сент 2023",
-        duration: "41:00",
-        category: "Общество",
-        coverUrl: COVER,
-        isCompleted: true,
-    },
-    {
-        id: "5",
-        title: "Квантовый мир: за пределами воображения",
-        authorId: "user_123",
-        author: "Вы",
-        date: "14 сент 2023",
-        duration: "58:00",
-        category: "Наука",
-        coverUrl: COVER,
-    },
 ];
-
 
 const PlaylistPage: React.FC = () => {
     const { playlistId } = useParams<{ playlistId: string }>();
@@ -112,9 +92,7 @@ const PlaylistPage: React.FC = () => {
 
     const { isOwner, isAuthor } = MOCK_PLAYLIST;
 
-    const CURRENT_USER_ID = "user_123";
-
-    const canPublishToYoutube = isOwner && isAuthor && MOCK_PODCASTS.every(p => p.authorId === CURRENT_USER_ID);
+    const canPublishToYoutube = isOwner && isAuthor && MOCK_PODCASTS.every(p => p.authorUsername === CURRENT_USERNAME);
 
     const handlePlayAll = () => {
         if (MOCK_PODCASTS.length > 0) {
@@ -137,11 +115,7 @@ const PlaylistPage: React.FC = () => {
     };
 
     const handleEdit = () => {
-        if (isAuthor) {
-            navigate(`/author/playlists/${playlistId}/edit`);
-        } else {
-            navigate(`/playlists/${playlistId}/edit`);
-        }
+        navigate(`/playlists/${playlistId}/edit`);
     };
 
     const handleDeleteClick = () => {
@@ -174,7 +148,6 @@ const PlaylistPage: React.FC = () => {
             return next;
         });
     };
-
 
     return (
         <div className={styles.page}>

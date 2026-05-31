@@ -240,7 +240,6 @@ function DevPage() {
           gap: "48px",
         }}
       >
-        {/* FilterTabs */}
         <section>
           <h2
             style={{
@@ -332,7 +331,6 @@ function DevPage() {
   />
 </section>
 
-        {/* AuthorRow */}
         <section>
           <h2
             style={{
@@ -510,7 +508,6 @@ function DevPage() {
   onShareClick={() => {}}
 />
 
-        {/* PodcastRow */}
         <section>
           <h2
             style={{
@@ -578,7 +575,6 @@ function DevPage() {
           </div>
         </section>
 
-        {/* LoadMoreButton */}
         <section>
           <h2
             style={{

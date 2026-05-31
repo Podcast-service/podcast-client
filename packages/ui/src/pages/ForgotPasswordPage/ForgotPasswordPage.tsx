@@ -56,7 +56,7 @@ const ForgotPasswordPage = () => {
             </h1>
             <p className={styles.description}>
               Не страшно — бывает с каждым.{" "}
-              Введите вашу почту и мы пришлём код для сброса пароля.
+              Введите вашу почту и мы пришлем код для сброса пароля.
             </p>
           </section>
 
@@ -71,7 +71,7 @@ const ForgotPasswordPage = () => {
 
             <h2 className={styles.formTitle}>Сброс пароля</h2>
             <p className={styles.formSubtitle}>
-              Введите вашу почту — пришлём код для сброса
+              Введите вашу почту — пришлем код для сброса
             </p>
 
             <div className={styles.divider} />

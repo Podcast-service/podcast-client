@@ -137,7 +137,7 @@ const ProfileSettingsPage: React.FC = () => {
         if (currentErr || newErr || confirmErr) return;
 
         try {
-            showToast("Пароль успешно изменён", "success");
+            showToast("Пароль успешно изменен", "success");
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
@@ -162,7 +162,7 @@ const ProfileSettingsPage: React.FC = () => {
         console.log("confirm code:", code);
         setIsEmailVerified(true);
         setIsOtpModalOpen(false);
-        showToast("Электронный адрес подтверждён", "success");
+        showToast("Электронный адрес подтвержден", "success");
     };
 
     const handleResendCode = async () => {
@@ -382,14 +382,14 @@ const ProfileSettingsPage: React.FC = () => {
                                 className={styles.emailVerifyIcon}
                             />
                             <span className={isEmailVerified ? styles.emailVerifiedLabel : styles.emailNotVerifiedLabel}>
-                                {isEmailVerified ? "Подтверждён" : "Не подтверждён"}
+                                {isEmailVerified ? "Подтвержден" : "Не подтвержден"}
                             </span>
                         </div>
 
                         <p className={styles.emailVerifyText}>
                             {isEmailVerified
-                                ? "Ваш электронный адрес подтверждён"
-                                : "Ваш электронный адрес не подтверждён"}
+                                ? "Ваш электронный адрес подтвержден"
+                                : "Ваш электронный адрес не подтвержден"}
                         </p>
 
                         {!isEmailVerified && (
