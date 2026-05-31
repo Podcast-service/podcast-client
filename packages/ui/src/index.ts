@@ -28,7 +28,6 @@ export { default as EditPlaylistPage } from "./pages/EditPlaylistPage/EditPlayli
 
 
 
-export { default as TextUploadBlock } from "./components/TextUploadBlock/TextUploadBlock";
 export { default as AudioUploadBlock } from "./components/AudioUploadBlock/AudioUploadBlock";
 export { default as PodcastPublishStatus } from "./components/PodcastPublishStatus/PodcastPublishStatus";
 export { default as CreatePodcastForm } from "./components/CreatePodcastForm/CreatePodcastForm";
