@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     DndContext,
@@ -24,7 +24,20 @@ import { useToast } from "../../components/Toast/useToast";
 import SearchSvg from "../../assets/icons/search.svg";
 import LeftSvg from "../../assets/icons/left.svg";
 import YoutubeSvg from "../../assets/icons/youtube.svg";
-
+import {
+    addPodcastToPlaylist,
+    getMyAuthorProfile,
+    getMyAuthorPodcasts,
+    getMyLikedPodcasts,
+    getPlaylist,
+    getPodcasts,
+    removePodcastFromPlaylist,
+    reorderPlaylistPodcasts,
+    updatePlaylist,
+    type PlaylistPodcastItem,
+    type PodcastCard,
+} from "../../api/podcast";
+import { uploadPlaylistCover } from "../../api/mediaUpload";
 
 interface Podcast {
     id: string;
@@ -34,44 +47,13 @@ interface Podcast {
     coverUrl?: string;
 }
 
-
-const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
-
-const CURRENT_AUTHOR_ID = "author_123";
-
-const MOCK_USER = {
-    isAuthor: true,
-};
-
-const MOCK_PLAYLIST = {
-    name: "Стратегия тишины",
-    description: "Подборка подкастов для вечернего прослушивания",
-    isPrivate: false,
-};
-
-const MOCK_LIKED: Podcast[] = [
-    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
-];
-
-const MOCK_ALL: Podcast[] = [
-    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
-    { id: "4", authorId: "author_other1", title: "Эмпатия в цифровой век", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "5", authorId: "author_123", title: "Квантовый мир", author: "Александр Соколов", coverUrl: COVER },
-];
-
-const MOCK_MINE: Podcast[] = [
-    { id: "6", authorId: "author_123", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
-    { id: "7", authorId: "author_123", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
-];
-
-const INITIAL_ADDED: Podcast[] = [
-    { id: "6", authorId: "author_123", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
-    { id: "7", authorId: "author_123", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
-];
+const mapPodcast = (podcast: PodcastCard | PlaylistPodcastItem): Podcast => ({
+    id: podcast.id,
+    authorId: podcast.author.id,
+    title: podcast.title,
+    author: podcast.author.authorName,
+    coverUrl: podcast.coverImageUrl ?? undefined,
+});
 
 
 const EditPlaylistPage: React.FC = () => {
@@ -79,20 +61,23 @@ const EditPlaylistPage: React.FC = () => {
     const { playlistId } = useParams<{ playlistId: string }>();
     const { showToast } = useToast();
 
-    const [name, setName] = useState(MOCK_PLAYLIST.name);
+    const [name, setName] = useState("");
     const [nameError, setNameError] = useState("");
-    const [description, setDescription] = useState(MOCK_PLAYLIST.description);
+    const [description, setDescription] = useState("");
     const [coverFile, setCoverFile] = useState<File | null>(null);
-    const [isPrivate, setIsPrivate] = useState(MOCK_PLAYLIST.isPrivate);
+    const [isPrivate, setIsPrivate] = useState(true);
 
-    const defaultTab = MOCK_USER.isAuthor ? "mine" : "likes";
-    const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">(defaultTab as any);
+    const [isAuthor, setIsAuthor] = useState(false);
+    const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [allPodcasts, setAllPodcasts] = useState<Podcast[]>([]);
+    const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
+    const [likedPodcasts, setLikedPodcasts] = useState<Podcast[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const [addedList, setAddedList] = useState<Podcast[]>(INITIAL_ADDED);
-    const [addedIds, setAddedIds] = useState<Set<string>>(
-        new Set(INITIAL_ADDED.map((p) => p.id))
-    );
+    const [initialIds, setInitialIds] = useState<Set<string>>(new Set());
+    const [addedList, setAddedList] = useState<Podcast[]>([]);
+    const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -100,13 +85,65 @@ const EditPlaylistPage: React.FC = () => {
     );
 
 
-    const allPodcastsAreOwn = addedList.every((p) => p.authorId === CURRENT_AUTHOR_ID);
-    const canPublishToYoutube = MOCK_USER.isAuthor && allPodcastsAreOwn && addedList.length > 0;
+    useEffect(() => {
+        if (!playlistId) return;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setIsLoading(true);
+                const [playlist, allPage, author] = await Promise.all([
+                    getPlaylist(playlistId),
+                    getPodcasts({ sort: "DATE_DESC", size: 50 }),
+                    getMyAuthorProfile().catch(() => null),
+                ]);
+                if (cancelled) return;
+
+                setName(playlist.title);
+                setDescription(playlist.description ?? "");
+                setIsPrivate(!playlist.isPublic);
+                setAllPodcasts(allPage.items.map(mapPodcast));
+
+                const likedPage = await getMyLikedPodcasts({ size: 50 }).catch(() => null);
+                if (!cancelled && likedPage) {
+                    setLikedPodcasts(likedPage.items.map(mapPodcast));
+                }
+
+                const added = (playlist.podcasts ?? []).map(mapPodcast);
+                setAddedList(added);
+                setAddedIds(new Set(added.map((podcast) => podcast.id)));
+                setInitialIds(new Set(added.map((podcast) => podcast.id)));
+
+                if (author) {
+                    setIsAuthor(true);
+                    setActiveTab("mine");
+                    const minePage = await getMyAuthorPodcasts({
+                        sort: "DATE_DESC",
+                        size: 50,
+                    });
+                    if (!cancelled) {
+                        setMyPodcasts(minePage.items.map(mapPodcast));
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load playlist editor", err);
+                showToast("Не удалось загрузить плейлист. Попробуйте позже.", "error");
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [playlistId, showToast]);
+
+    const canPublishToYoutube = false;
 
     const getSourceList = (): Podcast[] => {
-        if (activeTab === "likes") return MOCK_LIKED;
-        if (activeTab === "mine") return MOCK_MINE;
-        return MOCK_ALL;
+        if (activeTab === "likes") return likedPodcasts;
+        if (activeTab === "mine") return myPodcasts;
+        return allPodcasts;
     };
 
     const filteredList = getSourceList().filter((p) =>
@@ -151,7 +188,46 @@ const EditPlaylistPage: React.FC = () => {
             return;
         }
 
+        if (!playlistId) return;
+
         try {
+            let coverImageUrl: string | undefined;
+            if (coverFile) {
+                const upload = await uploadPlaylistCover(playlistId, coverFile);
+                coverImageUrl = upload.url;
+            }
+
+            await updatePlaylist(playlistId, {
+                title: name.trim(),
+                description: description.trim() ? description.trim() : null,
+                ...(coverImageUrl ? { coverImageUrl } : {}),
+                isPublic: !isPrivate,
+            });
+
+            const nextIds = new Set(addedList.map((podcast) => podcast.id));
+            const removedIds = [...initialIds].filter((id) => !nextIds.has(id));
+            const addedIdsList = addedList
+                .map((podcast) => podcast.id)
+                .filter((id) => !initialIds.has(id));
+
+            for (const id of removedIds) {
+                await removePodcastFromPlaylist(playlistId, id);
+            }
+
+            for (const id of addedIdsList) {
+                await addPodcastToPlaylist(playlistId, id);
+            }
+
+            if (addedList.length > 0) {
+                await reorderPlaylistPodcasts(
+                    playlistId,
+                    addedList.map((podcast, index) => ({
+                        podcastId: podcast.id,
+                        position: index + 1,
+                    }))
+                );
+            }
+
             showToast("Изменения сохранены", "success");
             navigate(`/playlists/${playlistId}`);
         } catch {
@@ -197,7 +273,7 @@ const EditPlaylistPage: React.FC = () => {
 
                     <div className={styles.leftBlock}>
                         <CreatePlaylistHeader
-                            isAuthor={MOCK_USER.isAuthor}
+                            isAuthor={isAuthor}
                             activeTab={activeTab}
                             onTabChange={setActiveTab}
                             name={name}
@@ -222,7 +298,11 @@ const EditPlaylistPage: React.FC = () => {
                         </div>
 
                         <div className={styles.podcastList}>
-                            {filteredList.map((podcast) => (
+                            {isLoading ? (
+                                <p style={{ padding: "16px 0" }}>Загрузка…</p>
+                            ) : filteredList.length === 0 ? (
+                                <p style={{ padding: "16px 0" }}>Подкасты не найдены.</p>
+                            ) : filteredList.map((podcast) => (
                                 <PlaylistPodcastRow
                                     key={podcast.id}
                                     id={podcast.id}

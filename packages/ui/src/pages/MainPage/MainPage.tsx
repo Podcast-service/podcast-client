@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./MainPage.module.css";
 
@@ -11,6 +11,15 @@ import UserSvg from "../../assets/icons/user.svg";
 import ClockSvg from "../../assets/icons/clock.svg";
 import HeadphonesSvg from "../../assets/icons/listeners.svg";
 import PlaySvg from "../../assets/icons/playTop.svg";
+
+import {
+  getPodcasts,
+  subscribeAuthor,
+  unsubscribeAuthor,
+  isAuthenticated,
+  type PodcastCard as ApiPodcastCard,
+} from "../../api/podcast";
+import { formatClock } from "../../utils/format";
 
 interface Podcast {
   id: string;
@@ -38,14 +47,52 @@ interface MainLayoutContext {
   playPodcast: (podcast: Podcast) => void;
 }
 
-const PODCAST_COVER =
-  "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=1200&auto=format&fit=crop";
+// Сколько подкастов тянем для главной: первые идут в "Топ подкастов",
+// из всей выборки собираем "Топ авторов".
+const TOP_FEED_SIZE = 50;
 
-const isAuthenticated = true;
-const hasSubscriptions = true;
+const mapPodcast = (podcast: ApiPodcastCard): Podcast => ({
+  id: podcast.id,
+  title: podcast.title,
+  author: podcast.author.authorName,
+  duration: formatClock(podcast.durationSeconds),
+  listeners: podcast.viewsCount,
+  likes: podcast.likesCount,
+  dislikes: podcast.dislikesCount,
+  coverUrl: podcast.coverImageUrl ?? undefined,
+  progress: podcast.progressPercent ?? undefined,
+});
+
+const deriveTopAuthors = (podcasts: ApiPodcastCard[]): Author[] => {
+  const byAuthor = new Map<string, Author>();
+
+  for (const podcast of podcasts) {
+    const { author } = podcast;
+    if (byAuthor.has(author.id)) {
+      continue;
+    }
+
+    byAuthor.set(author.id, {
+      id: author.id,
+      name: author.authorName,
+      category: podcast.category?.name ?? "",
+      subscribers: author.subscribersCount ?? 0,
+      avatarUrl: author.avatarUrl ?? undefined,
+      isSubscribed: author.isSubscribed ?? false,
+    });
+  }
+
+  return [...byAuthor.values()]
+    .sort((a, b) => b.subscribers - a.subscribers)
+    .slice(0, 5);
+};
 
 const formatDuration = (duration: string) => {
   const minutes = Number(duration.split(":")[0]);
+
+  if (!Number.isFinite(minutes)) {
+    return duration;
+  }
 
   if (minutes % 10 === 1 && minutes !== 11) {
     return `${minutes} минута`;
@@ -74,327 +121,256 @@ const formatListeners = (listeners: number) => {
   return listeners.toString();
 };
 
-const TOP_PODCASTS: Podcast[] = [
-  {
-    id: "1",
-    title: "Неизведанный путь",
-    author: "Иван Петров",
-    duration: "54:03",
-    listeners: 122300,
-    likes: 2500,
-    dislikes: 243,
-    coverUrl: PODCAST_COVER,
-    description:
-      "Погрузитесь в глубокое исследование того, как пространство формирует наше сознание. Авторский цикл лекций о дизайне, психологии и поиске покоя в современном мире.",
-  },
-  {
-    id: "2",
-    title: "Стратегия тишины",
-    author: "Алексей Воробьев",
-    duration: "54:03",
-    listeners: 12300,
-    likes: 2500,
-    dislikes: 243,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "3",
-    title: "Психология фокуса",
-    author: "Алексей Воробьев",
-    duration: "48:12",
-    listeners: 12400,
-    likes: 3200,
-    dislikes: 120,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "4",
-    title: "Цифровая гигиена",
-    author: "Podcast Lab",
-    duration: "35:08",
-    listeners: 9800,
-    likes: 1400,
-    dislikes: 64,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "5",
-    title: "Архитектура жизни",
-    author: "Нейроэфир",
-    duration: "56:30",
-    listeners: 23100,
-    likes: 5600,
-    dislikes: 180,
-    coverUrl: PODCAST_COVER,
-  },
-];
-
-const CONTINUE_PODCASTS: Podcast[] = TOP_PODCASTS.slice(1, 5).map(
-  (podcast, index) =>
-    index === 0
-      ? {
-          ...podcast,
-          progress: 42,
-        }
-      : podcast
-);
-
-const RECOMMENDED_PODCASTS: Podcast[] = [
-  {
-    id: "6",
-    title: "Лабиринты мысли",
-    author: "Николай Соколов",
-    duration: "42:18",
-    listeners: 18300,
-    likes: 2900,
-    dislikes: 88,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "7",
-    title: "Второе дыхание",
-    author: "Николай Соколов",
-    duration: "39:40",
-    listeners: 15400,
-    likes: 1800,
-    dislikes: 72,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "8",
-    title: "Свет и тень",
-    author: "Story Voice",
-    duration: "1:02:11",
-    listeners: 26800,
-    likes: 4100,
-    dislikes: 130,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "9",
-    title: "Путь героя",
-    author: "Podcast Lab",
-    duration: "45:22",
-    listeners: 9700,
-    likes: 1100,
-    dislikes: 50,
-    coverUrl: PODCAST_COVER,
-  },
-  {
-    id: "10",
-    title: "Эхо классики",
-    author: "Нейроэфир",
-    duration: "51:09",
-    listeners: 21100,
-    likes: 3500,
-    dislikes: 99,
-    coverUrl: PODCAST_COVER,
-  },
-];
-
-const TOP_AUTHORS: Author[] = [
-  {
-    id: "1",
-    name: "Николай Соколов",
-    category: "Психология",
-    subscribers: 123400,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    name: "Алексей Воробьев",
-    category: "Саморазвитие",
-    subscribers: 98400,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    name: "Podcast Lab",
-    category: "Образование",
-    subscribers: 87600,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "4",
-    name: "Нейроэфир",
-    category: "Наука",
-    subscribers: 74200,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: "5",
-    name: "Story Voice",
-    category: "Аудиокниги",
-    subscribers: 45700,
-    avatarUrl:
-      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=600&auto=format&fit=crop",
-  },
-];
-
-const getDailyPodcast = (podcasts: Podcast[]) => {
-  const dayIndex = new Date().getDate() % podcasts.length;
-  return podcasts[dayIndex];
-};
-
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
 
-  const heroPodcast = useMemo(() => getDailyPodcast(TOP_PODCASTS), []);
+  const [topPodcasts, setTopPodcasts] = useState<Podcast[]>([]);
+  const [topAuthors, setTopAuthors] = useState<Author[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const shouldShowRecommendations =
-    isAuthenticated && hasSubscriptions && RECOMMENDED_PODCASTS.length > 0;
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const page = await getPodcasts({ sort: "VIEWS", size: TOP_FEED_SIZE });
+        if (cancelled) {
+          return;
+        }
+
+        setTopPodcasts(page.items.map(mapPodcast));
+        setTopAuthors(deriveTopAuthors(page.items));
+      } catch (err) {
+        if (!cancelled) {
+          setError("Не удалось загрузить данные. Попробуйте позже.");
+          console.error("Failed to load main page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleSubscribe = async (authorId: string) => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const author = topAuthors.find((item) => item.id === authorId);
+    if (!author) {
+      return;
+    }
+    const wasSubscribed = Boolean(author.isSubscribed);
+
+    // Оптимистичное обновление.
+    setTopAuthors((prev) =>
+      prev.map((item) =>
+        item.id === authorId
+          ? { ...item, isSubscribed: !wasSubscribed }
+          : item
+      )
+    );
+
+    try {
+      const result = wasSubscribed
+        ? await unsubscribeAuthor(authorId)
+        : await subscribeAuthor(authorId);
+      setTopAuthors((prev) =>
+        prev.map((item) =>
+          item.id === authorId
+            ? {
+                ...item,
+                isSubscribed: result.isSubscribed,
+                subscribers: result.subscribersCount,
+              }
+            : item
+        )
+      );
+    } catch (err) {
+      // Откат при ошибке.
+      setTopAuthors((prev) =>
+        prev.map((item) =>
+          item.id === authorId
+            ? { ...item, isSubscribed: wasSubscribed }
+            : item
+        )
+      );
+      console.error("Failed to toggle subscription", err);
+    }
+  };
+
+  const heroPodcast = useMemo(() => topPodcasts[0], [topPodcasts]);
+
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <div className={`container ${styles.pageInner}`}>
+          <p style={{ padding: "40px 0" }}>Загрузка…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div className={`container ${styles.pageInner}`}>
+          <p style={{ padding: "40px 0" }}>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
       <div className={`container ${styles.pageInner}`}>
-        <section className={styles.hero}>
-          <div className={styles.heroImageWrap}>
-            <img
-              src={heroPodcast.coverUrl}
-              alt=""
-              aria-hidden="true"
-              className={styles.heroImage}
-            />
-          </div>
-
-          <div className={styles.heroGradient} />
-
-          <div className={styles.heroContent}>
-            <div className={styles.heroBadge}>
-              <img
-                src={FireSvg}
-                alt=""
-                aria-hidden="true"
-                className={styles.heroBadgeIcon}
-              />
-
-              <span className={styles.heroBadgeText}>Популярно сейчас</span>
+        {heroPodcast && (
+          <section className={styles.hero}>
+            <div className={styles.heroImageWrap}>
+              {heroPodcast.coverUrl && (
+                <img
+                  src={heroPodcast.coverUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className={styles.heroImage}
+                />
+              )}
             </div>
 
-            <h1 className={styles.heroTitle}>{heroPodcast.title}</h1>
+            <div className={styles.heroGradient} />
 
-            <p className={styles.heroDesc}>
-              {heroPodcast.description?.trim() ||
-                "Один из популярных подкастов сегодня. Нажмите слушать, чтобы начать воспроизведение."}
-            </p>
-
-            <div className={styles.heroMeta}>
-              <span className={styles.heroMetaItem}>
+            <div className={styles.heroContent}>
+              <div className={styles.heroBadge}>
                 <img
-                  src={UserSvg}
+                  src={FireSvg}
                   alt=""
                   aria-hidden="true"
-                  className={styles.heroMetaIcon}
+                  className={styles.heroBadgeIcon}
                 />
 
-                {heroPodcast.author}
-              </span>
+                <span className={styles.heroBadgeText}>Популярно сейчас</span>
+              </div>
 
-              <span className={styles.heroMetaItem}>
-                <img
-                  src={ClockSvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.heroMetaIcon}
-                />
+              <h1 className={styles.heroTitle}>{heroPodcast.title}</h1>
 
-                {formatDuration(heroPodcast.duration)}
-              </span>
+              <p className={styles.heroDesc}>
+                {heroPodcast.description?.trim() ||
+                  "Один из популярных подкастов сегодня. Нажмите слушать, чтобы начать воспроизведение."}
+              </p>
 
-              <span className={styles.heroMetaItem}>
-                <img
-                  src={HeadphonesSvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.heroMetaIcon}
-                />
+              <div className={styles.heroMeta}>
+                <span className={styles.heroMetaItem}>
+                  <img
+                    src={UserSvg}
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.heroMetaIcon}
+                  />
 
-                {formatListeners(heroPodcast.listeners)} прослушиваний
-              </span>
+                  {heroPodcast.author}
+                </span>
+
+                {heroPodcast.duration && (
+                  <span className={styles.heroMetaItem}>
+                    <img
+                      src={ClockSvg}
+                      alt=""
+                      aria-hidden="true"
+                      className={styles.heroMetaIcon}
+                    />
+
+                    {formatDuration(heroPodcast.duration)}
+                  </span>
+                )}
+
+                <span className={styles.heroMetaItem}>
+                  <img
+                    src={HeadphonesSvg}
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.heroMetaIcon}
+                  />
+
+                  {formatListeners(heroPodcast.listeners)} прослушиваний
+                </span>
+              </div>
+
+              <div className={styles.heroActions}>
+                <button
+                  type="button"
+                  className={styles.listenBtn}
+                  onClick={() => playPodcast(heroPodcast)}
+                >
+                  <img
+                    src={PlaySvg}
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.listenIcon}
+                  />
+
+                  Слушать
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.moreBtn}
+                  onClick={() => navigate(`/podcasts/${heroPodcast.id}`)}
+                >
+                  Подробнее
+                </button>
+              </div>
             </div>
-
-            <div className={styles.heroActions}>
-              <button
-                type="button"
-                className={styles.listenBtn}
-                onClick={() => playPodcast(heroPodcast)}
-              >
-                <img
-                  src={PlaySvg}
-                  alt=""
-                  aria-hidden="true"
-                  className={styles.listenIcon}
-                />
-
-                Слушать
-              </button>
-
-              <button
-                type="button"
-                className={styles.moreBtn}
-                onClick={() => navigate(`/podcasts/${heroPodcast.id}`)}
-              >
-                Подробнее
-              </button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <div className={styles.sections}>
-          <SectionRow
-            title="Продолжить прослушивание"
-            actionText="Смотреть все →"
-            actionTo="/history"
-          >
-            <div className={styles.podcastsGrid}>
-              {CONTINUE_PODCASTS.slice(0, 5).map((podcast) => (
-                <PodcastCard key={podcast.id} {...podcast} />
-              ))}
-            </div>
-          </SectionRow>
-
-          <SectionRow
-            title="Топ подкастов"
-            actionText="Смотреть все →"
-            actionTo="/podcasts"
-          >
-            <div className={styles.podcastsGrid}>
-              {TOP_PODCASTS.slice(0, 5).map((podcast) => (
-                <PodcastCard key={podcast.id} {...podcast} />
-              ))}
-            </div>
-          </SectionRow>
-
-          {shouldShowRecommendations && (
+          {topPodcasts.length > 0 && (
             <SectionRow
-              title="Мои рекомендации"
+              title="Топ подкастов"
               actionText="Смотреть все →"
-              actionTo="/recommendation"
+              actionTo="/podcasts"
             >
               <div className={styles.podcastsGrid}>
-                {RECOMMENDED_PODCASTS.slice(0, 5).map((podcast) => (
-                  <PodcastCard key={podcast.id} {...podcast} />
+                {topPodcasts.slice(0, 5).map((podcast) => (
+                  <PodcastCard
+                    key={podcast.id}
+                    {...podcast}
+                    onPlayClick={() => playPodcast(podcast)}
+                  />
                 ))}
               </div>
             </SectionRow>
           )}
 
-          <SectionRow
-            title="Топ авторов"
-            actionText="Смотреть все →"
-            actionTo="/authors"
-          >
-            <div className={styles.authorsGrid}>
-              {TOP_AUTHORS.slice(0, 5).map((author) => (
-                <AuthorCard key={author.id} {...author} />
-              ))}
-            </div>
-          </SectionRow>
+          {topAuthors.length > 0 && (
+            <SectionRow
+              title="Топ авторов"
+              actionText="Смотреть все →"
+              actionTo="/authors"
+            >
+              <div className={styles.authorsGrid}>
+                {topAuthors.map((author) => (
+                  <AuthorCard
+                    key={author.id}
+                    {...author}
+                    onSubscribeClick={() => handleSubscribe(author.id)}
+                  />
+                ))}
+              </div>
+            </SectionRow>
+          )}
         </div>
       </div>
     </div>

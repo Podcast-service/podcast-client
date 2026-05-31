@@ -16,6 +16,7 @@ import {
   Player,
   MainPage,
   PodcastsPage,
+  SearchPage,
   FilterTabs,
   PodcastRow,
   AuthorRow,
@@ -759,6 +760,7 @@ function Main() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./ProfileSettingsHero.module.css";
 
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
@@ -19,6 +19,10 @@ const ProfileSettingsHero: React.FC<ProfileSettingsHeroProps> = ({
 }) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [previewUrl, setPreviewUrl] = useState(avatarUrl);
+
+    useEffect(() => {
+        setPreviewUrl(avatarUrl);
+    }, [avatarUrl]);
 
     const handleOpenFilePicker = () => {
         fileInputRef.current?.click();

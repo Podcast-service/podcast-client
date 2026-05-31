@@ -1,29 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./EditPodcastPage.module.css";
 
 import EditPodcastForm from "../../components/EditPodcastForm/EditPodcastForm";
 import PodcastPublishStatus from "../../components/PodcastPublishStatus/PodcastPublishStatus";
 import { useToast } from "../../components/Toast/useToast";
+import {
+    deletePodcast,
+    getCategories,
+    getPodcast,
+    updatePodcast,
+    type CategoryResponse,
+    type PodcastDetailResponse,
+    type PodcastStatus,
+} from "../../api/podcast";
+import { uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
 
-const CATEGORIES = [
-    { id: "psychology", label: "Психология" },
-    { id: "science", label: "Наука" },
-    { id: "tech", label: "Технологии" },
-    { id: "business", label: "Бизнес" },
-    { id: "health", label: "Здоровье" },
-    { id: "design", label: "Дизайн" },
-    { id: "entertainment", label: "Развлечения" },
-    { id: "sport", label: "Спорт" },
-];
+const toCategoryOption = (category: CategoryResponse) => ({
+    id: category.id,
+    label: category.name,
+});
 
-const MOCK_PODCAST = {
-    title: "Стратегия тишины",
-    description: "Прежде чем говорить, что долго молчать вредно, послушайте мой подкаст и убедитесь что это не так",
-    categoryId: "tech",
-    coverUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop",
+const toPublishStatus = (
+    status?: PodcastStatus
+): "draft" | "processing" | "ready" | "published" | "error" => {
+    if (status === "PUBLISHED") return "published";
+    if (status === "PROCESSING" || status === "UPLOADING") return "processing";
+    if (status === "UPLOADED" || status === "PROCESSED") return "ready";
+    if (status === "FAILED") return "error";
+    return "draft";
 };
 
 const EditPodcastPage: React.FC = () => {
@@ -31,7 +38,49 @@ const EditPodcastPage: React.FC = () => {
     const { podcastId } = useParams<{ podcastId: string }>();
     const { showToast } = useToast();
 
+    const [podcast, setPodcast] = useState<PodcastDetailResponse | null>(null);
+    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!podcastId) return;
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setIsInitialLoading(true);
+                setLoadError(null);
+
+                const [podcastData, categoryItems] = await Promise.all([
+                    getPodcast(podcastId),
+                    getCategories(),
+                ]);
+
+                if (!cancelled) {
+                    setPodcast(podcastData);
+                    setCategories(categoryItems);
+                }
+            } catch (err: any) {
+                if (!cancelled) {
+                    setLoadError(
+                        err?.status === 404
+                            ? "Подкаст не найден."
+                            : "Не удалось загрузить подкаст. Попробуйте позже."
+                    );
+                    console.error("Failed to load podcast editor", err);
+                }
+            } finally {
+                if (!cancelled) setIsInitialLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [podcastId]);
 
     const handleSave = async (data: {
         title: string;
@@ -39,12 +88,29 @@ const EditPodcastPage: React.FC = () => {
         categoryId: string;
         coverFile: File | null;
     }) => {
+        if (!podcastId) return;
+
         setLoading(true);
         try {
-            console.log("save:", data);
+            let coverImageUrl: string | undefined;
+
+            if (data.coverFile) {
+                const upload = await uploadPodcastCover(podcastId, data.coverFile);
+                coverImageUrl = upload.url;
+            }
+
+            const updated = await updatePodcast(podcastId, {
+                title: data.title,
+                description: data.description.trim() ? data.description.trim() : null,
+                categoryId: data.categoryId,
+                ...(coverImageUrl ? { coverImageUrl } : {}),
+            });
+
+            setPodcast(updated);
             showToast("Изменения сохранены", "success");
             navigate(`/podcasts/${podcastId}`);
-        } catch {
+        } catch (err) {
+            console.error("Failed to save podcast", err);
             showToast("Не удалось сохранить изменения. Попробуйте позже.", "error");
         } finally {
             setLoading(false);
@@ -52,13 +118,39 @@ const EditPodcastPage: React.FC = () => {
     };
 
     const handleDelete = async () => {
+        if (!podcastId) return;
+
         try {
-            showToast("Подкаст удален", "success");
+            await deletePodcast(podcastId);
+            showToast("Подкаст удалён", "success");
             navigate("/profile/podcasts");
-        } catch {
+        } catch (err) {
+            console.error("Failed to delete podcast", err);
             showToast("Не удалось удалить подкаст. Попробуйте позже.", "error");
         }
     };
+
+    if (isInitialLoading) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>Загрузка…</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loadError || !podcast) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>
+                        {loadError ?? "Подкаст не найден."}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.page}>
@@ -97,11 +189,12 @@ const EditPodcastPage: React.FC = () => {
                     <div className={styles.leftBlock}>
                         <div className={styles.card}>
                             <EditPodcastForm
-                                initialTitle={MOCK_PODCAST.title}
-                                initialDescription={MOCK_PODCAST.description}
-                                initialCategoryId={MOCK_PODCAST.categoryId}
-                                initialCoverUrl={MOCK_PODCAST.coverUrl}
-                                categories={CATEGORIES}
+                                key={podcast.id}
+                                initialTitle={podcast.title}
+                                initialDescription={podcast.description ?? ""}
+                                initialCategoryId={podcast.category?.id ?? ""}
+                                initialCoverUrl={podcast.coverImageUrl ?? undefined}
+                                categories={categories.map(toCategoryOption)}
                                 loading={loading}
                                 onSave={handleSave}
                                 onDelete={handleDelete}
@@ -111,7 +204,7 @@ const EditPodcastPage: React.FC = () => {
                     </div>
 
                     <div className={styles.rightBlock}>
-                        <PodcastPublishStatus status="published" />
+                        <PodcastPublishStatus status={toPublishStatus(podcast.status)} />
                     </div>
 
                 </div>

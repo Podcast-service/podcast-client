@@ -1,0 +1,65 @@
+.page {
+    width: 100%;
+}
+
+.pageInner {
+    padding-top: 40px;
+    padding-bottom: 56px;
+}
+
+.header {
+    margin-bottom: 28px;
+}
+
+.title {
+    margin: 0 0 8px;
+    color: var(--color-main);
+    font-family: var(--font-nunito);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.subtitle {
+    margin: 0;
+    color: #6B7280;
+    font-family: var(--font-work-sans);
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.message {
+    margin: 0;
+    padding: 24px 0;
+    color: var(--color-main);
+    font-family: var(--font-work-sans);
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.sections {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sectionTitle {
+    margin: 0;
+    color: var(--color-main);
+    font-family: var(--font-open-sans);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

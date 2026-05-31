@@ -6,6 +6,7 @@ import InputField from "../../components/InputField/InputField";
 import TextareaField from "../../components/TextareaField/TextareaField";
 import BecomeAuthorSuccessModal from "../../components/BecomeAuthorSuccessModal/BecomeAuthorSuccessModal";
 import { useToast } from "../../components/Toast/useToast";
+import { createAuthorProfile } from "../../api/podcast";
 
 import WarningSvg from "../../assets/icons/warning.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
@@ -52,9 +53,19 @@ const BecomeAuthorPage: React.FC = () => {
         setLoading(true);
 
         try {
+            await createAuthorProfile({
+                authorName,
+                description: authorBio.trim() ? authorBio : null,
+            });
             setIsSuccessModalOpen(true);
-        } catch {
-            showToast("Не удалось стать автором. Попробуйте позже.", "error");
+        } catch (e: any) {
+            if (e?.status === 409) {
+                showToast("Вы уже являетесь автором", "error");
+            } else if (e?.status === 403) {
+                showToast("Недостаточно прав для создания профиля автора", "error");
+            } else {
+                showToast("Не удалось стать автором. Попробуйте позже.", "error");
+            }
         } finally {
             setLoading(false);
         }
