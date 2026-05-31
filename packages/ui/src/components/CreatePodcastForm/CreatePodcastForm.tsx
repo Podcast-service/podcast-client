@@ -12,6 +12,13 @@ interface Category {
 
 interface CreatePodcastFormProps {
     categories: Category[];
+    initialTitle?: string;
+    initialDescription?: string;
+    initialCategoryId?: string;
+    initialSpeakersCount?: number;
+    initialFileType?: FileType | null;
+    /** Параметры подкаста уже зафиксированы (черновик создан) — блокируем число спикеров и тип файла. */
+    lockSpeakers?: boolean;
     onSave: (data: {
         title: string;
         description: string;
@@ -26,15 +33,23 @@ interface CreatePodcastFormProps {
 
 const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
     categories,
+    initialTitle = "",
+    initialDescription = "",
+    initialCategoryId = "",
+    initialSpeakersCount,
+    initialFileType = null,
+    lockSpeakers = false,
     onSave,
     onCancel,
     loading = false,
 }) => {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [speakersCount, setSpeakersCount] = useState<string>("");
-    const [fileType, setFileType] = useState<FileType | null>(null);
+    const [title, setTitle] = useState(initialTitle);
+    const [description, setDescription] = useState(initialDescription);
+    const [categoryId, setCategoryId] = useState(initialCategoryId);
+    const [speakersCount, setSpeakersCount] = useState<string>(
+        initialSpeakersCount != null ? String(initialSpeakersCount) : ""
+    );
+    const [fileType, setFileType] = useState<FileType | null>(initialFileType);
 
     const [titleError, setTitleError] = useState("");
     const [descriptionError, setDescriptionError] = useState("");
@@ -174,6 +189,7 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
                             placeholder="Например: 2"
                             value={speakersCount}
                             onChange={handleSpeakersChange}
+                            disabled={lockSpeakers}
                         />
                     </div>
                     {speakersError && <p className={styles.errorText}>{speakersError}</p>}
@@ -187,6 +203,7 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
                         type="button"
                         className={`${styles.fileTypeBtn} ${fileType === "audio" ? styles.fileTypeBtnActive : ""}`}
                         onClick={() => handleFileTypeChange("audio")}
+                        disabled={lockSpeakers}
                     >
                         Аудиофайл
                     </button>
@@ -194,6 +211,7 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
                         type="button"
                         className={`${styles.fileTypeBtn} ${fileType === "text" ? styles.fileTypeBtnActive : ""}`}
                         onClick={() => handleFileTypeChange("text")}
+                        disabled={lockSpeakers}
                     >
                         Текстовый файл
                     </button>

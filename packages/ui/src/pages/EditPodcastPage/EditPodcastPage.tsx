@@ -49,10 +49,20 @@ const EditPodcastPage: React.FC = () => {
                     getCategories(),
                 ]);
 
-                if (!cancelled) {
-                    setPodcast(podcastData);
-                    setCategories(categoryItems);
+                if (cancelled) return;
+
+                // Черновик и неудачная обработка живут в мастере создания —
+                // там есть загрузка файла и публикация. Уводим туда.
+                if (
+                    podcastData.status === "DRAFT" ||
+                    podcastData.status === "FAILED"
+                ) {
+                    navigate(`/podcasts/create/${podcastId}`, { replace: true });
+                    return;
                 }
+
+                setPodcast(podcastData);
+                setCategories(categoryItems);
             } catch (err: any) {
                 if (!cancelled) {
                     setLoadError(

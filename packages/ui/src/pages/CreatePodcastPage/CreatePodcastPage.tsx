@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
 import CreatePodcastForm from "../../components/CreatePodcastForm/CreatePodcastForm";
@@ -40,8 +40,22 @@ const toCategoryOption = (category: CategoryResponse) => ({
     label: category.name,
 });
 
+/** Подкаст с бэкенда → данные формы создания. Тип файла на бэкенде не хранится,
+ *  поэтому загруженный черновик всегда открываем в режиме «Аудиофайл». */
+const toFormData = (p: PodcastDetailResponse): PodcastFormData => ({
+    title: p.title,
+    description: p.description ?? "",
+    categoryId: p.category?.id ?? "",
+    speakersCount: p.num_speakers,
+    fileType: "audio",
+});
+
+/** Статусы, при которых исходный аудиофайл уже загружен на бэкенд. */
+const AUDIO_UPLOADED_STATUSES = ["UPLOADED", "PROCESSING", "PROCESSED", "PUBLISHED"];
+
 const CreatePodcastPage: React.FC = () => {
     const navigate = useNavigate();
+    const { podcastId } = useParams<{ podcastId?: string }>();
     const { showToast } = useToast();
 
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -50,6 +64,9 @@ const CreatePodcastPage: React.FC = () => {
     const [publishStatus, setPublishStatus] = useState<PublishStatus>("draft");
     const [isSaving, setIsSaving] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    // Загрузка нужна только при открытии существующего черновика по :podcastId.
+    const [isInitialLoading, setIsInitialLoading] = useState<boolean>(Boolean(podcastId));
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     const pollRef = useRef<number | null>(null);
 
@@ -103,6 +120,53 @@ const CreatePodcastPage: React.FC = () => {
     // Останавливаем опрос при размонтировании страницы.
     useEffect(() => stopPolling, []);
 
+    // Открытие существующего черновика по адресу /podcasts/create/:podcastId —
+    // подгружаем подкаст, заполняем форму и сразу показываем нижнюю часть.
+    useEffect(() => {
+        if (!podcastId) return;
+        // Уже загружен (например, только что создан и сделан replace в URL) —
+        // не дёргаем бэкенд повторно и не показываем лоадер.
+        if (podcast?.id === podcastId) {
+            setIsInitialLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setIsInitialLoading(true);
+                setLoadError(null);
+
+                const fresh = await getPodcast(podcastId);
+                if (cancelled) return;
+
+                setPodcast(fresh);
+                setFormData(toFormData(fresh));
+                const status = toPublishStatus(fresh.status);
+                setPublishStatus(status);
+                // Если файл ещё обрабатывается — продолжаем следить за статусом.
+                if (status === "processing") startPolling(podcastId);
+            } catch (err: any) {
+                if (!cancelled) {
+                    setLoadError(
+                        err?.status === 404
+                            ? "Подкаст не найден."
+                            : "Не удалось загрузить подкаст. Попробуйте позже."
+                    );
+                    console.error("Failed to load podcast draft", err);
+                }
+            } finally {
+                if (!cancelled) setIsInitialLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [podcastId]);
+
     const handleFormSave = async (data: PodcastFormData) => {
         setIsSaving(true);
 
@@ -129,8 +193,10 @@ const CreatePodcastPage: React.FC = () => {
 
             setPodcast(created);
             setFormData(data);
-            setPublishStatus("draft");
+            setPublishStatus(toPublishStatus(created.status));
             showToast("Черновик подкаста создан", "success");
+            // Запоминаем id в URL: при перезагрузке черновик подтянется целиком.
+            navigate(`/podcasts/create/${created.id}`, { replace: true });
         } catch (err) {
             console.error("Failed to save podcast draft", err);
             showToast("Не удалось сохранить черновик. Попробуйте позже.", "error");
@@ -217,6 +283,32 @@ const CreatePodcastPage: React.FC = () => {
         }
     };
 
+    if (isInitialLoading) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>Загрузка…</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loadError) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>{loadError}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const audioUploaded = Boolean(
+        podcast &&
+            (AUDIO_UPLOADED_STATUSES.includes(podcast.status) ||
+                podcast.audio_url_file)
+    );
+
     return (
         <div className={styles.page}>
             <div className={`container ${styles.pageInner}`}>
@@ -270,7 +362,14 @@ const CreatePodcastPage: React.FC = () => {
                         <div className={styles.card}>
 
                             <CreatePodcastForm
+                                key={podcast?.id ?? "new"}
                                 categories={categories.map(toCategoryOption)}
+                                initialTitle={formData?.title}
+                                initialDescription={formData?.description}
+                                initialCategoryId={formData?.categoryId}
+                                initialSpeakersCount={formData?.speakersCount}
+                                initialFileType={formData?.fileType ?? null}
+                                lockSpeakers={Boolean(podcast)}
                                 onSave={handleFormSave}
                                 onCancel={() => navigate(-1)}
                                 loading={isSaving}
@@ -282,8 +381,12 @@ const CreatePodcastPage: React.FC = () => {
 
                                     {formData.fileType === "audio" ? (
                                         <AudioUploadBlock
+                                            key={podcast?.id ?? "new"}
                                             publishStatus={publishStatus}
                                             publishing={isPublishing}
+                                            initialCoverUrl={podcast?.coverImageUrl ?? null}
+                                            audioUploaded={audioUploaded}
+                                            audioUrl={podcast?.audioUrl ?? null}
                                             onAudioChange={handleAudioChange}
                                             onCoverChange={handleCoverChange}
                                             onPublish={handlePublish}
@@ -307,7 +410,10 @@ const CreatePodcastPage: React.FC = () => {
 
                     <div className={styles.rightBlock}>
 
-                        <PodcastPublishStatus status={publishStatus} />
+                        <PodcastPublishStatus
+                            status={publishStatus}
+                            publishedAt={podcast?.publishedAt ?? undefined}
+                        />
 
                         <div className={styles.warningCard}>
                             <img

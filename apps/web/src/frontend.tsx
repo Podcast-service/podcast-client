@@ -570,6 +570,7 @@ function Frontend() {
         {/* Маршруты, требующие авторизации */}
         <Route element={<RequireAuth />}>
           <Route path="/podcasts/create" element={<CreatePodcastPage />} />
+          <Route path="/podcasts/create/:podcastId" element={<CreatePodcastPage />} />
           <Route path="/podcasts/:podcastId/edit" element={<EditPodcastPage />} />
 
           <Route path="/playlists/create" element={<CreatePlaylistPage />} />

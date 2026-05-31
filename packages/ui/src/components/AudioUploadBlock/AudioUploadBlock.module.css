@@ -209,3 +209,7 @@
     background-color: var(--color-disable-primary);
     cursor: not-allowed;
 }
+.audioPlayer {
+    width: 100%;
+    margin-top: 12px;
+}
