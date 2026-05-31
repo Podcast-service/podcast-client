@@ -1,0 +1,383 @@
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 100%;
+}
+
+
+.topRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+}
+
+
+.coverSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.coverBtn {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed #E5E7EB;
+    border-radius: 10px;
+    background: #F3F4F3;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.coverBtn:hover {
+    border-color: #414844;
+}
+
+.coverPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.coverPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.coverIcon {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+.coverHint {
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: #414844;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+
+.speakersSection {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.speakerInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.speakerInputWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.speakerInputLabel {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+}
+
+
+.sectionLabel {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+}
+
+
+.inputWrap {
+    background-color: var(--color-input-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.inputWrap:hover,
+.inputWrap:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-main);
+    box-sizing: border-box;
+}
+
+.input::placeholder {
+    color: var(--color-placeholder);
+}
+
+
+.textBlocksSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.textBlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.textBlock {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    padding: 20px 20px 20px 20px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 10px;
+    background-color: var(--color-input-bg);
+}
+
+.removeBlockBtn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    transition: opacity 0.15s ease;
+}
+
+.removeBlockBtn:hover {
+    opacity: 0.6;
+}
+
+.removeBlockIcon {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+
+.textareaFieldWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.textareaLabel {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+}
+
+.textareaWrap {
+    background-color: var(--color-input-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.textareaWrap:hover,
+.textareaWrap:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.textarea {
+    width: 100%;
+    padding: 12px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-main);
+    resize: vertical;
+    box-sizing: border-box;
+    display: block;
+}
+
+.textarea::placeholder {
+    color: var(--color-placeholder);
+}
+
+
+.addBlockBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    align-self: center;
+
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    transition: opacity 0.15s ease;
+}
+
+.addBlockBtn:hover {
+    opacity: 0.7;
+}
+
+.addBlockIcon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+.btnCancel {
+    padding: 10px 32px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnCancel:hover {
+    background-color: #F5FEF6;
+}
+
+.btnCancelDanger {
+    color: var(--color-error);
+    border-color: var(--color-error);
+}
+
+.btnCancelDanger:hover {
+    background-color: #FDECEA;
+}
+
+.btnGenerate {
+    padding: 10px 32px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnGenerate:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+
+.btnGenerate:disabled {
+    background-color: var(--color-disable-primary);
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+.btnGenerateLoading {
+    background-color: var(--color-load-primary);
+    cursor: default;
+}
+
+.btnPublish {
+    padding: 10px 32px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnPublish:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+
+.btnPublish:disabled {
+    background-color: var(--color-disable-primary);
+    color: #ffffff;
+    cursor: not-allowed;
+}

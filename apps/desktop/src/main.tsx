@@ -639,7 +639,7 @@ function DevPage() {
               fontWeight: 700,
             }}
           >
-            PodcastRow — варианты
+            PodcastRow - варианты
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
