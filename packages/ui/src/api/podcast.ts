@@ -1,0 +1,757 @@
+import { getAccessToken, clearTokens } from "./auth";
+
+/**
+ * Базовый путь podcast-core. По умолчанию относительный (/podcast/v1):
+ * в проде фронт отдаётся с castapp.ru (тот же origin), а в dev запросы
+ * проксируются на castapp.ru через Vite (см. apps/web/vite.config.ts).
+ * Можно переопределить абсолютным URL через VITE_PODCAST_API_URL.
+ */
+const BASE_URL =
+  (import.meta as any).env?.VITE_PODCAST_API_URL ?? "/podcast/v1";
+
+// ───── Типы из OpenAPI (podcast-service-dev) ─────
+
+export type PodcastStatus =
+  | "DRAFT"
+  | "UPLOADING"
+  | "UPLOADED"
+  | "PROCESSING"
+  | "PROCESSED"
+  | "PUBLISHED"
+  | "FAILED"
+  | "ARCHIVED";
+
+export type SortPodcasts = "DATE_DESC" | "DATE_ASC" | "RATING" | "VIEWS";
+
+export type SortPlaylists = "DATE_DESC" | "DATE_ASC" | "RATING";
+
+export type SortAuthors = "POPULAR" | "SUBSCRIBERS" | "DATE_DESC";
+
+export type SortLikedPodcasts = "DATE_DESC" | "DATE_ASC";
+
+export type VoteType = "LIKE" | "DISLIKE";
+
+export type Theme = "DARK" | "LIGHT";
+
+export type Language = "RU" | "EN";
+
+export type SearchType = "ALL" | "PODCAST" | "AUTHOR" | "PLAYLIST";
+
+export type SearchSort = "RELEVANCE" | "DATE" | "RATING" | "VIEWS";
+
+export interface AuthorCard {
+  id: string;
+  authorName: string;
+  avatarUrl?: string | null;
+  subscribersCount?: number | null;
+  isSubscribed?: boolean | null;
+}
+
+export interface CategoryResponse {
+  id: string;
+  name: string;
+  position: number;
+}
+
+export interface PodcastCard {
+  id: string;
+  title: string;
+  author: AuthorCard;
+  category?: CategoryResponse | null;
+  coverImageUrl?: string | null;
+  durationSeconds?: number | null;
+  num_speakers: number;
+  status: PodcastStatus;
+  viewsCount: number;
+  likesCount: number;
+  dislikesCount: number;
+  publishedAt?: string | null;
+  createdAt: string;
+  currentUserVote?: VoteType | null;
+  progressSeconds?: number | null;
+  progressPercent?: number | null;
+}
+
+export interface PodcastDetailResponse extends PodcastCard {
+  description?: string | null;
+  audioUrl?: string | null;
+  audio_url_file?: string | null;
+  audio_size_file?: number | null;
+  hasTranscript?: boolean | null;
+  hasSummary?: boolean | null;
+}
+
+export interface PodcastTranscriptResponse {
+  podcastId: string;
+  language: string;
+  content: string;
+  generatedAt: string;
+}
+
+export interface PodcastSummaryResponse {
+  podcastId: string;
+  language: string;
+  content: string;
+  generatedAt: string;
+}
+
+export interface PodcastSpeakersResponse {
+  podcastId: string;
+  num_speakers: number;
+}
+
+export interface AuthorProfileResponse {
+  id: string;
+  userId: string;
+  authorName: string;
+  avatarUrl?: string | null;
+  description?: string | null;
+  subscribersCount: number;
+  isSubscribed?: boolean | null;
+  createdAt: string;
+}
+
+export interface PlaylistOwnerResponse {
+  id: string;
+  username: string;
+}
+
+export interface PlaylistCard {
+  id: string;
+  title: string;
+  coverImageUrl?: string | null;
+  owner: PlaylistOwnerResponse;
+  isPublic: boolean;
+  podcastsCount: number;
+  likesCount: number;
+  dislikesCount: number;
+  createdAt: string;
+  currentUserVote?: VoteType | null;
+}
+
+export interface PlaylistPodcastItem extends PodcastCard {
+  position: number;
+}
+
+export interface PlaylistDetailResponse extends PlaylistCard {
+  description?: string | null;
+  updatedAt?: string;
+  podcasts?: PlaylistPodcastItem[];
+}
+
+export interface PageMeta {
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface PageOf<T> {
+  items: T[];
+  meta: PageMeta;
+}
+
+export type PageOfPodcastCard = PageOf<PodcastCard>;
+export type PageOfPodcastDetail = PageOf<PodcastDetailResponse>;
+export type PageOfPlaylistCard = PageOf<PlaylistCard>;
+export type PageOfAuthorCard = PageOf<AuthorCard>;
+
+export interface VoteResponse {
+  targetId: string;
+  targetType: "PODCAST" | "PLAYLIST";
+  likesCount: number;
+  dislikesCount: number;
+  currentUserVote?: VoteType | null;
+}
+
+export interface AuthorSubscriptionResponse {
+  authorId: string;
+  subscribersCount: number;
+  isSubscribed: boolean;
+}
+
+export interface PlaylistSaveResponse {
+  playlistId: string;
+  isSaved: boolean;
+}
+
+export interface UserProfilePrivateResponse {
+  id: string;
+  userId: string;
+  username: string;
+  avatarUrl?: string | null;
+  createdAt: string;
+  theme?: Theme;
+  language?: Language;
+}
+
+export interface UserSettingsResponse {
+  theme?: Theme;
+  language?: Language;
+}
+
+export interface SearchSuggestItem {
+  type: "PODCAST" | "AUTHOR" | "PLAYLIST";
+  id: string;
+  label: string;
+  coverUrl?: string | null;
+}
+
+export interface SearchResponse {
+  podcasts?: PageOfPodcastCard;
+  authors?: PageOfAuthorCard;
+  playlists?: PageOfPlaylistCard;
+}
+
+export interface ApiError {
+  code?: string;
+  message?: string;
+  status?: number;
+}
+
+// ───── Низкоуровневый клиент ─────
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw { status: res.status, ...data } as ApiError;
+  }
+  return data as T;
+}
+
+/**
+ * GET-запрос к podcast-core. Bearer-токен добавляется автоматически,
+ * если пользователь авторизован (часть ручек публичны, но при наличии
+ * токена возвращают доп. поля: currentUserVote, isSubscribed и т.д.).
+ */
+async function apiGet<T>(path: string, query?: object): Promise<T> {
+  // window.location.origin как база — корректно резолвит и относительный,
+  // и абсолютный BASE_URL.
+  const url = new URL(`${BASE_URL}${path}`, window.location.origin);
+  if (query) {
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== null && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
+    }
+  }
+
+  const token = getAccessToken();
+  let res = await fetch(url.toString(), {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+
+  // Токен не принят этим бэкендом (другой секрет / истёк): сбрасываем его и
+  // повторяем запрос анонимно — публичные ручки должны работать без логина.
+  if (res.status === 401 && token) {
+    clearTokens();
+    res = await fetch(url.toString());
+  }
+
+  return handleResponse<T>(res);
+}
+
+/** POST/PUT/DELETE к podcast-core с авторизацией. */
+async function apiSend<T>(
+  method: "POST" | "PUT" | "DELETE",
+  path: string,
+  body?: unknown
+): Promise<T> {
+  const token = getAccessToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  // Невалидный токен → разлогиниваем (UI переключится на гостя).
+  if (res.status === 401 && token) {
+    clearTokens();
+  }
+
+  return handleResponse<T>(res);
+}
+
+/** Залогинен ли пользователь (есть ли access token). */
+export const isAuthenticated = (): boolean => Boolean(getAccessToken());
+
+// ───── Podcasts ─────
+
+export interface GetPodcastsParams {
+  q?: string;
+  categoryId?: string;
+  authorId?: string;
+  sort?: SortPodcasts;
+  page?: number;
+  size?: number;
+}
+
+/** Список опубликованных подкастов. GET /podcasts — публичная ручка. */
+export function getPodcasts(
+  params: GetPodcastsParams = {}
+): Promise<PageOfPodcastCard> {
+  return apiGet<PageOfPodcastCard>("/podcasts", params);
+}
+
+/** Детальная карточка подкаста. GET /podcasts/{id}. */
+export function getPodcast(podcastId: string): Promise<PodcastDetailResponse> {
+  return apiGet<PodcastDetailResponse>(`/podcasts/${podcastId}`);
+}
+
+/** Транскрипт подкаста. GET /podcasts/{id}/transcript — 404, если не готов. */
+export function getPodcastTranscript(
+  podcastId: string
+): Promise<PodcastTranscriptResponse> {
+  return apiGet<PodcastTranscriptResponse>(`/podcasts/${podcastId}/transcript`);
+}
+
+/** Summary подкаста. GET /podcasts/{id}/summary — 404, если не готов. */
+export function getPodcastSummary(
+  podcastId: string
+): Promise<PodcastSummaryResponse> {
+  return apiGet<PodcastSummaryResponse>(`/podcasts/${podcastId}/summary`);
+}
+
+/** Количество спикеров подкаста. GET /podcasts/{id}/speakers. */
+export function getPodcastSpeakers(
+  podcastId: string
+): Promise<PodcastSpeakersResponse> {
+  return apiGet<PodcastSpeakersResponse>(`/podcasts/${podcastId}/speakers`);
+}
+
+export interface CreatePodcastRequest {
+  title: string;
+  description?: string | null;
+  categoryId?: string | null;
+  coverImageUrl?: string | null;
+  num_speakers: number;
+}
+
+/** Создать подкаст. POST /podcasts. */
+export function createPodcast(
+  body: CreatePodcastRequest
+): Promise<PodcastDetailResponse> {
+  return apiSend<PodcastDetailResponse>("POST", "/podcasts", body);
+}
+
+export interface UpdatePodcastRequest {
+  title?: string;
+  description?: string | null;
+  categoryId?: string | null;
+  coverImageUrl?: string | null;
+}
+
+/** Обновить подкаст. PUT /podcasts/{id}. */
+export function updatePodcast(
+  podcastId: string,
+  body: UpdatePodcastRequest
+): Promise<PodcastDetailResponse> {
+  return apiSend<PodcastDetailResponse>("PUT", `/podcasts/${podcastId}`, body);
+}
+
+/** Архивировать подкаст. DELETE /podcasts/{id}. */
+export function deletePodcast(podcastId: string): Promise<void> {
+  return apiSend<void>("DELETE", `/podcasts/${podcastId}`);
+}
+
+/** Сохранить прогресс прослушивания. POST /podcasts/{id}/progress. */
+export function savePodcastProgress(
+  podcastId: string,
+  progressSeconds: number
+): Promise<void> {
+  return apiSend<void>("POST", `/podcasts/${podcastId}/progress`, {
+    progressSeconds,
+  });
+}
+
+// ───── Categories ─────
+
+/** Список всех категорий. GET /categories — публичная ручка. */
+export function getCategories(): Promise<CategoryResponse[]> {
+  return apiGet<CategoryResponse[]>("/categories");
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  position?: number;
+}
+
+/** Создать категорию. POST /categories (ADMIN). */
+export function createCategory(
+  body: CreateCategoryRequest
+): Promise<CategoryResponse> {
+  return apiSend<CategoryResponse>("POST", "/categories", body);
+}
+
+export interface UpdateCategoryRequest {
+  name?: string;
+  position?: number;
+}
+
+/** Обновить категорию. PUT /categories/{id} (ADMIN). */
+export function updateCategory(
+  categoryId: string,
+  body: UpdateCategoryRequest
+): Promise<CategoryResponse> {
+  return apiSend<CategoryResponse>("PUT", `/categories/${categoryId}`, body);
+}
+
+/** Удалить категорию. DELETE /categories/{id} (ADMIN). */
+export function deleteCategory(categoryId: string): Promise<void> {
+  return apiSend<void>("DELETE", `/categories/${categoryId}`);
+}
+
+// ───── Authors ─────
+
+/** Список авторов. GET /authors — публичная ручка с опциональным bearer. */
+export function getAuthors(
+  params: { q?: string; sort?: SortAuthors; page?: number; size?: number } = {}
+): Promise<PageOfAuthorCard> {
+  return apiGet<PageOfAuthorCard>("/authors", params);
+}
+
+/** Публичный профиль автора. GET /authors/{id}. */
+export function getAuthor(authorId: string): Promise<AuthorProfileResponse> {
+  return apiGet<AuthorProfileResponse>(`/authors/${authorId}`);
+}
+
+/** Опубликованные подкасты автора. GET /authors/{id}/podcasts. */
+export function getAuthorPodcasts(
+  authorId: string,
+  params: { q?: string; sort?: SortPodcasts; page?: number; size?: number } = {}
+): Promise<PageOfPodcastCard> {
+  return apiGet<PageOfPodcastCard>(`/authors/${authorId}/podcasts`, params);
+}
+
+/** Все подкасты текущего автора, включая черновики и обработку. GET /authors/me/podcasts. */
+export function getMyAuthorPodcasts(
+  params: {
+    status?: PodcastStatus;
+    q?: string;
+    sort?: SortPodcasts;
+    page?: number;
+    size?: number;
+  } = {}
+): Promise<PageOfPodcastDetail> {
+  return apiGet<PageOfPodcastDetail>("/authors/me/podcasts", params);
+}
+
+/** Публичные плейлисты автора. GET /authors/{id}/playlists. */
+export function getAuthorPlaylists(
+  authorId: string,
+  params: { page?: number; size?: number } = {}
+): Promise<PageOfPlaylistCard> {
+  return apiGet<PageOfPlaylistCard>(`/authors/${authorId}/playlists`, params);
+}
+
+// ───── Playlists ─────
+
+/** Публичные плейлисты. GET /playlists — публичная ручка. */
+export function getPlaylists(
+  params: { q?: string; sort?: SortPlaylists; page?: number; size?: number } = {}
+): Promise<PageOfPlaylistCard> {
+  return apiGet<PageOfPlaylistCard>("/playlists", params);
+}
+
+/** Плейлист с треклистом. GET /playlists/{id}. */
+export function getPlaylist(
+  playlistId: string
+): Promise<PlaylistDetailResponse> {
+  return apiGet<PlaylistDetailResponse>(`/playlists/${playlistId}`);
+}
+
+export interface CreatePlaylistRequest {
+  title: string;
+  description?: string | null;
+  coverImageUrl?: string | null;
+  isPublic?: boolean;
+}
+
+/** Создать плейлист. POST /playlists. */
+export function createPlaylist(
+  body: CreatePlaylistRequest
+): Promise<PlaylistDetailResponse> {
+  return apiSend<PlaylistDetailResponse>("POST", "/playlists", body);
+}
+
+export interface UpdatePlaylistRequest {
+  title?: string;
+  description?: string | null;
+  coverImageUrl?: string | null;
+  isPublic?: boolean;
+}
+
+/** Обновить плейлист. PUT /playlists/{id}. */
+export function updatePlaylist(
+  playlistId: string,
+  body: UpdatePlaylistRequest
+): Promise<PlaylistDetailResponse> {
+  return apiSend<PlaylistDetailResponse>(
+    "PUT",
+    `/playlists/${playlistId}`,
+    body
+  );
+}
+
+/** Удалить плейлист (только владелец). DELETE /playlists/{id}. */
+export function deletePlaylist(playlistId: string): Promise<void> {
+  return apiSend<void>("DELETE", `/playlists/${playlistId}`);
+}
+
+/** Добавить подкаст в плейлист (только владелец). POST /playlists/{id}/podcasts. */
+export function addPodcastToPlaylist(
+  playlistId: string,
+  podcastId: string
+): Promise<PlaylistDetailResponse> {
+  return apiSend<PlaylistDetailResponse>(
+    "POST",
+    `/playlists/${playlistId}/podcasts`,
+    { podcastId }
+  );
+}
+
+/** Убрать подкаст из плейлиста. DELETE /playlists/{playlistId}/podcasts/{podcastId}. */
+export function removePodcastFromPlaylist(
+  playlistId: string,
+  podcastId: string
+): Promise<void> {
+  return apiSend<void>(
+    "DELETE",
+    `/playlists/${playlistId}/podcasts/${podcastId}`
+  );
+}
+
+/** Сохранить чужой плейлист в библиотеку. POST /playlists/{id}/save. */
+export function savePlaylistToLibrary(
+  playlistId: string
+): Promise<PlaylistSaveResponse> {
+  return apiSend<PlaylistSaveResponse>(
+    "POST",
+    `/playlists/${playlistId}/save`
+  );
+}
+
+/** Убрать плейлист из библиотеки. DELETE /playlists/{id}/save. */
+export function removePlaylistFromLibrary(
+  playlistId: string
+): Promise<PlaylistSaveResponse> {
+  return apiSend<PlaylistSaveResponse>(
+    "DELETE",
+    `/playlists/${playlistId}/save`
+  );
+}
+
+export interface ReorderPlaylistItem {
+  podcastId: string;
+  position: number;
+}
+
+/** Изменить порядок подкастов в плейлисте. PUT /playlists/{id}/podcasts/reorder. */
+export function reorderPlaylistPodcasts(
+  playlistId: string,
+  items: ReorderPlaylistItem[]
+): Promise<PlaylistDetailResponse> {
+  return apiSend<PlaylistDetailResponse>(
+    "PUT",
+    `/playlists/${playlistId}/podcasts/reorder`,
+    { items }
+  );
+}
+
+// ───── Votes (требуют bearer) ─────
+
+/** Проголосовать за подкаст. POST /podcasts/{id}/vote. */
+export function votePodcast(
+  podcastId: string,
+  voteType: VoteType
+): Promise<VoteResponse> {
+  return apiSend<VoteResponse>("POST", `/podcasts/${podcastId}/vote`, {
+    voteType,
+  });
+}
+
+/** Отозвать голос с подкаста. DELETE /podcasts/{id}/vote. */
+export function removePodcastVote(podcastId: string): Promise<VoteResponse> {
+  return apiSend<VoteResponse>("DELETE", `/podcasts/${podcastId}/vote`);
+}
+
+/** Проголосовать за плейлист. POST /playlists/{id}/vote. */
+export function votePlaylist(
+  playlistId: string,
+  voteType: VoteType
+): Promise<VoteResponse> {
+  return apiSend<VoteResponse>("POST", `/playlists/${playlistId}/vote`, {
+    voteType,
+  });
+}
+
+/** Отозвать голос с плейлиста. DELETE /playlists/{id}/vote. */
+export function removePlaylistVote(playlistId: string): Promise<VoteResponse> {
+  return apiSend<VoteResponse>("DELETE", `/playlists/${playlistId}/vote`);
+}
+
+// ───── Subscriptions (требуют bearer) ─────
+
+/** Подписаться на автора. POST /authors/{id}/subscribe. */
+export function subscribeAuthor(
+  authorId: string
+): Promise<AuthorSubscriptionResponse> {
+  return apiSend<AuthorSubscriptionResponse>(
+    "POST",
+    `/authors/${authorId}/subscribe`
+  );
+}
+
+/** Отписаться от автора. DELETE /authors/{id}/subscribe. */
+export function unsubscribeAuthor(
+  authorId: string
+): Promise<AuthorSubscriptionResponse> {
+  return apiSend<AuthorSubscriptionResponse>(
+    "DELETE",
+    `/authors/${authorId}/subscribe`
+  );
+}
+
+// ───── Current user ─────
+
+/** Свой профиль. GET /users/me/profile (требует bearer). */
+export function getMyProfile(): Promise<UserProfilePrivateResponse> {
+  return apiGet<UserProfilePrivateResponse>("/users/me/profile");
+}
+
+/** Мои плейлисты. GET /users/me/playlists (требует bearer). */
+export function getMyPlaylists(
+  params: { page?: number; size?: number } = {}
+): Promise<PageOfPlaylistCard> {
+  return apiGet<PageOfPlaylistCard>("/users/me/playlists", params);
+}
+
+/** Лайкнутые подкасты. GET /users/me/liked-podcasts. */
+export function getMyLikedPodcasts(
+  params: { page?: number; size?: number; sort?: SortLikedPodcasts } = {}
+): Promise<PageOfPodcastCard> {
+  return apiGet<PageOfPodcastCard>("/users/me/liked-podcasts", params);
+}
+
+/** Сохранённые чужие плейлисты. GET /users/me/library/playlists. */
+export function getMyLibraryPlaylists(
+  params: { page?: number; size?: number } = {}
+): Promise<PageOfPlaylistCard> {
+  return apiGet<PageOfPlaylistCard>("/users/me/library/playlists", params);
+}
+
+/** Настройки пользователя. GET /users/me/settings. */
+export function getMySettings(): Promise<UserSettingsResponse> {
+  return apiGet<UserSettingsResponse>("/users/me/settings");
+}
+
+/** Обновить настройки пользователя. PUT /users/me/settings. */
+export function updateMySettings(
+  body: Partial<UserSettingsResponse>
+): Promise<UserSettingsResponse> {
+  return apiSend<UserSettingsResponse>("PUT", "/users/me/settings", body);
+}
+
+export interface SubscriptionResponse {
+  author: AuthorCard;
+  subscribedAt: string;
+}
+
+export type PageOfSubscription = PageOf<SubscriptionResponse>;
+
+/** Мои подписки. GET /users/me/subscriptions (требует bearer). */
+export function getMySubscriptions(
+  params: { page?: number; size?: number } = {}
+): Promise<PageOfSubscription> {
+  return apiGet<PageOfSubscription>("/users/me/subscriptions", params);
+}
+
+/** Лента подписок. GET /users/me/subscriptions/feed. */
+export function getMySubscriptionsFeed(
+  params: { sort?: SortPodcasts; page?: number; size?: number } = {}
+): Promise<PageOfPodcastCard> {
+  return apiGet<PageOfPodcastCard>("/users/me/subscriptions/feed", params);
+}
+
+export interface ListenHistoryItem {
+  podcast: PodcastCard;
+  progressSeconds: number;
+  progressPercent?: number | null;
+  completed: boolean;
+  lastListenedAt: string;
+}
+
+export type PageOfListenHistory = PageOf<ListenHistoryItem>;
+
+/** История прослушивания. GET /users/me/history (требует bearer). */
+export function getMyHistory(
+  params: { page?: number; size?: number } = {}
+): Promise<PageOfListenHistory> {
+  return apiGet<PageOfListenHistory>("/users/me/history", params);
+}
+
+/** Профиль автора текущего пользователя. GET /authors/me (200 — автор; 403/404 — нет). */
+export function getMyAuthorProfile(): Promise<AuthorProfileResponse> {
+  return apiGet<AuthorProfileResponse>("/authors/me");
+}
+
+export interface UpdateUserProfileRequest {
+  username?: string;
+  avatarUrl?: string | null;
+}
+
+/** Обновить свой профиль. PUT /users/me/profile. */
+export function updateMyProfile(
+  body: UpdateUserProfileRequest
+): Promise<UserProfilePrivateResponse> {
+  return apiSend<UserProfilePrivateResponse>("PUT", "/users/me/profile", body);
+}
+
+export interface CreateAuthorProfileRequest {
+  authorName: string;
+  description?: string | null;
+}
+
+/** Стать автором. POST /authors/me (требует роль AUTHOR в токене). */
+export function createAuthorProfile(
+  body: CreateAuthorProfileRequest
+): Promise<AuthorProfileResponse> {
+  return apiSend<AuthorProfileResponse>("POST", "/authors/me", body);
+}
+
+/** Обновить профиль автора. PUT /authors/me. */
+export function updateMyAuthorProfile(
+  body: { authorName?: string; description?: string | null }
+): Promise<AuthorProfileResponse> {
+  return apiSend<AuthorProfileResponse>("PUT", "/authors/me", body);
+}
+
+// ───── Search ─────
+
+/** Подсказки поиска. GET /search/suggest. */
+export function getSearchSuggestions(
+  q: string
+): Promise<SearchSuggestItem[]> {
+  return apiGet<SearchSuggestItem[]>("/search/suggest", { q });
+}
+
+/** Полнотекстовый поиск. GET /search. */
+export function search(
+  params: {
+    q: string;
+    type?: SearchType;
+    categoryId?: string;
+    sort?: SearchSort;
+    page?: number;
+    size?: number;
+  }
+): Promise<SearchResponse> {
+  return apiGet<SearchResponse>("/search", params);
+}

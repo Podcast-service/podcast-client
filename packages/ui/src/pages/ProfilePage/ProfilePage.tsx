@@ -1,58 +1,101 @@
-import React from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import styles from "./ProfilePage.module.css";
 import ProfileHero from "../../components/ProfileHero/ProfileHero";
 import ProfileAuthorHero from "../../components/ProfileAuthorHero/ProfileAuthorHero";
 import ProfileNav from "../../components/ProfileNav/ProfileNav";
 
-
-const MOCK_USER = {
-    username: "Alex Johnson",
-    authorName: "Александр Соколов",
-    email: "alex@example.com",
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
-    isAuthor: true,
-    bio: "Практикующий психолог и исследователь человеческого поведения. В своих подкастах Александр исследует глубины сознания и когнитивные искажения.",
-    subscribers: 124000,
-};
-
+import {
+  getMyProfile,
+  getMyAuthorProfile,
+  type UserProfilePrivateResponse,
+  type AuthorProfileResponse,
+} from "../../api/podcast";
+import { getTokenClaims } from "../../api/auth";
 
 const ProfilePage: React.FC = () => {
-    const { isAuthor } = MOCK_USER;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<UserProfilePrivateResponse | null>(
+    null
+  );
+  const [authorProfile, setAuthorProfile] =
+    useState<AuthorProfileResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    return (
-        <div className={styles.page}>
-            <div className={`container ${styles.pageInner}`}>
+  const email = (getTokenClaims()?.email as string) ?? "";
 
-                <div className={styles.hero}>
-                    {isAuthor ? (
-                        <ProfileAuthorHero
-                            authorName={MOCK_USER.authorName}
-                            email={MOCK_USER.email}
-                            avatarUrl={MOCK_USER.avatarUrl}
-                            bio={MOCK_USER.bio}
-                            subscribers={MOCK_USER.subscribers}
-                            onShareClick={() => {}}
-                        />
-                    ) : (
-                        <ProfileHero
-                            username={MOCK_USER.username}
-                            email={MOCK_USER.email}
-                            avatarUrl={MOCK_USER.avatarUrl}
-                            isAuthor={false}
-                        />
-                    )}
-                </div>
+  useEffect(() => {
+    let cancelled = false;
 
-                <ProfileNav isAuthor={isAuthor} />
+    (async () => {
+      try {
+        setIsLoading(true);
+        const me = await getMyProfile();
+        if (cancelled) return;
+        setProfile(me);
 
-                <div className={styles.content}>
-                    <Outlet />
-                </div>
+        // Автор? GET /authors/me вернёт 200 для автора, иначе 403/404.
+        const author = await getMyAuthorProfile().catch(() => null);
+        if (!cancelled) {
+          setAuthorProfile(author);
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
 
-            </div>
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isAuthor = Boolean(authorProfile);
+  const isProfileRoot = location.pathname.replace(/\/+$/, "") === "/profile";
+
+  useEffect(() => {
+    if (!isLoading && isProfileRoot) {
+      navigate(isAuthor ? "podcasts" : "likes", { replace: true });
+    }
+  }, [isAuthor, isLoading, isProfileRoot, navigate]);
+
+  return (
+    <div className={styles.page}>
+      <div className={`container ${styles.pageInner}`}>
+        <div className={styles.hero}>
+          {isLoading ? (
+            <p style={{ padding: "24px 0" }}>Загрузка…</p>
+          ) : isAuthor && authorProfile ? (
+            <ProfileAuthorHero
+              authorName={authorProfile.authorName}
+              email={email}
+              avatarUrl={authorProfile.avatarUrl ?? profile?.avatarUrl ?? undefined}
+              bio={authorProfile.description ?? undefined}
+              subscribers={authorProfile.subscribersCount}
+              onShareClick={() => {}}
+            />
+          ) : (
+            <ProfileHero
+              username={profile?.username ?? ""}
+              email={email}
+              avatarUrl={profile?.avatarUrl ?? undefined}
+              isAuthor={false}
+            />
+          )}
         </div>
-    );
+
+        <ProfileNav isAuthor={isAuthor} />
+
+        <div className={styles.content}>
+          {isProfileRoot ? null : <Outlet />}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProfilePage;

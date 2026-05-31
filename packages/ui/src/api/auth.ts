@@ -1,4 +1,7 @@
-const BASE_URL = "http://186.246.30.30";
+// Базовый путь auth-service. По умолчанию относительный (эндпоинты /auth/*):
+// в проде — тот же origin (castapp.ru), в dev — прокси Vite на castapp.ru.
+// Можно переопределить абсолютным URL через VITE_AUTH_API_URL.
+const BASE_URL = (import.meta as any).env?.VITE_AUTH_API_URL ?? "";
 
 export interface AuthTokens {
   access_token: string;
@@ -16,18 +19,42 @@ export interface ApiError {
   message?: string;
 }
 
+/** Событие смены состояния авторизации (для реактивного UI в той же вкладке). */
+export const AUTH_CHANGE_EVENT = "auth-change";
+
+const emitAuthChange = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+  }
+};
+
 export const saveTokens = (tokens: AuthTokens) => {
   localStorage.setItem("access_token", tokens.access_token);
   localStorage.setItem("refresh_token", tokens.refresh_token);
+  emitAuthChange();
 };
 
 export const clearTokens = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
+  emitAuthChange();
 };
 
 export const getAccessToken = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
+
+/** Claims из access-token (user_id, email, roles, ...). null, если токена нет/он битый. */
+export const getTokenClaims = (): Record<string, any> | null => {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(decodeURIComponent(escape(json)));
+  } catch {
+    return null;
+  }
+};
 
 
 async function handleResponse<T>(res: Response): Promise<T> {

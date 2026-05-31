@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from "react-router-dom";
 
 import {
   HeaderLogin,
@@ -15,6 +15,7 @@ import {
   Footer,
   Player,
   MainPage,
+  SearchPage,
   FilterTabs,
   AuthorRow,
   AuthorsPage,
@@ -46,6 +47,8 @@ import {
   DownloadAppBanner,
   PodcastsPage,
   DownloadAppPage,
+  AudioUploadBlock,
+  useIsAuthenticated,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -70,6 +73,18 @@ function AuthLayout() {
       <FooterLogin />
     </div>
   );
+}
+
+// Гард для маршрутов, требующих авторизации: аноним → на /login.
+function RequireAuth() {
+  const isAuthenticated = useIsAuthenticated();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return <Outlet />;
 }
 
 function MainLayout() {
@@ -539,35 +554,39 @@ function Frontend() {
       </Route>
 
       <Route element={<MainLayout />}>
+        {/* Публичные маршруты */}
         <Route path="/" element={<MainPage />} />
         <Route path="/download" element={<DownloadAppPage />} />
 
         <Route path="/podcasts" element={<PodcastsPage />} />
-        <Route path="/podcasts/create" element={<CreatePodcastPage />} />
-        <Route path="/podcasts/:podcastId/edit" element={<EditPodcastPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
-
         <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/authors/:authorId" element={<AuthorPage />} />
-
-        <Route path="/playlists/create" element={<CreatePlaylistPage />} />
-        <Route path="/playlists/:playlistId/edit" element={<EditPlaylistPage />} />
         <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
-
-        <Route path="/become-author" element={<BecomeAuthorPage />} />
-
-        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
-        <Route path="/profile" element={<ProfilePage />}>
-          <Route index element={<Navigate to="podcasts" replace />} />
-          <Route path="podcasts" element={<ProfileMyPodcastsPage />} />
-          <Route path="likes" element={<ProfileLikesPage />} />
-          <Route path="playlists" element={<ProfilePlaylistsPage />} />
-          <Route path="subscriptions" element={<ProfileSubscriptionsPage />} />
-          <Route path="history" element={<ProfileHistoryPage />} />
-        </Route>
-
         <Route path="/dev" element={<DevPage />} />
+
+        {/* Маршруты, требующие авторизации */}
+        <Route element={<RequireAuth />}>
+          <Route path="/podcasts/create" element={<CreatePodcastPage />} />
+          <Route path="/podcasts/:podcastId/edit" element={<EditPodcastPage />} />
+
+          <Route path="/playlists/create" element={<CreatePlaylistPage />} />
+          <Route path="/playlists/:playlistId/edit" element={<EditPlaylistPage />} />
+
+          <Route path="/become-author" element={<BecomeAuthorPage />} />
+
+          <Route path="/profile/edit" element={<ProfileSettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />}>
+            <Route index element={<Navigate to="podcasts" replace />} />
+            <Route path="podcasts" element={<ProfileMyPodcastsPage />} />
+            <Route path="likes" element={<ProfileLikesPage />} />
+            <Route path="playlists" element={<ProfilePlaylistsPage />} />
+            <Route path="subscriptions" element={<ProfileSubscriptionsPage />} />
+            <Route path="history" element={<ProfileHistoryPage />} />
+          </Route>
+        </Route>
       </Route>
     </Routes>
   );

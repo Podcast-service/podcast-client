@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
@@ -6,6 +6,15 @@ import CreatePodcastForm from "../../components/CreatePodcastForm/CreatePodcastF
 import AudioUploadBlock from "../../components/AudioUploadBlock/AudioUploadBlock";
 import TextUploadBlock from "../../components/TextUploadBlock/TextUploadBlock";
 import PodcastPublishStatus from "../../components/PodcastPublishStatus/PodcastPublishStatus";
+import { useToast } from "../../components/Toast/useToast";
+import {
+    createPodcast,
+    getCategories,
+    updatePodcast,
+    type CategoryResponse,
+    type PodcastDetailResponse,
+} from "../../api/podcast";
+import { uploadPodcastAudio, uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
@@ -13,7 +22,7 @@ import WarningSvg from "../../assets/icons/warning.svg";
 type FileType = "audio" | "text";
 type PublishStatus = "draft" | "processing" | "ready" | "published" | "error";
 
-interface FormData {
+interface PodcastFormData {
     title: string;
     description: string;
     categoryId: string;
@@ -21,50 +30,122 @@ interface FormData {
     fileType: FileType;
 }
 
-const CATEGORIES = [
-    { id: "psychology", label: "Психология" },
-    { id: "science", label: "Наука" },
-    { id: "tech", label: "Технологии" },
-    { id: "business", label: "Бизнес" },
-    { id: "health", label: "Здоровье" },
-    { id: "design", label: "Дизайн" },
-    { id: "entertainment", label: "Развлечения" },
-    { id: "sport", label: "Спорт" },
-];
+const toCategoryOption = (category: CategoryResponse) => ({
+    id: category.id,
+    label: category.name,
+});
 
 const CreatePodcastPage: React.FC = () => {
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
-    const [formData, setFormData] = useState<FormData | null>(null);
+    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [formData, setFormData] = useState<PodcastFormData | null>(null);
+    const [podcast, setPodcast] = useState<PodcastDetailResponse | null>(null);
     const [publishStatus, setPublishStatus] = useState<PublishStatus>("draft");
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleFormSave = (data: {
-        title: string;
-        description: string;
-        categoryId: string;
-        speakersCount: number;
-        fileType: FileType;
-    }) => {
-        setFormData(data);
-        setPublishStatus("draft");
+    useEffect(() => {
+        let cancelled = false;
+
+        getCategories()
+            .then((items) => {
+                if (!cancelled) setCategories(items);
+            })
+            .catch((err) => {
+                console.error("Failed to load podcast categories", err);
+                showToast("Не удалось загрузить категории. Попробуйте позже.", "error");
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [showToast]);
+
+    const handleFormSave = async (data: PodcastFormData) => {
+        setIsSaving(true);
+
+        try {
+            if (podcast) {
+                const updated = await updatePodcast(podcast.id, {
+                    title: data.title.trim(),
+                    description: data.description.trim() || null,
+                    categoryId: data.categoryId,
+                });
+                setPodcast(updated);
+                setFormData(data);
+                showToast("Черновик обновлён", "success");
+                return;
+            }
+
+            const created = await createPodcast({
+                title: data.title.trim(),
+                description: data.description.trim() || null,
+                categoryId: data.categoryId,
+                coverImageUrl: null,
+                num_speakers: data.speakersCount,
+            });
+
+            setPodcast(created);
+            setFormData(data);
+            setPublishStatus("draft");
+            showToast("Черновик подкаста создан", "success");
+        } catch (err) {
+            console.error("Failed to save podcast draft", err);
+            showToast("Не удалось сохранить черновик. Попробуйте позже.", "error");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleAudioChange = (file: File) => {
-        console.log("audio file:", file.name);
+    const handleAudioChange = async (file: File) => {
+        if (!podcast) {
+            showToast("Сначала сохраните данные подкаста", "error");
+            return;
+        }
+
         setPublishStatus("processing");
+        try {
+            await uploadPodcastAudio(podcast.id, file);
+            setPublishStatus("ready");
+            showToast("Аудиофайл загружен", "success");
+        } catch (err) {
+            console.error("Failed to upload podcast audio", err);
+            setPublishStatus("error");
+            showToast("Не удалось загрузить аудио. Попробуйте позже.", "error");
+        }
     };
 
-    const handleGenerate = (data: {
+    const handleCoverChange = async (file: File) => {
+        if (!podcast) {
+            showToast("Сначала сохраните данные подкаста", "error");
+            return;
+        }
+
+        try {
+            const upload = await uploadPodcastCover(podcast.id, file);
+            const updated = await updatePodcast(podcast.id, {
+                coverImageUrl: upload.url,
+            });
+            setPodcast(updated);
+            showToast("Обложка загружена", "success");
+        } catch (err) {
+            console.error("Failed to upload podcast cover", err);
+            showToast("Не удалось загрузить обложку. Попробуйте позже.", "error");
+        }
+    };
+
+    const handleGenerate = (_data: {
         speakers: string[];
         blocks: { speakerId: string; text: string }[];
         coverFile: File | null;
     }) => {
-        console.log("generate:", data);
-        setPublishStatus("processing");
+        setPublishStatus("error");
+        showToast("Генерация подкаста из текста пока не подключена к API.", "error");
     };
 
     const handlePublish = () => {
-        setPublishStatus("published");
+        showToast("Публикацию подключим отдельным шагом.", "error");
     };
 
     return (
@@ -120,9 +201,10 @@ const CreatePodcastPage: React.FC = () => {
                         <div className={styles.card}>
 
                             <CreatePodcastForm
-                                categories={CATEGORIES}
+                                categories={categories.map(toCategoryOption)}
                                 onSave={handleFormSave}
                                 onCancel={() => navigate(-1)}
+                                loading={isSaving}
                             />
 
                             {formData && (
@@ -133,9 +215,7 @@ const CreatePodcastPage: React.FC = () => {
                                         <AudioUploadBlock
                                             publishStatus={publishStatus}
                                             onAudioChange={handleAudioChange}
-                                            onCoverChange={(file) =>
-                                                console.log("cover:", file.name)
-                                            }
+                                            onCoverChange={handleCoverChange}
                                             onPublish={handlePublish}
                                             onCancel={() => navigate(-1)}
                                         />
@@ -143,9 +223,7 @@ const CreatePodcastPage: React.FC = () => {
                                         <TextUploadBlock
                                             speakersCount={formData.speakersCount}
                                             publishStatus={publishStatus}
-                                            onCoverChange={(file) =>
-                                                console.log("cover:", file.name)
-                                            }
+                                            onCoverChange={handleCoverChange}
                                             onGenerate={handleGenerate}
                                             onPublish={handlePublish}
                                             onCancel={() => navigate(-1)}

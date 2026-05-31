@@ -87,7 +87,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                         <p className={styles.audioTitle}>
                             {audioFileName ?? "Загрузите аудиофайл"}
                         </p>
-                        <p className={styles.audioHint}>MP3, WAV, OGG (з пкс. 500MB)</p>
+                        <p className={styles.audioHint}>MP3, WAV, OGG, FLAC, OPUS, M4A, AAC до 50 MB</p>
                     </div>
 
                     <button
@@ -105,7 +105,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                 <input
                     ref={audioInputRef}
                     type="file"
-                    accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg"
+                    accept=".mp3,.wav,.ogg,.flac,.opus,.m4a,.aac,audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/aac"
                     className={styles.hiddenInput}
                     onChange={handleAudioChange}
                 />

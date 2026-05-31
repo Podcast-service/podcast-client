@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DragEndEvent } from "@dnd-kit/core";
 import {
@@ -25,7 +25,19 @@ import SearchSvg from "../../assets/icons/search.svg";
 import LeftSvg from "../../assets/icons/left.svg";
 import YoutubeSvg from "../../assets/icons/youtube.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
+import {
+    addPodcastToPlaylist,
+    createPlaylist,
+    getMyAuthorPodcasts,
+    getMyAuthorProfile,
+    getMyLikedPodcasts,
+    getPodcasts,
+    updatePlaylist,
+    type PodcastCard,
+} from "../../api/podcast";
+import { uploadPlaylistCover } from "../../api/mediaUpload";
 
+// ─── типы ────────────────────────────────────────────────────────────────────
 
 interface Podcast {
     id: string;
@@ -35,34 +47,13 @@ interface Podcast {
     coverUrl?: string;
 }
 
-
-const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
-
-const CURRENT_AUTHOR_ID = "author_123";
-
-const MOCK_LIKED: Podcast[] = [
-    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
-];
-
-const MOCK_ALL: Podcast[] = [
-    { id: "1", authorId: "author_other1", title: "Как справиться с прокрастинацией", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "2", authorId: "author_other1", title: "Искусство глубокого сна", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "3", authorId: "author_other2", title: "Почему мы забываем важное?", author: "Мария Смирнова", coverUrl: COVER },
-    { id: "4", authorId: "author_other1", title: "Эмпатия в цифровой век", author: "Виктор Соколов", coverUrl: COVER },
-    { id: "5", authorId: "author_123", title: "Квантовый мир", author: "Александр Соколов", coverUrl: COVER },
-];
-
-const MOCK_MINE: Podcast[] = [
-    { id: "6", authorId: "author_123", title: "Мой первый подкаст", author: "Александр Соколов", coverUrl: COVER },
-    { id: "7", authorId: "author_123", title: "Размышления о будущем", author: "Александр Соколов", coverUrl: COVER },
-];
-
-const MOCK_USER = {
-    isAuthor: true,
-};
-
+const mapPodcast = (podcast: PodcastCard): Podcast => ({
+    id: podcast.id,
+    authorId: podcast.author.id,
+    title: podcast.title,
+    author: podcast.author.authorName,
+    coverUrl: podcast.coverImageUrl ?? undefined,
+});
 
 const CreatePlaylistPage: React.FC = () => {
     const navigate = useNavigate();
@@ -72,11 +63,15 @@ const CreatePlaylistPage: React.FC = () => {
     const [nameError, setNameError] = useState("");
     const [description, setDescription] = useState("");
     const [coverFile, setCoverFile] = useState<File | null>(null);
-    const [isPrivate, setIsPrivate] = useState(!MOCK_USER.isAuthor);
+    const [isPrivate, setIsPrivate] = useState(true);
 
-    const defaultTab = MOCK_USER.isAuthor ? "mine" : "likes";
-    const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">(defaultTab as any);
+    const [isAuthor, setIsAuthor] = useState(false);
+    const [activeTab, setActiveTab] = useState<"likes" | "all" | "mine">("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [allPodcasts, setAllPodcasts] = useState<Podcast[]>([]);
+    const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
+    const [likedPodcasts, setLikedPodcasts] = useState<Podcast[]>([]);
+    const [isLoadingPodcasts, setIsLoadingPodcasts] = useState(true);
 
     const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
     const [addedList, setAddedList] = useState<Podcast[]>([]);
@@ -86,15 +81,58 @@ const CreatePlaylistPage: React.FC = () => {
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
+    useEffect(() => {
+        let cancelled = false;
 
-    const allPodcastsAreOwn = addedList.length > 0 && addedList.every((p) => p.authorId === CURRENT_AUTHOR_ID);
-    const canPublishToYoutube = MOCK_USER.isAuthor && allPodcastsAreOwn;
+        (async () => {
+            try {
+                setIsLoadingPodcasts(true);
+                const [allPage, author] = await Promise.all([
+                    getPodcasts({ sort: "DATE_DESC", size: 50 }),
+                    getMyAuthorProfile().catch(() => null),
+                ]);
+                if (cancelled) return;
+
+                setAllPodcasts(allPage.items.map(mapPodcast));
+
+                const likedPage = await getMyLikedPodcasts({ size: 50 }).catch(() => null);
+                if (!cancelled && likedPage) {
+                    setLikedPodcasts(likedPage.items.map(mapPodcast));
+                }
+
+                if (author) {
+                    setIsAuthor(true);
+                    setIsPrivate(false);
+                    setActiveTab("mine");
+
+                    const minePage = await getMyAuthorPodcasts({
+                        sort: "DATE_DESC",
+                        size: 50,
+                    });
+                    if (!cancelled) {
+                        setMyPodcasts(minePage.items.map(mapPodcast));
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load podcasts for playlist", err);
+                showToast("Не удалось загрузить подкасты. Попробуйте позже.", "error");
+            } finally {
+                if (!cancelled) setIsLoadingPodcasts(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [showToast]);
+
+    const canPublishToYoutube = false;
 
 
     const getSourceList = (): Podcast[] => {
-        if (activeTab === "likes") return MOCK_LIKED;
-        if (activeTab === "mine") return MOCK_MINE;
-        return MOCK_ALL;
+        if (activeTab === "likes") return likedPodcasts;
+        if (activeTab === "mine") return myPodcasts;
+        return allPodcasts;
     };
 
     const filteredList = getSourceList().filter((p) =>
@@ -140,6 +178,24 @@ const CreatePlaylistPage: React.FC = () => {
         }
 
         try {
+            const playlist = await createPlaylist({
+                title: name.trim(),
+                description: description.trim() ? description.trim() : null,
+                coverImageUrl: null,
+                isPublic: !isPrivate,
+            });
+
+            if (coverFile) {
+                const upload = await uploadPlaylistCover(playlist.id, coverFile);
+                await updatePlaylist(playlist.id, {
+                    coverImageUrl: upload.url,
+                });
+            }
+
+            for (const podcast of addedList) {
+                await addPodcastToPlaylist(playlist.id, podcast.id);
+            }
+
             showToast("Плейлист создан", "success");
             navigate("/profile/playlists");
         } catch {
@@ -186,7 +242,7 @@ const CreatePlaylistPage: React.FC = () => {
 
                     <div className={styles.leftBlock}>
                         <CreatePlaylistHeader
-                            isAuthor={MOCK_USER.isAuthor}
+                            isAuthor={isAuthor}
                             activeTab={activeTab}
                             onTabChange={setActiveTab}
                             name={name}
@@ -211,7 +267,11 @@ const CreatePlaylistPage: React.FC = () => {
                         </div>
 
                         <div className={styles.podcastList}>
-                            {filteredList.map((podcast) => (
+                            {isLoadingPodcasts ? (
+                                <p style={{ padding: "16px 0" }}>Загрузка…</p>
+                            ) : filteredList.length === 0 ? (
+                                <p style={{ padding: "16px 0" }}>Подкасты не найдены.</p>
+                            ) : filteredList.map((podcast) => (
                                 <PlaylistPodcastRow
                                     key={podcast.id}
                                     id={podcast.id}

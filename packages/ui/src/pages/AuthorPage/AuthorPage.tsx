@@ -1,110 +1,188 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import styles from "./AuthorPage.module.css";
 
 import AuthorProfileHero from "../../components/AuthorProfileHero/AuthorProfileHero";
 import AuthorPodcastsCarousel from "../../components/AuthorPodcastsCarousel/AuthorPodcastsCarousel";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 
-const AVATAR =
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop";
+import {
+  getAuthor,
+  getAuthorPodcasts,
+  getAuthorPlaylists,
+  subscribeAuthor,
+  unsubscribeAuthor,
+  isAuthenticated,
+  type AuthorProfileResponse,
+} from "../../api/podcast";
+import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
-const COVER =
-  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop";
+interface MainLayoutContext {
+  playPodcast: (podcast: any) => void;
+}
 
-const AUTHOR_PLAYLISTS = [
-  {
-    id: "1",
-    title: "Эмоциональный интеллект",
-    author: "Мария Смирнова",
-    episodesCount: 24,
-    coverUrl: COVER,
-    listeners: 12300,
-    likes: 2500,
-    dislikes: 243,
-    isAdded: true,
-  },
-  {
-    id: "2",
-    title: "Лидерство и Рост",
-    author: "Мария Смирнова",
-    episodesCount: 24,
-    coverUrl: COVER,
-    listeners: 12300,
-    likes: 2500,
-    dislikes: 243,
-  },
-  {
-    id: "3",
-    title: "Осознанность",
-    author: "Мария Смирнова",
-    episodesCount: 18,
-    coverUrl: COVER,
-    listeners: 8700,
-    likes: 1400,
-    dislikes: 96,
-  },
-  {
-    id: "4",
-    title: "Мышление лидера",
-    author: "Мария Смирнова",
-    episodesCount: 31,
-    coverUrl: COVER,
-    listeners: 18700,
-    likes: 5400,
-    dislikes: 221,
-  },
-];
-
-const AUTHOR_PODCASTS = Array.from({ length: 6 }, (_, index) => ({
-  id: String(index + 1),
-  title: [
-    "Как справиться с прокрастинацией",
-    "Искусство глубокого сна",
-    "Почему мы забываем важное?",
-    "Эмпатия в цифровой век",
-  ][index % 4],
-  author: "Александр Соколов",
-  date: "12 окт 2023",
-  duration: "45:00",
-  category: "Саморазвитие",
-  coverUrl: index % 3 === 0 ? undefined : COVER,
-  progress: index === 0 ? 66 : undefined,
-  isCompleted: index === 2,
-  isLiked: index === 1,
-}));
+interface CarouselItem {
+  id: string;
+  title: string;
+  author: string;
+  episodesCount: number;
+  coverUrl?: string;
+  likes?: number;
+  dislikes?: number;
+}
 
 const AuthorPage: React.FC = () => {
+  const { authorId } = useParams<{ authorId: string }>();
+  const { playPodcast } = useOutletContext<MainLayoutContext>();
+  const navigate = useNavigate();
+
+  const [author, setAuthor] = useState<AuthorProfileResponse | null>(null);
+  const [podcasts, setPodcasts] = useState<PodcastRowData[]>([]);
+  const [playlists, setPlaylists] = useState<CarouselItem[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribers, setSubscribers] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authorId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const profile = await getAuthor(authorId);
+        if (cancelled) {
+          return;
+        }
+        setAuthor(profile);
+        setIsSubscribed(profile.isSubscribed ?? false);
+        setSubscribers(profile.subscribersCount);
+
+        getAuthorPodcasts(authorId, { sort: "DATE_DESC", size: 50 })
+          .then((page) => {
+            if (!cancelled) {
+              setPodcasts(page.items.map(toPodcastRow));
+            }
+          })
+          .catch((err) => console.error("Failed to load author podcasts", err));
+
+        getAuthorPlaylists(authorId, { size: 20 })
+          .then((page) => {
+            if (!cancelled) {
+              setPlaylists(
+                page.items.map((playlist) => ({
+                  id: playlist.id,
+                  title: playlist.title,
+                  author: playlist.owner.username,
+                  episodesCount: playlist.podcastsCount,
+                  coverUrl: playlist.coverImageUrl ?? undefined,
+                  likes: playlist.likesCount,
+                  dislikes: playlist.dislikesCount,
+                }))
+              );
+            }
+          })
+          .catch((err) => console.error("Failed to load author playlists", err));
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(
+            err?.status === 404
+              ? "Автор не найден."
+              : "Не удалось загрузить профиль автора. Попробуйте позже."
+          );
+          console.error("Failed to load author", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authorId]);
+
+  const handleSubscribe = async () => {
+    if (!authorId) {
+      return;
+    }
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const wasSubscribed = isSubscribed;
+    setIsSubscribed(!wasSubscribed);
+
+    try {
+      const result = wasSubscribed
+        ? await unsubscribeAuthor(authorId)
+        : await subscribeAuthor(authorId);
+      setIsSubscribed(result.isSubscribed);
+      setSubscribers(result.subscribersCount);
+    } catch (err) {
+      setIsSubscribed(wasSubscribed);
+      console.error("Failed to toggle subscription", err);
+    }
+  };
 
   const filteredPodcasts = useMemo(() => {
     const query = searchValue.trim().toLowerCase();
-
-    if (!query) return AUTHOR_PODCASTS;
-
-    return AUTHOR_PODCASTS.filter((podcast) =>
+    if (!query) {
+      return podcasts;
+    }
+    return podcasts.filter((podcast) =>
       podcast.title.toLowerCase().includes(query)
     );
-  }, [searchValue]);
+  }, [searchValue, podcasts]);
 
-  
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <div className={`container ${styles.pageInner}`}>
+          <p style={{ padding: "40px 0" }}>Загрузка…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !author) {
+    return (
+      <div className={styles.page}>
+        <div className={`container ${styles.pageInner}`}>
+          <p style={{ padding: "40px 0" }}>{error ?? "Автор не найден."}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <div className={`container ${styles.pageInner}`}>
         <div className={styles.offsetContent}>
-            <AuthorProfileHero
-                name="Александр Соколов"
-                category="Психология"
-                description="Практикующий психолог и исследователь человеческого поведения. В своих подкастах Александр исследует глубины сознания, когнитивные искажения и способы достижения внутреннего спокойствия в современном мире."
-                subscribers={124500}
-                avatarUrl={AVATAR}
-                isSubscribed={isSubscribed}
-                onSubscribeClick={() => setIsSubscribed((prev) => !prev)}
-                onShareClick={() => {}}
-            />
+          <AuthorProfileHero
+            name={author.authorName}
+            description={author.description ?? undefined}
+            subscribers={subscribers}
+            avatarUrl={author.avatarUrl ?? undefined}
+            isSubscribed={isSubscribed}
+            onSubscribeClick={handleSubscribe}
+            onShareClick={() => {}}
+          />
         </div>
 
-        <AuthorPodcastsCarousel playlists={AUTHOR_PLAYLISTS} />
+        {playlists.length > 0 && (
+          <AuthorPodcastsCarousel playlists={playlists} />
+        )}
 
         <section className={`${styles.allPodcasts} ${styles.offsetContent}`}>
           <div className={styles.listHeader}>
@@ -120,9 +198,17 @@ const AuthorPage: React.FC = () => {
           </div>
 
           <div className={styles.list}>
-            {filteredPodcasts.map((podcast) => (
-              <PodcastRow key={podcast.id} {...podcast} />
-            ))}
+            {filteredPodcasts.length === 0 ? (
+              <p style={{ padding: "16px 0" }}>Подкастов пока нет.</p>
+            ) : (
+              filteredPodcasts.map((podcast) => (
+                <PodcastRow
+                  key={podcast.id}
+                  {...podcast}
+                  onPlayClick={() => playPodcast(podcast)}
+                />
+              ))
+            )}
           </div>
         </section>
       </div>

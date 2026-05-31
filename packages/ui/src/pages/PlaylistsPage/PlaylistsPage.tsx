@@ -1,93 +1,188 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./PlaylistsPage.module.css";
 
 import FilterTabs from "../../components/FilterTabs/FilterTabs";
 import PlaylistRow from "../../components/PlaylistRow/PlaylistRow";
 import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
 
-interface Playlist {
+import {
+  getPlaylists,
+  getMyLibraryPlaylists,
+  isAuthenticated,
+  removePlaylistFromLibrary,
+  savePlaylistToLibrary,
+  type SortPlaylists,
+  type PlaylistCard,
+} from "../../api/podcast";
+import { formatRuDate, pluralizeRu } from "../../utils/format";
+
+interface PlaylistRowData {
   id: string;
   title: string;
   author: string;
   podcastsCount: number;
   coverUrl?: string;
-  description?: string;
   createdAt?: string;
-  isAdded?: boolean;
-  isPlaying?: boolean;
+  isSaved?: boolean;
 }
 
-const MOCK_SORT = [
-  { id: "POPULAR", label: "Популярные" },
-  { id: "NEW", label: "Новые" },
-  { id: "OLD", label: "Старые" },
+const PAGE_SIZE = 20;
+
+const SORT_OPTIONS: { id: SortPlaylists; label: string }[] = [
+  { id: "RATING", label: "Популярные" },
+  { id: "DATE_DESC", label: "Новые" },
+  { id: "DATE_ASC", label: "Старые" },
 ];
 
-const PLAYLIST_COVER =
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=400&auto=format&fit=crop";
+const toPlaylistRow = (playlist: PlaylistCard): PlaylistRowData => ({
+  id: playlist.id,
+  title: playlist.title,
+  author: playlist.owner.username,
+  podcastsCount: playlist.podcastsCount,
+  coverUrl: playlist.coverImageUrl ?? undefined,
+  createdAt: formatRuDate(playlist.createdAt),
+});
 
-const MOCK_PLAYLISTS: Playlist[] = Array.from({ length: 4 }, (_, index) => ({
-  id: String(index + 1),
-  title: "Вечерние размышления о будущем",
-  author: "Артем Николаев",
-  podcastsCount: 12,
-  coverUrl: PLAYLIST_COVER,
-  description:
-    "Глубокие интервью с футурологами и учеными о том, как изменится наш мир в ближайшие 50 лет. Обсуждаем ИИ, экологию и колонизацию Марса.",
-  createdAt: "14 окт. 2023",
-  isAdded: index === 3,
-  isPlaying: false,
-}));
-
-const formatPlaylistsCount = (count: number) => {
-  if (count % 10 === 1 && count % 100 !== 11) {
-    return `${count} плейлист`;
-  }
-
-  if (
-    count % 10 >= 2 &&
-    count % 10 <= 4 &&
-    !(count % 100 >= 12 && count % 100 <= 14)
-  ) {
-    return `${count} плейлиста`;
-  }
-
-  return `${count} плейлистов`;
-};
+const formatPlaylistsCount = (count: number) =>
+  `${count} ${pluralizeRu(count, ["плейлист", "плейлиста", "плейлистов"])}`;
 
 const PlaylistsPage: React.FC = () => {
-  const [activeSort, setActiveSort] = useState("POPULAR");
+  const navigate = useNavigate();
+  const [activeSort, setActiveSort] = useState<SortPlaylists>("RATING");
+
+  const [playlists, setPlaylists] = useState<PlaylistRowData[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [playlists, setPlaylists] = useState<Playlist[]>(MOCK_PLAYLISTS);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalCount = 124;
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleAdd = (id: string) => {
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const [result, savedPage] = await Promise.all([
+          getPlaylists({
+          sort: activeSort,
+          page: 1,
+          size: PAGE_SIZE,
+          }),
+          isAuthenticated()
+            ? getMyLibraryPlaylists({ size: 50 }).catch(() => null)
+            : Promise.resolve(null),
+        ]);
+        if (cancelled) {
+          return;
+        }
+
+        const savedIds = new Set(savedPage?.items.map((item) => item.id) ?? []);
+        setPlaylists(
+          result.items.map((item) => ({
+            ...toPlaylistRow(item),
+            isSaved: savedIds.has(item.id),
+          }))
+        );
+        setPage(1);
+        setTotalPages(result.meta.totalPages);
+        setTotalCount(result.meta.totalElements);
+      } catch (err) {
+        if (!cancelled) {
+          setError("Не удалось загрузить плейлисты. Попробуйте позже.");
+          console.error("Failed to load playlists", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSort]);
+
+  const handleLoadMore = async () => {
+    try {
+      setIsLoadingMore(true);
+      const nextPage = page + 1;
+
+      const [result, savedPage] = await Promise.all([
+        getPlaylists({
+        sort: activeSort,
+        page: nextPage,
+        size: PAGE_SIZE,
+        }),
+        isAuthenticated()
+          ? getMyLibraryPlaylists({ size: 50 }).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+      const savedIds = new Set(savedPage?.items.map((item) => item.id) ?? []);
+
+      setPlaylists((prev) => [
+        ...prev,
+        ...result.items.map((item) => ({
+          ...toPlaylistRow(item),
+          isSaved: savedIds.has(item.id),
+        })),
+      ]);
+      setPage(nextPage);
+      setTotalPages(result.meta.totalPages);
+    } catch (err) {
+      console.error("Failed to load more playlists", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleToggleSave = async (playlistId: string) => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const target = playlists.find((playlist) => playlist.id === playlistId);
+    if (!target) return;
+
+    const wasSaved = Boolean(target.isSaved);
     setPlaylists((prev) =>
       prev.map((playlist) =>
-        playlist.id === id
-          ? { ...playlist, isAdded: !playlist.isAdded }
+        playlist.id === playlistId
+          ? { ...playlist, isSaved: !wasSaved }
           : playlist
       )
     );
+
+    try {
+      const result = wasSaved
+        ? await removePlaylistFromLibrary(playlistId)
+        : await savePlaylistToLibrary(playlistId);
+      setPlaylists((prev) =>
+        prev.map((playlist) =>
+          playlist.id === playlistId
+            ? { ...playlist, isSaved: result.isSaved }
+            : playlist
+        )
+      );
+    } catch (err) {
+      setPlaylists((prev) =>
+        prev.map((playlist) =>
+          playlist.id === playlistId
+            ? { ...playlist, isSaved: wasSaved }
+            : playlist
+        )
+      );
+      console.error("Failed to toggle playlist save", err);
+    }
   };
 
-  const handlePlay = (id: string) => {
-    setPlaylists((prev) =>
-      prev.map((playlist) => ({
-        ...playlist,
-        isPlaying: playlist.id === id ? !playlist.isPlaying : false,
-      }))
-    );
-  };
-
-  const handleLoadMore = async () => {
-    setIsLoadingMore(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setHasMore(false);
-    setIsLoadingMore(false);
-  };
+  const hasMore = page < totalPages;
 
   return (
     <div className={styles.page}>
@@ -95,7 +190,9 @@ const PlaylistsPage: React.FC = () => {
         <div className={styles.pageHeader}>
           <div className={styles.titleRow}>
             <h1 className={styles.pageTitle}>Плейлисты</h1>
-            <span className={styles.count}>{formatPlaylistsCount(totalCount)}</span>
+            <span className={styles.count}>
+              {formatPlaylistsCount(totalCount)}
+            </span>
           </div>
 
           <p className={styles.pageDesc}>Подборки подкастов на любой вкус</p>
@@ -103,33 +200,43 @@ const PlaylistsPage: React.FC = () => {
 
         <div className={styles.filters}>
           <FilterTabs
-            sortOptions={MOCK_SORT}
+            sortOptions={SORT_OPTIONS}
             activeSort={activeSort}
-            onSortChange={setActiveSort}
+            onSortChange={(id) => setActiveSort(id as SortPlaylists)}
           />
         </div>
 
-        <div className={styles.list}>
-          {playlists.map((playlist) => (
-            <PlaylistRow
-              key={playlist.id}
-              id={playlist.id}
-              title={playlist.title}
-              author={playlist.author}
-              podcastsCount={playlist.podcastsCount}
-              coverUrl={playlist.coverUrl}
-              description={playlist.description}
-              createdAt={playlist.createdAt}
-              isAdded={playlist.isAdded}
-              isPlaying={playlist.isPlaying}
-              onAddClick={() => handleAdd(playlist.id)}
-              onPlayClick={() => handlePlay(playlist.id)}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <p style={{ padding: "24px 0" }}>Загрузка…</p>
+        ) : error ? (
+          <p style={{ padding: "24px 0" }}>{error}</p>
+        ) : playlists.length === 0 ? (
+          <p style={{ padding: "24px 0" }}>Плейлистов пока нет.</p>
+        ) : (
+          <>
+            <div className={styles.list}>
+              {playlists.map((playlist) => (
+                <PlaylistRow
+                  key={playlist.id}
+                  id={playlist.id}
+                  title={playlist.title}
+                  author={playlist.author}
+                  podcastsCount={playlist.podcastsCount}
+                  coverUrl={playlist.coverUrl}
+                  createdAt={playlist.createdAt}
+                  isAdded={playlist.isSaved}
+                  onAddClick={() => handleToggleSave(playlist.id)}
+                />
+              ))}
+            </div>
 
-        {hasMore && (
-          <LoadMoreButton onClick={handleLoadMore} loading={isLoadingMore} />
+            {hasMore && (
+              <LoadMoreButton
+                onClick={handleLoadMore}
+                loading={isLoadingMore}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

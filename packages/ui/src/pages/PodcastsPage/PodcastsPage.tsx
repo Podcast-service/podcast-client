@@ -1,133 +1,229 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./PodcastsPage.module.css";
 import FilterTabs from "../../components/FilterTabs/FilterTabs";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
-import { useOutletContext } from "react-router-dom";
 
-interface Podcast {
-  id: string;
-  title: string;
-  author: string;
-  date: string;
-  duration: string;
-  category?: string;
-  coverUrl?: string;
-  progress?: number;
-  isCompleted?: boolean;
-  isLiked?: boolean;
-}
+import {
+  getPodcasts,
+  getCategories,
+  votePodcast,
+  removePodcastVote,
+  isAuthenticated,
+  type SortPodcasts,
+  type CategoryResponse,
+} from "../../api/podcast";
+import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
   playPodcast: (podcast: any) => void;
 }
 
-const MOCK_CATEGORIES = [
-  { id: "all", label: "Все подкасты" },
-  { id: "design", label: "Дизайн" },
-  { id: "business", label: "Бизнес" },
-  { id: "psychology", label: "Психология" },
-  { id: "science", label: "Наука" },
-  { id: "entertainment", label: "Развлечения" },
-  { id: "tech", label: "Технологии" },
-  { id: "sport", label: "Спорт" },
-  { id: "health", label: "Здоровье" },
-];
+const PAGE_SIZE = 20;
 
-const MOCK_SORT = [
+const SORT_OPTIONS: { id: SortPodcasts; label: string }[] = [
   { id: "RATING", label: "Популярные" },
   { id: "DATE_DESC", label: "Новые" },
   { id: "DATE_ASC", label: "Старые" },
   { id: "VIEWS", label: "По просмотрам" },
 ];
 
-const COVER = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=400&auto=format&fit=crop";
-
-const MOCK_PODCASTS: Podcast[] = Array.from({ length: 8 }, (_, i) => ({
-  id: String(i + 1),
-  title: ["Как справиться с прокрастинацией", "Искусство глубокого сна", "Почему мы забываем важное?", "Эмпатия в цифровой век"][i % 4],
-  author: "Виктор Соколов",
-  date: "12 окт 2023",
-  duration: "45:00",
-  category: "Саморазвитие",
-  coverUrl: i % 3 === 0 ? undefined : COVER,
-  progress: i === 0 ? 66 : undefined,
-  isCompleted: i === 2,
-  isLiked: i === 1,
-}));
-
 const PodcastsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
 
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [activeSort, setActiveSort] = useState("RATING");
-  const [podcasts, setPodcasts] = useState<Podcast[]>(MOCK_PODCASTS);
+  const [activeSort, setActiveSort] = useState<SortPodcasts>("RATING");
+
+  const [podcasts, setPodcasts] = useState<PodcastRowData[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch((err) => console.error("Failed to load categories", err));
+  }, []);
+
+  // Перезагружаем список при смене категории/сортировки.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const result = await getPodcasts({
+          sort: activeSort,
+          categoryId: activeCategory === "all" ? undefined : activeCategory,
+          page: 1,
+          size: PAGE_SIZE,
+        });
+        if (cancelled) {
+          return;
+        }
+
+        setPodcasts(result.items.map(toPodcastRow));
+        setPage(1);
+        setTotalPages(result.meta.totalPages);
+      } catch (err) {
+        if (!cancelled) {
+          setError("Не удалось загрузить подкасты. Попробуйте позже.");
+          console.error("Failed to load podcasts", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategory, activeSort]);
 
   const handleLoadMore = async () => {
-    setIsLoadingMore(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setHasMore(false);
-    setIsLoadingMore(false);
+    try {
+      setIsLoadingMore(true);
+      const nextPage = page + 1;
+
+      const result = await getPodcasts({
+        sort: activeSort,
+        categoryId: activeCategory === "all" ? undefined : activeCategory,
+        page: nextPage,
+        size: PAGE_SIZE,
+      });
+
+      setPodcasts((prev) => [...prev, ...result.items.map(toPodcastRow)]);
+      setPage(nextPage);
+      setTotalPages(result.meta.totalPages);
+    } catch (err) {
+      console.error("Failed to load more podcasts", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
-  const handleLike = (id: string) => {
-    setLikedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const handleLike = async (id: string) => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const target = podcasts.find((podcast) => podcast.id === id);
+    if (!target) {
+      return;
+    }
+    const wasLiked = target.currentUserVote === "LIKE";
+
+    setPodcasts((prev) =>
+      prev.map((podcast) =>
+        podcast.id === id
+          ? {
+              ...podcast,
+              isLiked: !wasLiked,
+              currentUserVote: wasLiked ? null : "LIKE",
+            }
+          : podcast
+      )
+    );
+
+    try {
+      const result = wasLiked
+        ? await removePodcastVote(id)
+        : await votePodcast(id, "LIKE");
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: result.currentUserVote === "LIKE",
+                currentUserVote: result.currentUserVote ?? null,
+              }
+            : podcast
+        )
+      );
+    } catch (err) {
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: wasLiked,
+                currentUserVote: wasLiked ? "LIKE" : null,
+              }
+            : podcast
+        )
+      );
+      console.error("Failed to vote", err);
+    }
   };
 
-  const handleCategoryChange = (id: string) => {
-    setActiveCategory(id);
-  };
+  const filterCategories = [
+    { id: "all", label: "Все подкасты" },
+    ...categories.map((category) => ({ id: category.id, label: category.name })),
+  ];
 
-  const handleSortChange = (id: string) => {
-    setActiveSort(id);
-  };
+  const hasMore = page < totalPages;
 
   return (
     <div className={styles.page}>
       <div className={`container ${styles.pageInner}`}>
-
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>Подкасты</h1>
-          <p className={styles.pageDesc}>Откройте для себя авторов подкастов на любой вкус</p>
+          <p className={styles.pageDesc}>
+            Откройте для себя авторов подкастов на любой вкус
+          </p>
         </div>
 
         <div className={styles.filters}>
           <FilterTabs
-            categories={MOCK_CATEGORIES}
+            categories={filterCategories}
             activeCategory={activeCategory}
-            onCategoryChange={handleCategoryChange}
-            sortOptions={MOCK_SORT}
+            onCategoryChange={setActiveCategory}
+            sortOptions={SORT_OPTIONS}
             activeSort={activeSort}
-            onSortChange={handleSortChange}
+            onSortChange={(id) => setActiveSort(id as SortPodcasts)}
           />
         </div>
 
-        <div className={styles.list}>
-          {podcasts.map((podcast) => (
-            <PodcastRow
-              key={podcast.id}
-              {...podcast}
-              isLiked={likedIds.has(podcast.id) || podcast.isLiked}
-              onPlayClick={() => playPodcast(podcast)}
-              onLikeClick={() => handleLike(podcast.id)}
-              onAddClick={() => {
-              }}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <p style={{ padding: "24px 0" }}>Загрузка…</p>
+        ) : error ? (
+          <p style={{ padding: "24px 0" }}>{error}</p>
+        ) : podcasts.length === 0 ? (
+          <p style={{ padding: "24px 0" }}>Подкастов пока нет.</p>
+        ) : (
+          <>
+            <div className={styles.list}>
+              {podcasts.map((podcast) => (
+                <PodcastRow
+                  key={podcast.id}
+                  {...podcast}
+                  onPlayClick={() => playPodcast(podcast)}
+                  onLikeClick={() => handleLike(podcast.id)}
+                  onAddClick={() => {
+                    // TODO: открыть модалку выбора плейлиста
+                  }}
+                />
+              ))}
+            </div>
 
-        {hasMore && (
-          <LoadMoreButton onClick={handleLoadMore} loading={isLoadingMore} />
+            {hasMore && (
+              <LoadMoreButton
+                onClick={handleLoadMore}
+                loading={isLoadingMore}
+              />
+            )}
+          </>
         )}
-
       </div>
     </div>
   );

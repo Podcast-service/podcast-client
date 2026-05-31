@@ -10,6 +10,7 @@ export { default as ForgotPasswordVerifyPage  } from "./pages/ForgotPasswordVeri
 export { default as ForgotPasswordResetPage   } from "./pages/ForgotPasswordResetPage/ForgotPasswordResetPage";
 export { default as MainPage   } from "./pages/MainPage/MainPage";
 export { default as PodcastsPage } from "./pages/PodcastsPage/PodcastsPage";
+export { default as SearchPage } from "./pages/SearchPage/SearchPage";
 export { default as AuthorsPage } from "./pages/AuthorsPage/AuthorsPage";
 export { default as PlaylistsPage } from "./pages/PlaylistsPage/PlaylistsPage";
 export { default as PodcastPage } from "./pages/PodcastPage/PodcastPage";
@@ -67,5 +68,7 @@ export { default as AuthorPodcastsCarousel } from "./components/AuthorPodcastsCa
 export { default as AuthorPodcastDraftRow } from "./components/AuthorPodcastDraftRow/AuthorPodcastDraftRow";
 export { default as ProfileSettingsHero } from "./components/ProfileSettingsHero/ProfileSettingsHero";
 export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSessions";
+
+export { useIsAuthenticated } from "./hooks/useAuth";
 
 
