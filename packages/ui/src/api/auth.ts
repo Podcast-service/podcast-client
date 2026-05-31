@@ -75,6 +75,28 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+/**
+ * Разбор ответа, который может прийти как JSON, так и обычным текстом.
+ * password-change на ошибках без тела (401 "token missing", "invalid token",
+ * "token expired") отдаёт plain-text, а на остальных — JSON ({ error } / { message }).
+ */
+async function handleJsonOrText<T>(res: Response): Promise<T> {
+  const raw = await res.text();
+  let data: any = null;
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      // не JSON — оборачиваем как { error: <текст> }
+      data = { error: raw.trim() };
+    }
+  }
+  if (!res.ok) {
+    throw { status: res.status, ...(data ?? {}) };
+  }
+  return (data ?? {}) as T;
+}
+
 // ───── Auth API ─────
 
 /**
@@ -212,4 +234,44 @@ export async function logout(): Promise<void> {
   });
   clearTokens();
   return handleResponse<void>(res);
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
+/**
+ * Смена пароля текущего авторизованного пользователя.
+ * POST /auth/password-change (Bearer).
+ * Ответ 200: { message: "password has been changed" }.
+ *
+ * Бэкенд отзывает все refresh-токены, новую пару токенов не выдаёт —
+ * уже выданный access JWT живёт до истечения TTL (≤30 мин), после чего
+ * клиенту нужно залогиниться заново.
+ *
+ * Ошибки (status в брошенном объекте):
+ *   400 — { error: "invalid request body" } |
+ *         { error: "old_password and new_password are required" }
+ *   401 — нет/битый токен (plain-text "Unauthorized: token missing",
+ *         "invalid token", "token expired" → { error: <текст> }) либо
+ *         неверный старый пароль { error: "invalid credentials" }
+ *   500 — { error: "internal server error" }
+ */
+export async function changePassword(
+  oldPassword: string,
+  newPassword: string
+): Promise<ChangePasswordResponse> {
+  const access_token = getAccessToken();
+  const res = await fetch(`${BASE_URL}/auth/password-change`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+    }),
+  });
+  return handleJsonOrText<ChangePasswordResponse>(res);
 }
