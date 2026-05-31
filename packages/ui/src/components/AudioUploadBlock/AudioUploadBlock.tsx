@@ -6,6 +6,7 @@ import CircleMPSvg from "../../assets/icons/circleMP.svg";
 
 interface AudioUploadBlockProps {
     publishStatus: "draft" | "processing" | "ready" | "published" | "error";
+    publishing?: boolean;
     onAudioChange: (file: File) => void;
     onCoverChange?: (file: File) => void;
     onPublish: () => void;
@@ -14,6 +15,7 @@ interface AudioUploadBlockProps {
 
 const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
     publishStatus,
+    publishing = false,
     onAudioChange,
     onCoverChange,
     onPublish,
@@ -25,7 +27,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [audioFileName, setAudioFileName] = useState<string | null>(null);
 
-    const canPublish = publishStatus === "ready";
+    const canPublish = publishStatus === "ready" && !publishing;
 
     const handleCoverClick = () => coverInputRef.current?.click();
 
@@ -126,7 +128,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                     onClick={onPublish}
                     disabled={!canPublish}
                 >
-                    Опубликовать
+                    {publishing ? "Публикация..." : "Опубликовать"}
                 </button>
             </div>
 

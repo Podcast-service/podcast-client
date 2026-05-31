@@ -384,6 +384,20 @@ export function deletePodcast(podcastId: string): Promise<void> {
   return apiSend<void>("DELETE", `/podcasts/${podcastId}`);
 }
 
+/**
+ * Опубликовать подкаст. POST /podcasts/{id}/publish (только автор-владелец).
+ * Переводит подкаст из PROCESSED в публичный доступ; бэкенд отвечает 202 и
+ * возвращает актуальный PodcastDetailResponse.
+ */
+export function publishPodcast(
+  podcastId: string
+): Promise<PodcastDetailResponse> {
+  return apiSend<PodcastDetailResponse>(
+    "POST",
+    `/podcasts/${podcastId}/publish`
+  );
+}
+
 /** Сохранить прогресс прослушивания. POST /podcasts/{id}/progress. */
 export function savePodcastProgress(
   podcastId: string,

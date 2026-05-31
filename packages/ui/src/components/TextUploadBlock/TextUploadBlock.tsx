@@ -16,6 +16,7 @@ interface TextBlock {
 export interface TextUploadBlockProps {
     speakersCount: number;
     publishStatus: "draft" | "processing" | "ready" | "published" | "error";
+    publishing?: boolean;
     onCoverChange?: (file: File) => void;
     onGenerate: (data: {
         speakers: string[];
@@ -37,6 +38,7 @@ const makeBlock = (): TextBlock => ({
 const TextUploadBlock: React.FC<TextUploadBlockProps> = ({
     speakersCount,
     publishStatus,
+    publishing = false,
     onCoverChange,
     onGenerate,
     onPublish,
@@ -58,7 +60,7 @@ const TextUploadBlock: React.FC<TextUploadBlockProps> = ({
 
 
     const isProcessing = publishStatus === "processing";
-    const canPublish   = publishStatus === "ready";
+    const canPublish   = publishStatus === "ready" && !publishing;
 
     const canGenerate =
         (publishStatus === "draft" || publishStatus === "error") &&
@@ -285,7 +287,7 @@ const TextUploadBlock: React.FC<TextUploadBlockProps> = ({
                     onClick={onPublish}
                     disabled={!canPublish}
                 >
-                    Опубликовать
+                    {publishing ? "Публикация..." : "Опубликовать"}
                 </button>
 
             </div>

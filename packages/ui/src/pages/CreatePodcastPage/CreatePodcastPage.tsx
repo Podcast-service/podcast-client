@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
@@ -10,17 +10,22 @@ import { useToast } from "../../components/Toast/useToast";
 import {
     createPodcast,
     getCategories,
+    getPodcast,
+    publishPodcast,
     updatePodcast,
     type CategoryResponse,
     type PodcastDetailResponse,
 } from "../../api/podcast";
+import { toPublishStatus, type PublishStatus } from "../../utils/mappers";
 import { uploadPodcastAudio, uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
 
 type FileType = "audio" | "text";
-type PublishStatus = "draft" | "processing" | "ready" | "published" | "error";
+
+/** Интервал опроса статуса подкаста, пока media worker обрабатывает аудио. */
+const STATUS_POLL_INTERVAL_MS = 3000;
 
 interface PodcastFormData {
     title: string;
@@ -44,6 +49,39 @@ const CreatePodcastPage: React.FC = () => {
     const [podcast, setPodcast] = useState<PodcastDetailResponse | null>(null);
     const [publishStatus, setPublishStatus] = useState<PublishStatus>("draft");
     const [isSaving, setIsSaving] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    const pollRef = useRef<number | null>(null);
+
+    const stopPolling = () => {
+        if (pollRef.current !== null) {
+            window.clearInterval(pollRef.current);
+            pollRef.current = null;
+        }
+    };
+
+    /**
+     * Опрашивает GET /podcasts/{id}, пока статус не станет терминальным
+     * (по умолчанию — готов к публикации / опубликован / ошибка), и держит
+     * блок статуса в синхроне с реальным состоянием на бэкенде.
+     */
+    const startPolling = (
+        id: string,
+        terminal: PublishStatus[] = ["ready", "published", "error"]
+    ) => {
+        stopPolling();
+        pollRef.current = window.setInterval(async () => {
+            try {
+                const fresh = await getPodcast(id);
+                setPodcast(fresh);
+                const next = toPublishStatus(fresh.status);
+                setPublishStatus(next);
+                if (terminal.includes(next)) stopPolling();
+            } catch (err) {
+                console.error("Failed to poll podcast status", err);
+            }
+        }, STATUS_POLL_INTERVAL_MS);
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -61,6 +99,9 @@ const CreatePodcastPage: React.FC = () => {
             cancelled = true;
         };
     }, [showToast]);
+
+    // Останавливаем опрос при размонтировании страницы.
+    useEffect(() => stopPolling, []);
 
     const handleFormSave = async (data: PodcastFormData) => {
         setIsSaving(true);
@@ -107,8 +148,10 @@ const CreatePodcastPage: React.FC = () => {
         setPublishStatus("processing");
         try {
             await uploadPodcastAudio(podcast.id, file);
-            setPublishStatus("ready");
-            showToast("Аудиофайл загружен", "success");
+            showToast("Аудиофайл загружен, идёт обработка", "success");
+            // Дальше статус двигает media worker (UPLOADED → PROCESSING →
+            // PROCESSED): опрашиваем бэкенд, пока подкаст не будет готов.
+            startPolling(podcast.id);
         } catch (err) {
             console.error("Failed to upload podcast audio", err);
             setPublishStatus("error");
@@ -144,8 +187,34 @@ const CreatePodcastPage: React.FC = () => {
         showToast("Генерация подкаста из текста пока не подключена к API.", "error");
     };
 
-    const handlePublish = () => {
-        showToast("Публикацию подключим отдельным шагом.", "error");
+    const handlePublish = async () => {
+        if (!podcast) {
+            showToast("Сначала сохраните данные подкаста", "error");
+            return;
+        }
+
+        setIsPublishing(true);
+        try {
+            const published = await publishPodcast(podcast.id);
+            setPodcast(published);
+            const next = toPublishStatus(published.status);
+            setPublishStatus(next);
+
+            if (next === "published") {
+                stopPolling();
+                showToast("Подкаст опубликован", "success");
+                navigate(`/podcasts/${published.id}`);
+            } else {
+                // 202: бэкенд принял в обработку — ждём перехода в PUBLISHED.
+                showToast("Подкаст отправлен на публикацию", "success");
+                startPolling(published.id, ["published", "error"]);
+            }
+        } catch (err) {
+            console.error("Failed to publish podcast", err);
+            showToast("Не удалось опубликовать подкаст. Попробуйте позже.", "error");
+        } finally {
+            setIsPublishing(false);
+        }
     };
 
     return (
@@ -214,6 +283,7 @@ const CreatePodcastPage: React.FC = () => {
                                     {formData.fileType === "audio" ? (
                                         <AudioUploadBlock
                                             publishStatus={publishStatus}
+                                            publishing={isPublishing}
                                             onAudioChange={handleAudioChange}
                                             onCoverChange={handleCoverChange}
                                             onPublish={handlePublish}
@@ -223,6 +293,7 @@ const CreatePodcastPage: React.FC = () => {
                                         <TextUploadBlock
                                             speakersCount={formData.speakersCount}
                                             publishStatus={publishStatus}
+                                            publishing={isPublishing}
                                             onCoverChange={handleCoverChange}
                                             onGenerate={handleGenerate}
                                             onPublish={handlePublish}

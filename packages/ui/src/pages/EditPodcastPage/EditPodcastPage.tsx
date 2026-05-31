@@ -12,8 +12,8 @@ import {
     updatePodcast,
     type CategoryResponse,
     type PodcastDetailResponse,
-    type PodcastStatus,
 } from "../../api/podcast";
+import { toPublishStatus } from "../../utils/mappers";
 import { uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
@@ -22,16 +22,6 @@ const toCategoryOption = (category: CategoryResponse) => ({
     id: category.id,
     label: category.name,
 });
-
-const toPublishStatus = (
-    status?: PodcastStatus
-): "draft" | "processing" | "ready" | "published" | "error" => {
-    if (status === "PUBLISHED") return "published";
-    if (status === "PROCESSING" || status === "UPLOADING") return "processing";
-    if (status === "UPLOADED" || status === "PROCESSED") return "ready";
-    if (status === "FAILED") return "error";
-    return "draft";
-};
 
 const EditPodcastPage: React.FC = () => {
     const navigate = useNavigate();
@@ -204,7 +194,10 @@ const EditPodcastPage: React.FC = () => {
                     </div>
 
                     <div className={styles.rightBlock}>
-                        <PodcastPublishStatus status={toPublishStatus(podcast.status)} />
+                        <PodcastPublishStatus
+                            status={toPublishStatus(podcast.status)}
+                            publishedAt={podcast.publishedAt ?? undefined}
+                        />
                     </div>
 
                 </div>
