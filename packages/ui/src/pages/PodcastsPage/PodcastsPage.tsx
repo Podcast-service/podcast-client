@@ -50,7 +50,6 @@ const PodcastsPage: React.FC = () => {
       .catch((err) => console.error("Failed to load categories", err));
   }, []);
 
-  // Перезагружаем список при смене категории/сортировки.
   useEffect(() => {
     let cancelled = false;
 
@@ -210,7 +209,6 @@ const PodcastsPage: React.FC = () => {
                   onPlayClick={() => playPodcast(podcast)}
                   onLikeClick={() => handleLike(podcast.id)}
                   onAddClick={() => {
-                    // TODO: открыть модалку выбора плейлиста
                   }}
                 />
               ))}

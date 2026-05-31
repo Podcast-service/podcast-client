@@ -2,6 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./AuthorRow.module.css";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 
 interface AuthorRowProps {
@@ -11,6 +14,7 @@ interface AuthorRowProps {
   subscribers: number;
   avatarUrl?: string;
   isSubscribed?: boolean;
+  isAuthenticated?: boolean;
   onSubscribeClick?: () => void;
 }
 
@@ -33,8 +37,10 @@ const AuthorRow: React.FC<AuthorRowProps> = ({
   subscribers,
   avatarUrl,
   isSubscribed = false,
+  isAuthenticated = false,
   onSubscribeClick,
 }) => {
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
   return (
     <article className={styles.row}>
       <Link to={`/authors/${id}`} className={styles.rowLink}>
@@ -66,10 +72,13 @@ const AuthorRow: React.FC<AuthorRowProps> = ({
         className={`${styles.subscribeBtn} ${
           isSubscribed ? styles.subscribeBtnActive : ""
         }`}
-        onClick={onSubscribeClick}
+        onClick={guard(onSubscribeClick)}
       >
         {isSubscribed ? "Отписаться" : "Подписаться"}
       </button>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
     </article>
   );
 };

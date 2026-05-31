@@ -66,7 +66,6 @@ const PodcastPage: React.FC = () => {
         setPodcast(detail);
         setVote({ currentUserVote: detail.currentUserVote ?? null });
 
-        // Транскрипт может быть не готов (404) — это не ошибка страницы.
         getPodcastTranscript(podcastId)
           .then((data) => {
             if (!cancelled) {
@@ -79,7 +78,6 @@ const PodcastPage: React.FC = () => {
             }
           });
 
-        // Summary тоже может быть не готов — в таком случае просто не показываем блок.
         getPodcastSummary(podcastId)
           .then((data) => {
             if (!cancelled) {
@@ -92,7 +90,6 @@ const PodcastPage: React.FC = () => {
             }
           });
 
-        // Рекомендации — подкасты из той же категории.
         if (detail.category?.id) {
           getPodcasts({ categoryId: detail.category.id, sort: "VIEWS", size: 4 })
             .then((page) => {
@@ -145,7 +142,6 @@ const PodcastPage: React.FC = () => {
     }
 
     const previous = vote.currentUserVote;
-    // Повторный клик по тому же типу — снимаем голос.
     const shouldRemove = previous === voteType;
 
     setVote({ currentUserVote: shouldRemove ? null : voteType });

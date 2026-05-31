@@ -1,6 +1,9 @@
 import React from "react";
 import styles from "./PlaylistHero.module.css";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
 import EpisodeSvg from "../../assets/icons/episode.svg";
 import TimerSvg from "../../assets/icons/timer.svg";
 import DateSvg from "../../assets/icons/date.svg";
@@ -24,6 +27,7 @@ interface PlaylistHeroProps {
     createdAt: string;
     listeners: number;
     isAdded?: boolean;
+    isAuthenticated?: boolean;
     onPlayAll?: () => void;
     onAddClick?: () => void;
     onEdit?: () => void;
@@ -51,12 +55,14 @@ const PlaylistHero: React.FC<PlaylistHeroProps> = ({
     createdAt,
     listeners,
     isAdded = false,
+    isAuthenticated = false,
     onPlayAll,
     onAddClick,
     onEdit,
     onDelete,
     onPublishToYoutube,
 }) => {
+    const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
     return (
         <section className={styles.hero}>
 
@@ -133,7 +139,7 @@ const PlaylistHero: React.FC<PlaylistHeroProps> = ({
                         <button
                             type="button"
                             className={isAdded ? styles.btnRemove : styles.btnAdd}
-                            onClick={onAddClick}
+                            onClick={guard(onAddClick)}
                         >
                             {isAdded ? "Удалить у себя" : "Добавить к себе"}
                         </button>
@@ -152,6 +158,9 @@ const PlaylistHero: React.FC<PlaylistHeroProps> = ({
                 )}
 
             </div>
+            {isModalOpen && (
+                <LoginPromptModal onClose={closeModal} />
+            )}
         </section>
     );
 };

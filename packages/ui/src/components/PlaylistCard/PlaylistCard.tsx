@@ -2,6 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./PlaylistCard.module.css";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
 import PlusSvg from "../../assets/icons/plus.svg";
 import CheckSvg from "../../assets/icons/check.svg";
 import EditSvg from "../../assets/icons/edit.svg";
@@ -24,6 +27,7 @@ interface PlaylistCardProps {
   isPrivate?: boolean;
   isOwner?: boolean;
   isAuthor?: boolean;
+  isAuthenticated?: boolean;
   onAddClick?: () => void;
   onEditClick?: () => void;
 }
@@ -62,9 +66,12 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
   isPrivate = false,
   isOwner = false,
   isAuthor = false,
+  isAuthenticated = false,
   onAddClick,
   onEditClick,
 }) => {
+  const { isModalOpen, closeModal, guard } =
+    useAuthAction(isAuthenticated);
   return (
     <article className={styles.card}>
       <Link to={`/playlists/${id}`} className={styles.cardLink}>
@@ -123,7 +130,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
                 className={styles.addBtn}
                 onClick={(e) => {
                   e.preventDefault();
-                  onAddClick?.();
+                  guard(onAddClick)();
                 }}
                 aria-label={isAdded ? "Убрать из моих плейлистов" : "Добавить в мои плейлисты"}
               >
@@ -161,6 +168,9 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
           </div>
         </div>
       </Link>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
     </article>
   );
 };

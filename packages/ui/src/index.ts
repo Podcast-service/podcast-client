@@ -29,9 +29,12 @@ export { default as EditPlaylistPage } from "./pages/EditPlaylistPage/EditPlayli
 export { default as CreatePodcastPage } from "./pages/CreatePodcastPage/CreatePodcastPage";
 export { default as EditPodcastPage } from "./pages/EditPodcastPage/EditPodcastPage";
 export { default as DownloadAppPage } from "./pages/DownloadAppPage/DownloadAppPage";
+export { default as NotFoundPage } from "./pages/NotFoundPage/NotFoundPage";
 
 
 
+export { default as CopyLinkModal } from "./components/CopyLinkModal/CopyLinkModal";
+export { default as YoutubePublishModal } from "./components/YoutubePublishModal/YoutubePublishModal";
 export { default as DownloadAppBanner } from "./components/DownloadAppBanner/DownloadAppBanner";
 export { default as EditPodcastForm } from "./components/EditPodcastForm/EditPodcastForm";
 export { default as TextUploadBlock } from "./components/TextUploadBlock/TextUploadBlock";

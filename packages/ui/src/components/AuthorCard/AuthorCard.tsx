@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import styles from "./AuthorCard.module.css";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
+
 interface AuthorCardProps {
   id: string;
   name: string;
@@ -10,6 +14,7 @@ interface AuthorCardProps {
   subscribers: number;
   avatarUrl?: string;
   isSubscribed?: boolean;
+  isAuthenticated?: boolean;
   onSubscribeClick?: () => void;
 }
 
@@ -28,8 +33,11 @@ const AuthorCard: React.FC<AuthorCardProps> = ({
   subscribers,
   avatarUrl,
   isSubscribed = false,
+  isAuthenticated = false,
   onSubscribeClick,
 }) => {
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
+
   return (
     <article className={styles.card}>
       <Link to={`/authors/${id}`} className={styles.authorLink}>
@@ -50,7 +58,7 @@ const AuthorCard: React.FC<AuthorCardProps> = ({
         className={`${styles.subscribeBtn} ${
           isSubscribed ? styles.subscribedBtn : ""
         }`}
-        onClick={onSubscribeClick}
+        onClick={guard(onSubscribeClick)}
       >
         {isSubscribed ? "Отписаться" : "Подписаться"}
       </button>
@@ -58,6 +66,9 @@ const AuthorCard: React.FC<AuthorCardProps> = ({
       <p className={styles.subscribers}>
         {formatSubscribers(subscribers)} подписчиков
       </p>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
     </article>
   );
 };

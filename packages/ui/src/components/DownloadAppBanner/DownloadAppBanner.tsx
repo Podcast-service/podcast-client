@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import styles from "./DownloadAppBanner.module.css";
-/*import { useNavigate } from "react-router-dom";*/
+import { useNavigate } from "react-router-dom";
 
 import ComputerSvg from "../../assets/icons/computer.svg";
 
-/*const navigate = useNavigate();*/
 
 interface DownloadAppBannerProps {
     isPlayerVisible?: boolean;
@@ -13,9 +12,11 @@ interface DownloadAppBannerProps {
 
 const DownloadAppBanner: React.FC<DownloadAppBannerProps> = ({
     isPlayerVisible = false,
-    onDownloadClick,
+
 }) => {
     const [isVisible, setIsVisible] = useState(true);
+    const navigate = useNavigate();
+
 
     if (!isVisible) {
         return null;
@@ -52,7 +53,10 @@ const DownloadAppBanner: React.FC<DownloadAppBannerProps> = ({
             <button
                 type="button"
                 className={styles.downloadBtn}
-                onClick={() => {}}
+                onClick={() => {
+                    setIsVisible(false);
+                    navigate("/download");
+                }}
             >
                 Скачать
             </button>

@@ -2,6 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./ProfileAuthorHero.module.css";
 
+import { useState } from "react";
+import CopyLinkModal from "../CopyLinkModal/CopyLinkModal";
+
 import ShareSvg from "../../assets/icons/share.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 
@@ -29,6 +32,7 @@ const ProfileAuthorHero: React.FC<ProfileAuthorHeroProps> = ({
     onShareClick,
 }) => {
     const navigate = useNavigate();
+    const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
 
     return (
         <section className={styles.hero}>
@@ -77,7 +81,10 @@ const ProfileAuthorHero: React.FC<ProfileAuthorHeroProps> = ({
                     <button
                         type="button"
                         className={styles.shareBtn}
-                        onClick={onShareClick}
+                        onClick={() => {
+                            setIsCopyModalOpen(true);
+                            onShareClick?.();
+                        }}
                         aria-label="Поделиться профилем"
                     >
                         <img
@@ -97,6 +104,12 @@ const ProfileAuthorHero: React.FC<ProfileAuthorHeroProps> = ({
                     Редактировать профиль
                 </button>
             </div>
+            {isCopyModalOpen && (
+                <CopyLinkModal
+                    link={window.location.href}
+                    onClose={() => setIsCopyModalOpen(false)}
+                />
+            )}
         </section>
     );
 };

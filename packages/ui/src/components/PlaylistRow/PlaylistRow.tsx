@@ -2,6 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./PlaylistRow.module.css";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
+
 import PlusSvg from "../../assets/icons/plus.svg";
 import CheckSvg from "../../assets/icons/check.svg";
 import PlaySvg from "../../assets/icons/play.svg";
@@ -18,6 +22,7 @@ interface PlaylistRowProps {
   createdAt?: string;
   isAdded?: boolean;
   isPlaying?: boolean;
+  isAuthenticated?: boolean;
   onAddClick?: () => void;
   onPlayClick?: () => void;
 }
@@ -48,9 +53,11 @@ const PlaylistRow: React.FC<PlaylistRowProps> = ({
   createdAt,
   isAdded = false,
   isPlaying = false,
+  isAuthenticated = false,
   onAddClick,
   onPlayClick,
 }) => {
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
   return (
     <article className={styles.row}>
       <Link to={`/playlists/${id}`} className={styles.rowLink}>
@@ -90,7 +97,7 @@ const PlaylistRow: React.FC<PlaylistRowProps> = ({
         <button
           type="button"
           className={styles.actionBtn}
-          onClick={onAddClick}
+          onClick={guard(onAddClick)}
           aria-label={isAdded ? "Плейлист добавлен" : "Добавить плейлист"}
         >
           <img
@@ -115,6 +122,9 @@ const PlaylistRow: React.FC<PlaylistRowProps> = ({
           />
         </button>
       </div>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
     </article>
   );
 };

@@ -24,6 +24,8 @@ import { useToast } from "../../components/Toast/useToast";
 import SearchSvg from "../../assets/icons/search.svg";
 import LeftSvg from "../../assets/icons/left.svg";
 import YoutubeSvg from "../../assets/icons/youtube.svg";
+import YoutubePublishModal from "../../components/YoutubePublishModal/YoutubePublishModal";
+import type { YoutubePublishStatus } from "../../components/YoutubePublishModal/YoutubePublishModal";
 import {
     addPodcastToPlaylist,
     getMyAuthorProfile,
@@ -140,6 +142,9 @@ const EditPlaylistPage: React.FC = () => {
 
     const canPublishToYoutube = false;
 
+    const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+    const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
+
     const getSourceList = (): Podcast[] => {
         if (activeTab === "likes") return likedPodcasts;
         if (activeTab === "mine") return myPodcasts;
@@ -235,12 +240,8 @@ const EditPlaylistPage: React.FC = () => {
         }
     };
 
-    const handlePublishToYoutube = async () => {
-        try {
-            showToast("Плейлист опубликован на YouTube Music", "success");
-        } catch {
-            showToast("Не удалось опубликовать плейлист. Попробуйте позже.", "error");
-        }
+    const handlePublishToYoutube = () => {
+        setIsYoutubeModalOpen(true);
     };
 
 
@@ -372,6 +373,19 @@ const EditPlaylistPage: React.FC = () => {
 
                 </div>
             </div>
+
+            {isYoutubeModalOpen && (
+                <YoutubePublishModal
+                    status={youtubeStatus}
+                    onClose={() => setIsYoutubeModalOpen(false)}
+                    onLoginWithGoogle={() => setYoutubeStatus("authorized")}
+                    onPublish={() => setYoutubeStatus("processing")}
+                    onLogoutGoogle={() => setYoutubeStatus("not_authorized")}
+                    onSwitchAccount={() => console.log("switch account")}
+                    onRetry={() => setYoutubeStatus("processing")}
+                    onOpenYoutube={() => window.open("https://music.youtube.com", "_blank")}
+                />
+            )}
         </div>
     );
 };
