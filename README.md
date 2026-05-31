@@ -72,6 +72,7 @@ pnpm --filter @podcast/mobile cap:ios
 cd apps/mobile && npx cap run ios
 ```
 
+
 ### Android
 
 **Первый запуск (одноразовая настройка):**
