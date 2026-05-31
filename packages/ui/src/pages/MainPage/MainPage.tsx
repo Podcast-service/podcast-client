@@ -141,8 +141,9 @@ const MainPage: React.FC = () => {
           return;
         }
 
-        setTopPodcasts(page.items.map(mapPodcast));
-        setTopAuthors(deriveTopAuthors(page.items));
+        const items = page?.items ?? [];
+        setTopPodcasts(items.map(mapPodcast));
+        setTopAuthors(deriveTopAuthors(items));
       } catch (err) {
         if (!cancelled) {
           setError("Не удалось загрузить данные. Попробуйте позже.");

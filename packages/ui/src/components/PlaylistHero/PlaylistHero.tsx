@@ -12,6 +12,8 @@ import DefaultBookSvg from "../../assets/icons/defaultBook.svg";
 import LockSvg from "../../assets/icons/lock.svg";
 import GlobeSvg from "../../assets/icons/globe.svg";
 import YoutubeSvg from "../../assets/icons/youtube.svg";
+import HeartSvg from "../../assets/icons/defHeart.svg";
+import DislikeSvg from "../../assets/icons/defDislike.svg";
 
 interface PlaylistHeroProps {
     title: string;
@@ -28,10 +30,16 @@ interface PlaylistHeroProps {
     listeners: number;
     isAdded?: boolean;
     isAuthenticated?: boolean;
+    likesCount?: number;
+    dislikesCount?: number;
+    isLiked?: boolean;
+    isDisliked?: boolean;
     onPlayAll?: () => void;
     onAddClick?: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
+    onLikeClick?: () => void;
+    onDislikeClick?: () => void;
     onPublishToYoutube?: () => void;
 }
 
@@ -56,10 +64,16 @@ const PlaylistHero: React.FC<PlaylistHeroProps> = ({
     listeners,
     isAdded = false,
     isAuthenticated = false,
+    likesCount = 0,
+    dislikesCount = 0,
+    isLiked = false,
+    isDisliked = false,
     onPlayAll,
     onAddClick,
     onEdit,
     onDelete,
+    onLikeClick,
+    onDislikeClick,
     onPublishToYoutube,
 }) => {
     const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
@@ -144,6 +158,26 @@ const PlaylistHero: React.FC<PlaylistHeroProps> = ({
                             {isAdded ? "Удалить у себя" : "Добавить к себе"}
                         </button>
                     )}
+
+                    <button
+                        type="button"
+                        className={`${styles.voteBtn} ${isLiked ? styles.voteBtnActive : ""}`}
+                        onClick={guard(onLikeClick)}
+                        aria-label="Нравится"
+                    >
+                        <img src={HeartSvg} alt="" aria-hidden="true" className={styles.voteIcon} />
+                        <span>{likesCount}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`${styles.voteBtn} ${isDisliked ? styles.voteBtnActive : ""}`}
+                        onClick={guard(onDislikeClick)}
+                        aria-label="Не нравится"
+                    >
+                        <img src={DislikeSvg} alt="" aria-hidden="true" className={styles.voteIcon} />
+                        <span>{dislikesCount}</span>
+                    </button>
                 </div>
 
                 {canPublishToYoutube && (

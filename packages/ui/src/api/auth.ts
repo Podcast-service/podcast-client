@@ -68,7 +68,11 @@ export const getTokenClaims = (): Record<string, any> | null => {
 
 
 async function handleResponse<T>(res: Response): Promise<T> {
-  const data = await res.json();
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw { status: res.status, ...data };
   }

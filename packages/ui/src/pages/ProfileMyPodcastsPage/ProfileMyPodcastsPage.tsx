@@ -126,7 +126,6 @@ const ProfileMyPodcastsPage: React.FC = () => {
                                 isOwner={true}
                                 onPlayClick={() => playPodcast(podcast)}
                                 onLikeClick={() => handleLike(podcast.id)}
-                                onAddClick={() => {}}
                                 onEditClick={() => navigate(`/podcasts/${podcast.id}/edit`)}
                             />
                         ))}

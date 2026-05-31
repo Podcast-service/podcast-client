@@ -47,6 +47,8 @@ export { default as ProfileAuthorHero } from "./components/ProfileAuthorHero/Pro
 export { default as BecomeAuthorSuccessModal } from "./components/BecomeAuthorSuccessModal/BecomeAuthorSuccessModal";
 export { default as PlaylistHero } from "./components/PlaylistHero/PlaylistHero";
 export { ToastProvider } from "./components/Toast/ToastProvider";
+export { AddToPlaylistProvider } from "./components/AddToPlaylist/AddToPlaylistProvider";
+export { useAddToPlaylist } from "./components/AddToPlaylist/useAddToPlaylist";
 export { default as OtpEmailModal } from "./components/OtpEmailModal/OtpEmailModal";
 export { default as ProfileNav } from "./components/ProfileNav/ProfileNav";
 export { default as ProfileHero } from "./components/ProfileHero/ProfileHero";

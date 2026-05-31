@@ -280,6 +280,45 @@
     color: #ffffff;
 }
 
+.voteBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 10px 20px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.voteBtn:hover {
+    border-color: var(--color-secondary);
+}
+
+.voteBtnActive {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: #F5FEF6;
+}
+
+.voteIcon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: block;
+}
+
 .btnYoutube {
     display: flex;
     align-items: center;

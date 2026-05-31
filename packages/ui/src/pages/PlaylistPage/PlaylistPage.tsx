@@ -17,7 +17,12 @@ import {
   isAuthenticated,
   removePlaylistFromLibrary,
   savePlaylistToLibrary,
+  votePlaylist,
+  removePlaylistVote,
+  votePodcast,
+  removePodcastVote,
   type PlaylistDetailResponse,
+  type VoteType,
 } from "../../api/podcast";
 import { formatRuDate } from "../../utils/format";
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
@@ -147,6 +152,96 @@ const PlaylistPage: React.FC = () => {
     }
   };
 
+  const handlePlaylistVote = async (voteType: VoteType) => {
+    if (!playlist) return;
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const previous = playlist.currentUserVote ?? null;
+    const shouldRemove = previous === voteType;
+
+    setPlaylist((prev) =>
+      prev ? { ...prev, currentUserVote: shouldRemove ? null : voteType } : prev
+    );
+
+    try {
+      const result = shouldRemove
+        ? await removePlaylistVote(playlist.id)
+        : await votePlaylist(playlist.id, voteType);
+      setPlaylist((prev) =>
+        prev
+          ? {
+              ...prev,
+              currentUserVote: result.currentUserVote ?? null,
+              likesCount: result.likesCount,
+              dislikesCount: result.dislikesCount,
+            }
+          : prev
+      );
+    } catch (err) {
+      setPlaylist((prev) =>
+        prev ? { ...prev, currentUserVote: previous } : prev
+      );
+      console.error("Failed to vote playlist", err);
+      showToast("Не удалось проголосовать. Попробуйте позже.", "error");
+    }
+  };
+
+  const handlePodcastLike = async (id: string) => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const target = podcasts.find((podcast) => podcast.id === id);
+    if (!target) return;
+    const wasLiked = target.currentUserVote === "LIKE";
+
+    setPodcasts((prev) =>
+      prev.map((podcast) =>
+        podcast.id === id
+          ? {
+              ...podcast,
+              isLiked: !wasLiked,
+              currentUserVote: wasLiked ? null : "LIKE",
+            }
+          : podcast
+      )
+    );
+
+    try {
+      const result = wasLiked
+        ? await removePodcastVote(id)
+        : await votePodcast(id, "LIKE");
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: result.currentUserVote === "LIKE",
+                currentUserVote: result.currentUserVote ?? null,
+              }
+            : podcast
+        )
+      );
+    } catch (err) {
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: wasLiked,
+                currentUserVote: wasLiked ? "LIKE" : null,
+              }
+            : podcast
+        )
+      );
+      console.error("Failed to vote podcast", err);
+    }
+  };
+
   const handleToggleSave = async () => {
     if (!playlist) return;
     if (!isAuthenticated()) {
@@ -196,10 +291,17 @@ const PlaylistPage: React.FC = () => {
           createdAt={formatRuDate(playlist.createdAt)}
           listeners={totalListeners}
           isAdded={isSaved}
+          isAuthenticated={isAuthenticated()}
+          likesCount={playlist.likesCount}
+          dislikesCount={playlist.dislikesCount}
+          isLiked={playlist.currentUserVote === "LIKE"}
+          isDisliked={playlist.currentUserVote === "DISLIKE"}
           onPlayAll={handlePlayAll}
           onAddClick={handleToggleSave}
           onEdit={handleEdit}
           onDelete={() => setIsDeleteModalOpen(true)}
+          onLikeClick={() => handlePlaylistVote("LIKE")}
+          onDislikeClick={() => handlePlaylistVote("DISLIKE")}
           onPublishToYoutube={() => setIsYoutubeModalOpen(true)}
         />
 
@@ -210,7 +312,7 @@ const PlaylistPage: React.FC = () => {
               <PodcastRow
                 {...podcast}
                 onPlayClick={() => playPodcast(podcast)}
-                onAddClick={() => {}}
+                onLikeClick={() => handlePodcastLike(podcast.id)}
               />
             </div>
           ))}
