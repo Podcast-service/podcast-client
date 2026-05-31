@@ -6,6 +6,13 @@ import CircleMPSvg from "../../assets/icons/circleMP.svg";
 
 interface AudioUploadBlockProps {
     publishStatus: "draft" | "processing" | "ready" | "published" | "error";
+    publishing?: boolean;
+    /** Обложка, уже сохранённая на бэкенде (показываем при перезагрузке). */
+    initialCoverUrl?: string | null;
+    /** Признак того, что исходный аудиофайл уже загружен. */
+    audioUploaded?: boolean;
+    /** URL обработанного аудио — появляется только после PROCESSED. */
+    audioUrl?: string | null;
     onAudioChange: (file: File) => void;
     onCoverChange?: (file: File) => void;
     onPublish: () => void;
@@ -14,6 +21,10 @@ interface AudioUploadBlockProps {
 
 const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
     publishStatus,
+    publishing = false,
+    initialCoverUrl,
+    audioUploaded = false,
+    audioUrl,
     onAudioChange,
     onCoverChange,
     onPublish,
@@ -22,10 +33,22 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
     const audioInputRef = useRef<HTMLInputElement | null>(null);
     const coverInputRef = useRef<HTMLInputElement | null>(null);
 
-    const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [coverPreview, setCoverPreview] = useState<string | null>(
+        initialCoverUrl ?? null
+    );
     const [audioFileName, setAudioFileName] = useState<string | null>(null);
 
-    const canPublish = publishStatus === "ready";
+    const canPublish = publishStatus === "ready" && !publishing;
+
+    // Что показываем в поле аудио: имя только что выбранного файла, либо
+    // состояние ранее загруженного файла (при перезагрузке страницы).
+    const audioFieldText =
+        audioFileName ??
+        (audioUrl
+            ? "Аудиофайл загружен и обработан"
+            : audioUploaded
+              ? "Аудиофайл загружен, идёт обработка"
+              : "Загрузите аудиофайл");
 
     const handleCoverClick = () => coverInputRef.current?.click();
 
@@ -84,9 +107,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                     <img src={CircleMPSvg} alt="" aria-hidden="true" className={styles.audioIcon} />
 
                     <div className={styles.audioInfo}>
-                        <p className={styles.audioTitle}>
-                            {audioFileName ?? "Загрузите аудиофайл"}
-                        </p>
+                        <p className={styles.audioTitle}>{audioFieldText}</p>
                         <p className={styles.audioHint}>MP3, WAV, OGG, FLAC, OPUS, M4A, AAC до 50 MB</p>
                     </div>
 
@@ -109,6 +130,15 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                     className={styles.hiddenInput}
                     onChange={handleAudioChange}
                 />
+
+                {audioUrl && (
+                    <audio
+                        controls
+                        src={audioUrl}
+                        className={styles.audioPlayer}
+                        preload="none"
+                    />
+                )}
             </div>
 
             <div className={styles.actions}>
@@ -126,7 +156,7 @@ const AudioUploadBlock: React.FC<AudioUploadBlockProps> = ({
                     onClick={onPublish}
                     disabled={!canPublish}
                 >
-                    Опубликовать
+                    {publishing ? "Публикация..." : "Опубликовать"}
                 </button>
             </div>
 

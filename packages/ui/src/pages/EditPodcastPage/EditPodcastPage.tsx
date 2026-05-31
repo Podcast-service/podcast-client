@@ -12,8 +12,8 @@ import {
     updatePodcast,
     type CategoryResponse,
     type PodcastDetailResponse,
-    type PodcastStatus,
 } from "../../api/podcast";
+import { toPublishStatus } from "../../utils/mappers";
 import { uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
@@ -22,16 +22,6 @@ const toCategoryOption = (category: CategoryResponse) => ({
     id: category.id,
     label: category.name,
 });
-
-const toPublishStatus = (
-    status?: PodcastStatus
-): "draft" | "processing" | "ready" | "published" | "error" => {
-    if (status === "PUBLISHED") return "published";
-    if (status === "PROCESSING" || status === "UPLOADING") return "processing";
-    if (status === "UPLOADED" || status === "PROCESSED") return "ready";
-    if (status === "FAILED") return "error";
-    return "draft";
-};
 
 const EditPodcastPage: React.FC = () => {
     const navigate = useNavigate();
@@ -59,10 +49,20 @@ const EditPodcastPage: React.FC = () => {
                     getCategories(),
                 ]);
 
-                if (!cancelled) {
-                    setPodcast(podcastData);
-                    setCategories(categoryItems);
+                if (cancelled) return;
+
+                // Черновик и неудачная обработка живут в мастере создания —
+                // там есть загрузка файла и публикация. Уводим туда.
+                if (
+                    podcastData.status === "DRAFT" ||
+                    podcastData.status === "FAILED"
+                ) {
+                    navigate(`/podcasts/create/${podcastId}`, { replace: true });
+                    return;
                 }
+
+                setPodcast(podcastData);
+                setCategories(categoryItems);
             } catch (err: any) {
                 if (!cancelled) {
                     setLoadError(
@@ -204,7 +204,10 @@ const EditPodcastPage: React.FC = () => {
                     </div>
 
                     <div className={styles.rightBlock}>
-                        <PodcastPublishStatus status={toPublishStatus(podcast.status)} />
+                        <PodcastPublishStatus
+                            status={toPublishStatus(podcast.status)}
+                            publishedAt={podcast.publishedAt ?? undefined}
+                        />
                     </div>
 
                 </div>

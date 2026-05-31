@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
 import CreatePodcastForm from "../../components/CreatePodcastForm/CreatePodcastForm";
@@ -10,17 +10,22 @@ import { useToast } from "../../components/Toast/useToast";
 import {
     createPodcast,
     getCategories,
+    getPodcast,
+    publishPodcast,
     updatePodcast,
     type CategoryResponse,
     type PodcastDetailResponse,
 } from "../../api/podcast";
+import { toPublishStatus, type PublishStatus } from "../../utils/mappers";
 import { uploadPodcastAudio, uploadPodcastCover } from "../../api/mediaUpload";
 
 import LeftSvg from "../../assets/icons/left.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
 
 type FileType = "audio" | "text";
-type PublishStatus = "draft" | "processing" | "ready" | "published" | "error";
+
+/** Интервал опроса статуса подкаста, пока media worker обрабатывает аудио. */
+const STATUS_POLL_INTERVAL_MS = 3000;
 
 interface PodcastFormData {
     title: string;
@@ -35,8 +40,22 @@ const toCategoryOption = (category: CategoryResponse) => ({
     label: category.name,
 });
 
+/** Подкаст с бэкенда → данные формы создания. Тип файла на бэкенде не хранится,
+ *  поэтому загруженный черновик всегда открываем в режиме «Аудиофайл». */
+const toFormData = (p: PodcastDetailResponse): PodcastFormData => ({
+    title: p.title,
+    description: p.description ?? "",
+    categoryId: p.category?.id ?? "",
+    speakersCount: p.num_speakers,
+    fileType: "audio",
+});
+
+/** Статусы, при которых исходный аудиофайл уже загружен на бэкенд. */
+const AUDIO_UPLOADED_STATUSES = ["UPLOADED", "PROCESSING", "PROCESSED", "PUBLISHED"];
+
 const CreatePodcastPage: React.FC = () => {
     const navigate = useNavigate();
+    const { podcastId } = useParams<{ podcastId?: string }>();
     const { showToast } = useToast();
 
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -44,6 +63,42 @@ const CreatePodcastPage: React.FC = () => {
     const [podcast, setPodcast] = useState<PodcastDetailResponse | null>(null);
     const [publishStatus, setPublishStatus] = useState<PublishStatus>("draft");
     const [isSaving, setIsSaving] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    // Загрузка нужна только при открытии существующего черновика по :podcastId.
+    const [isInitialLoading, setIsInitialLoading] = useState<boolean>(Boolean(podcastId));
+    const [loadError, setLoadError] = useState<string | null>(null);
+
+    const pollRef = useRef<number | null>(null);
+
+    const stopPolling = () => {
+        if (pollRef.current !== null) {
+            window.clearInterval(pollRef.current);
+            pollRef.current = null;
+        }
+    };
+
+    /**
+     * Опрашивает GET /podcasts/{id}, пока статус не станет терминальным
+     * (по умолчанию — готов к публикации / опубликован / ошибка), и держит
+     * блок статуса в синхроне с реальным состоянием на бэкенде.
+     */
+    const startPolling = (
+        id: string,
+        terminal: PublishStatus[] = ["ready", "published", "error"]
+    ) => {
+        stopPolling();
+        pollRef.current = window.setInterval(async () => {
+            try {
+                const fresh = await getPodcast(id);
+                setPodcast(fresh);
+                const next = toPublishStatus(fresh.status);
+                setPublishStatus(next);
+                if (terminal.includes(next)) stopPolling();
+            } catch (err) {
+                console.error("Failed to poll podcast status", err);
+            }
+        }, STATUS_POLL_INTERVAL_MS);
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -61,6 +116,56 @@ const CreatePodcastPage: React.FC = () => {
             cancelled = true;
         };
     }, [showToast]);
+
+    // Останавливаем опрос при размонтировании страницы.
+    useEffect(() => stopPolling, []);
+
+    // Открытие существующего черновика по адресу /podcasts/create/:podcastId —
+    // подгружаем подкаст, заполняем форму и сразу показываем нижнюю часть.
+    useEffect(() => {
+        if (!podcastId) return;
+        // Уже загружен (например, только что создан и сделан replace в URL) —
+        // не дёргаем бэкенд повторно и не показываем лоадер.
+        if (podcast?.id === podcastId) {
+            setIsInitialLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setIsInitialLoading(true);
+                setLoadError(null);
+
+                const fresh = await getPodcast(podcastId);
+                if (cancelled) return;
+
+                setPodcast(fresh);
+                setFormData(toFormData(fresh));
+                const status = toPublishStatus(fresh.status);
+                setPublishStatus(status);
+                // Если файл ещё обрабатывается — продолжаем следить за статусом.
+                if (status === "processing") startPolling(podcastId);
+            } catch (err: any) {
+                if (!cancelled) {
+                    setLoadError(
+                        err?.status === 404
+                            ? "Подкаст не найден."
+                            : "Не удалось загрузить подкаст. Попробуйте позже."
+                    );
+                    console.error("Failed to load podcast draft", err);
+                }
+            } finally {
+                if (!cancelled) setIsInitialLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [podcastId]);
 
     const handleFormSave = async (data: PodcastFormData) => {
         setIsSaving(true);
@@ -88,8 +193,10 @@ const CreatePodcastPage: React.FC = () => {
 
             setPodcast(created);
             setFormData(data);
-            setPublishStatus("draft");
+            setPublishStatus(toPublishStatus(created.status));
             showToast("Черновик подкаста создан", "success");
+            // Запоминаем id в URL: при перезагрузке черновик подтянется целиком.
+            navigate(`/podcasts/create/${created.id}`, { replace: true });
         } catch (err) {
             console.error("Failed to save podcast draft", err);
             showToast("Не удалось сохранить черновик. Попробуйте позже.", "error");
@@ -107,8 +214,10 @@ const CreatePodcastPage: React.FC = () => {
         setPublishStatus("processing");
         try {
             await uploadPodcastAudio(podcast.id, file);
-            setPublishStatus("ready");
-            showToast("Аудиофайл загружен", "success");
+            showToast("Аудиофайл загружен, идёт обработка", "success");
+            // Дальше статус двигает media worker (UPLOADED → PROCESSING →
+            // PROCESSED): опрашиваем бэкенд, пока подкаст не будет готов.
+            startPolling(podcast.id);
         } catch (err) {
             console.error("Failed to upload podcast audio", err);
             setPublishStatus("error");
@@ -144,9 +253,61 @@ const CreatePodcastPage: React.FC = () => {
         showToast("Генерация подкаста из текста пока не подключена к API.", "error");
     };
 
-    const handlePublish = () => {
-        showToast("Публикацию подключим отдельным шагом.", "error");
+    const handlePublish = async () => {
+        if (!podcast) {
+            showToast("Сначала сохраните данные подкаста", "error");
+            return;
+        }
+
+        setIsPublishing(true);
+        try {
+            const published = await publishPodcast(podcast.id);
+            setPodcast(published);
+            const next = toPublishStatus(published.status);
+            setPublishStatus(next);
+
+            if (next === "published") {
+                stopPolling();
+                showToast("Подкаст опубликован", "success");
+                navigate(`/podcasts/${published.id}`);
+            } else {
+                // 202: бэкенд принял в обработку — ждём перехода в PUBLISHED.
+                showToast("Подкаст отправлен на публикацию", "success");
+                startPolling(published.id, ["published", "error"]);
+            }
+        } catch (err) {
+            console.error("Failed to publish podcast", err);
+            showToast("Не удалось опубликовать подкаст. Попробуйте позже.", "error");
+        } finally {
+            setIsPublishing(false);
+        }
     };
+
+    if (isInitialLoading) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>Загрузка…</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loadError) {
+        return (
+            <div className={styles.page}>
+                <div className={`container ${styles.pageInner}`}>
+                    <p style={{ padding: "40px 0" }}>{loadError}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const audioUploaded = Boolean(
+        podcast &&
+            (AUDIO_UPLOADED_STATUSES.includes(podcast.status) ||
+                podcast.audio_url_file)
+    );
 
     return (
         <div className={styles.page}>
@@ -201,7 +362,14 @@ const CreatePodcastPage: React.FC = () => {
                         <div className={styles.card}>
 
                             <CreatePodcastForm
+                                key={podcast?.id ?? "new"}
                                 categories={categories.map(toCategoryOption)}
+                                initialTitle={formData?.title}
+                                initialDescription={formData?.description}
+                                initialCategoryId={formData?.categoryId}
+                                initialSpeakersCount={formData?.speakersCount}
+                                initialFileType={formData?.fileType ?? null}
+                                lockSpeakers={Boolean(podcast)}
                                 onSave={handleFormSave}
                                 onCancel={() => navigate(-1)}
                                 loading={isSaving}
@@ -213,7 +381,12 @@ const CreatePodcastPage: React.FC = () => {
 
                                     {formData.fileType === "audio" ? (
                                         <AudioUploadBlock
+                                            key={podcast?.id ?? "new"}
                                             publishStatus={publishStatus}
+                                            publishing={isPublishing}
+                                            initialCoverUrl={podcast?.coverImageUrl ?? null}
+                                            audioUploaded={audioUploaded}
+                                            audioUrl={podcast?.audioUrl ?? null}
                                             onAudioChange={handleAudioChange}
                                             onCoverChange={handleCoverChange}
                                             onPublish={handlePublish}
@@ -223,6 +396,7 @@ const CreatePodcastPage: React.FC = () => {
                                         <TextUploadBlock
                                             speakersCount={formData.speakersCount}
                                             publishStatus={publishStatus}
+                                            publishing={isPublishing}
                                             onCoverChange={handleCoverChange}
                                             onGenerate={handleGenerate}
                                             onPublish={handlePublish}
@@ -236,7 +410,10 @@ const CreatePodcastPage: React.FC = () => {
 
                     <div className={styles.rightBlock}>
 
-                        <PodcastPublishStatus status={publishStatus} />
+                        <PodcastPublishStatus
+                            status={publishStatus}
+                            publishedAt={podcast?.publishedAt ?? undefined}
+                        />
 
                         <div className={styles.warningCard}>
                             <img

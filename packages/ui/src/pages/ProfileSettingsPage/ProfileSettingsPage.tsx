@@ -14,7 +14,7 @@ import {
   updateMyProfile,
   updateMyAuthorProfile,
 } from "../../api/podcast";
-import { clearTokens, getTokenClaims } from "../../api/auth";
+import { changePassword, clearTokens, getTokenClaims } from "../../api/auth";
 import { uploadProfileCover } from "../../api/mediaUpload";
 
 import PersonalInfoSvg from "../../assets/icons/personalInfo.svg";
@@ -67,6 +67,7 @@ const ProfileSettingsPage: React.FC = () => {
   const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [isEmailVerified] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -132,8 +133,34 @@ const ProfileSettingsPage: React.FC = () => {
 
     if (currentErr || newErr || confirmErr) return;
 
-    // Смена пароля — ручка auth-service, в podcast-core её нет.
-    showToast("Смена пароля будет доступна позже", "error");
+    if (isChangingPassword) return;
+    setIsChangingPassword(true);
+    try {
+      // POST /auth/password-change (Bearer). Бэкенд отзывает refresh-токены, но
+      // текущий access JWT остаётся валидным до истечения TTL — из аккаунта не
+      // выходим, пользователь продолжает сессию.
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      showToast("Пароль изменён", "success");
+    } catch (e: any) {
+      const reason = e?.error ?? e?.message ?? "";
+      if (e?.status === 401 && reason === "invalid credentials") {
+        setCurrentPasswordError("Неверный текущий пароль");
+      } else if (e?.status === 401) {
+        // Токен отсутствует/истёк — сессия недействительна.
+        showToast("Сессия истекла. Войдите заново.", "error");
+        clearTokens();
+        navigate("/login");
+      } else if (e?.status === 400) {
+        showToast("Проверьте правильность заполнения полей.", "error");
+      } else {
+        showToast("Не удалось сменить пароль. Попробуйте позже.", "error");
+      }
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleSaveAuthorName = async () => {
@@ -367,8 +394,9 @@ const ProfileSettingsPage: React.FC = () => {
               type="button"
               className={styles.btnPrimary}
               onClick={handleChangePassword}
+              disabled={isChangingPassword}
             >
-              Сменить пароль
+              {isChangingPassword ? "Сохранение…" : "Сменить пароль"}
             </button>
           </div>
         </section>

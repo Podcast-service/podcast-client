@@ -216,10 +216,33 @@ async function handleResponse<T>(res: Response): Promise<T> {
     return undefined as T;
   }
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw { status: res.status, ...data } as ApiError;
+  const raw = await res.text();
+  let data: any = undefined;
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      // Тело не JSON: при ошибке отдаём как message, при «успехе» это
+      // признак того, что запрос не дошёл до API (напр. SPA index.html
+      // вместо проксированного /podcast/v1) — не глотаем в {}, а кидаем.
+      data = { message: raw.slice(0, 200) };
+    }
   }
+
+  if (!res.ok) {
+    throw { status: res.status, ...(data ?? {}) } as ApiError;
+  }
+
+  // Успех, но тело пустое или не-JSON — для ручек, ожидающих JSON, это
+  // некорректный ответ. Бросаем, чтобы страница показала состояние ошибки,
+  // а не падала на result.items / result.meta.
+  if (data === undefined || typeof data !== "object") {
+    throw {
+      status: res.status,
+      message: "Некорректный ответ сервера (ожидался JSON)",
+    } as ApiError;
+  }
+
   return data as T;
 }
 
@@ -359,6 +382,20 @@ export function updatePodcast(
 /** Архивировать подкаст. DELETE /podcasts/{id}. */
 export function deletePodcast(podcastId: string): Promise<void> {
   return apiSend<void>("DELETE", `/podcasts/${podcastId}`);
+}
+
+/**
+ * Опубликовать подкаст. POST /podcasts/{id}/publish (только автор-владелец).
+ * Переводит подкаст из PROCESSED в публичный доступ; бэкенд отвечает 202 и
+ * возвращает актуальный PodcastDetailResponse.
+ */
+export function publishPodcast(
+  podcastId: string
+): Promise<PodcastDetailResponse> {
+  return apiSend<PodcastDetailResponse>(
+    "POST",
+    `/podcasts/${podcastId}/publish`
+  );
 }
 
 /** Сохранить прогресс прослушивания. POST /podcasts/{id}/progress. */

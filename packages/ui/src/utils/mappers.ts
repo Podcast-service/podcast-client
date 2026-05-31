@@ -1,5 +1,33 @@
 import { formatClock, formatRuDate } from "./format";
-import type { PodcastCard, VoteType } from "../api/podcast";
+import type { PodcastCard, PodcastStatus, VoteType } from "../api/podcast";
+
+export type PublishStatus =
+  | "draft"
+  | "processing"
+  | "ready"
+  | "published"
+  | "error";
+
+/**
+ * Статус подкаста из API → состояние блока публикации (PodcastPublishStatus).
+ * - PROCESSING / UPLOADING / UPLOADED → «Обработка файла»
+ * - PROCESSED                        → «Готов к публикации» (можно публиковать)
+ * - PUBLISHED                        → «Опубликован»
+ * - FAILED                           → «Ошибка»
+ * - DRAFT / ARCHIVED / прочее        → черновик
+ */
+export const toPublishStatus = (status?: PodcastStatus): PublishStatus => {
+  if (status === "PUBLISHED") return "published";
+  if (status === "PROCESSED") return "ready";
+  if (
+    status === "UPLOADING" ||
+    status === "UPLOADED" ||
+    status === "PROCESSING"
+  )
+    return "processing";
+  if (status === "FAILED") return "error";
+  return "draft";
+};
 
 export interface PodcastRowData {
   id: string;
