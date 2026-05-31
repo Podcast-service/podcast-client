@@ -1,0 +1,263 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.topRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+}
+
+.coverSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.sectionLabel {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+}
+
+.coverBtn {
+    width: 160px;
+    height: 160px;
+    border: 2px dashed #E5E7EB;
+    border-radius: 10px;
+    background: #F3F4F3;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.coverBtn:hover {
+    border-color: #414844;
+}
+
+.coverPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.coverPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.coverIcon {
+    width: 32px;
+    height: 32px;
+    display: block;
+    opacity: 0.6;
+}
+
+.coverHint {
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: #717973;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.fieldsRight {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.fieldWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.labelRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.label {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: -0.3px;
+    color: var(--color-main);
+}
+
+.counter {
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--color-placeholder);
+}
+
+.inputWrap {
+    background-color: var(--color-input-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.inputWrap:hover,
+.inputWrap:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.inputWrap.inputError {
+    border-color: var(--color-error);
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-main);
+    box-sizing: border-box;
+}
+
+.input::placeholder {
+    color: var(--color-placeholder);
+}
+
+.errorText {
+    margin: 0;
+    font-family: var(--font-open-sans);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    color: var(--color-error);
+}
+
+.textareaWrap {
+    background-color: var(--color-input-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.textareaWrap:hover,
+.textareaWrap:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.textarea {
+    width: 100%;
+    padding: 12px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-main);
+    resize: vertical;
+    box-sizing: border-box;
+    display: block;
+}
+
+.textarea::placeholder {
+    color: var(--color-placeholder);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+.btnCancel {
+    padding: 10px 32px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnCancel:hover {
+    background-color: #F5FEF6;
+}
+
+.btnDelete {
+    padding: 10px 32px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: var(--color-error);
+    background-color: transparent;
+    border: 1.5px solid var(--color-error);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnDelete:hover {
+    background-color: var(--color-error);
+    color: #ffffff;
+}
+
+.btnSave {
+    padding: 10px 32px;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnSave:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+
+.btnSave:disabled {
+    background-color: var(--color-disable-primary);
+    cursor: not-allowed;
+}
