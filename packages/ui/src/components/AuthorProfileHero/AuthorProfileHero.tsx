@@ -1,6 +1,12 @@
 import React from "react";
 import styles from "./AuthorProfileHero.module.css";
 
+import { useState } from "react";
+import CopyLinkModal from "../CopyLinkModal/CopyLinkModal";
+
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
 import ShareSvg from "../../assets/icons/share.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 
@@ -11,6 +17,7 @@ interface AuthorProfileHeroProps {
   avatarUrl?: string;
   category?: string;
   isSubscribed?: boolean;
+  isAuthenticated?: boolean;
   onSubscribeClick?: () => void;
   onShareClick?: () => void;
 }
@@ -30,9 +37,12 @@ const AuthorProfileHero: React.FC<AuthorProfileHeroProps> = ({
   avatarUrl,
   category,
   isSubscribed = false,
+  isAuthenticated = false,
   onSubscribeClick,
   onShareClick,
 }) => {
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   return (
     <section className={styles.hero}>
       <div className={styles.avatarWrap}>
@@ -63,7 +73,7 @@ const AuthorProfileHero: React.FC<AuthorProfileHeroProps> = ({
             className={`${styles.subscribeBtn} ${
               isSubscribed ? styles.subscribeBtnActive : ""
             }`}
-            onClick={onSubscribeClick}
+            onClick={guard(onSubscribeClick)}
           >
             {isSubscribed ? "Отписаться" : "Подписаться"}
           </button>
@@ -71,13 +81,25 @@ const AuthorProfileHero: React.FC<AuthorProfileHeroProps> = ({
           <button
             type="button"
             className={styles.shareBtn}
-            onClick={onShareClick}
+            onClick={() => {
+              setIsCopyModalOpen(true);
+              onShareClick?.();
+            }}
             aria-label="Поделиться"
           >
             <img src={ShareSvg} alt="" aria-hidden="true" />
           </button>
         </div>
       </div>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
+      {isCopyModalOpen && (
+        <CopyLinkModal
+          link={window.location.href}
+          onClose={() => setIsCopyModalOpen(false)}
+        />
+      )}
     </section>
   );
 };

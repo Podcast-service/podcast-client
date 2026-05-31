@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import styles from "./PodcastHero.module.css";
 
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+import CopyLinkModal from "../CopyLinkModal/CopyLinkModal";
 import DateSvg from "../../assets/icons/date.svg";
 import TimerSvg from "../../assets/icons/timer.svg";
 import ListenersSvg from "../../assets/icons/listeners.svg";
@@ -37,6 +40,7 @@ interface PodcastHeroProps {
   isLiked?: boolean;
   isDisliked?: boolean;
   downloadStatus?: DownloadStatus;
+  isAuthenticated?: boolean;
   onPlayClick?: () => void;
   onLikeClick?: () => void;
   onDislikeClick?: () => void;
@@ -61,6 +65,7 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
   isLiked = false,
   isDisliked = false,
   downloadStatus = "idle",
+  isAuthenticated = false,
   onPlayClick,
   onLikeClick,
   onDislikeClick,
@@ -69,6 +74,8 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
 }) => {
   const [currentProgress, setCurrentProgress] = useState(progress);
   const [currentVolume, setCurrentVolume] = useState(volume);
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
 
   const downloadIcon =
     downloadStatus === "done"
@@ -135,7 +142,7 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
           <button
             type="button"
             className={`${styles.circleBtn} ${isLiked ? styles.activeBtn : ""}`}
-            onClick={onLikeClick}
+            onClick={guard(onLikeClick)}
             aria-label="Лайк"
           >
             <img src={DefHeartSvg} alt="" aria-hidden="true" />
@@ -146,7 +153,7 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
             className={`${styles.circleBtn} ${
               isDisliked ? styles.activeBtn : ""
             }`}
-            onClick={onDislikeClick}
+            onClick={guard(onDislikeClick)}
             aria-label="Дизлайк"
           >
             <img src={DefDislikeSvg} alt="" aria-hidden="true" />
@@ -155,7 +162,10 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
           <button
             type="button"
             className={styles.circleBtn}
-            onClick={onShareClick}
+            onClick={() => {
+              setIsCopyModalOpen(true);
+              onShareClick?.();
+            }}
             aria-label="Поделиться"
           >
             <img src={ShareSvg} alt="" aria-hidden="true" />
@@ -269,6 +279,15 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
           </div>
         </div>
       </div>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
+      {isCopyModalOpen && (
+        <CopyLinkModal
+          link={window.location.href}
+          onClose={() => setIsCopyModalOpen(false)}
+        />
+      )}
     </section>
   );
 };

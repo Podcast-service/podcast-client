@@ -5,226 +5,167 @@
 .pageInner {
     display: flex;
     flex-direction: column;
-    gap: 40px;
-
-    padding: 56px 32px 80px;
-
-    box-sizing: border-box;
-}
-
-.hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
     align-items: center;
-    gap: 56px;
 
-    width: 100%;
-
-    padding: 56px;
-
-    border-radius: 28px;
-
-    background-color: var(--color-primary);
-
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.content {
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.badge {
-    width: fit-content;
-
-    margin-bottom: 20px;
-    padding: 8px 14px;
-
-    border-radius: 999px;
-
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #F0EDE6;
-
-    font-family: var(--font-open-sans);
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 18px;
-    letter-spacing: -0.2px;
-}
-
-.title {
-    max-width: 680px;
-
-    margin: 0 0 20px;
-
-    font-family: var(--font-open-sans);
-    font-size: 48px;
-    font-weight: 800;
-    line-height: 58px;
-    letter-spacing: -1.5px;
-
-    color: #ffffff;
-}
-
-.description {
-    max-width: 620px;
-
-    margin: 0 0 32px;
-
-    font-family: var(--font-open-sans);
-    font-size: 18px;
-    font-weight: 400;
-    line-height: 30px;
-    letter-spacing: -0.4px;
-
-    color: rgba(255, 255, 255, 0.78);
-}
-
-.downloadGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 220px));
-    gap: 16px;
-
-    width: 100%;
-}
-
-.downloadCard {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
-    min-width: 0;
-
-    padding: 16px 18px;
-
-    border-radius: 14px;
-
-    background-color: var(--color-bg-page);
-    color: var(--color-primary);
-
-    text-decoration: none;
-
+    padding: 64px 40px 80px;
     box-sizing: border-box;
 
-    transition:
-        transform 0.2s ease,
-        background-color 0.2s ease;
+    text-align: center;
 }
 
-.downloadCard:hover {
-    transform: translateY(-1px);
-    background-color: #ffffff;
-}
-
-.downloadIcon {
-    width: 34px;
-    height: 34px;
-
-    display: block;
-    flex-shrink: 0;
-}
-
-.downloadInfo {
-    display: flex;
-    flex-direction: column;
-
-    min-width: 0;
-}
-
-.downloadLabel {
-    font-family: var(--font-open-sans);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 15px;
-    letter-spacing: -0.2px;
-
-    color: #717973;
-}
-
-.downloadTitle {
-    font-family: var(--font-open-sans);
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 24px;
-    letter-spacing: -0.4px;
-
-    color: var(--color-primary);
-}
-
-.imageWrap {
-    min-width: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
 .image {
     width: 100%;
-    max-width: 520px;
-
+    max-width: 800px;
+    height: auto;
     display: block;
+
+    margin-bottom: 40px;
 }
 
-.features {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-}
 
-.featureCard {
-    display: flex;
-    align-items: flex-start;
-    gap: 18px;
-
-    min-width: 0;
-
-    padding: 28px;
-
-    border: 1px solid #C1C8C2;
-    border-radius: 18px;
-
-    background-color: #ffffff;
-
-    box-sizing: border-box;
-}
-
-.featureIcon {
-    width: 42px;
-    height: 42px;
-
-    display: block;
-    flex-shrink: 0;
-}
-
-.featureInfo {
-    min-width: 0;
-}
-
-.featureTitle {
-    margin: 0 0 8px;
+.title {
+    margin: 0 0 20px;
 
     font-family: var(--font-open-sans);
-    font-size: 20px;
-    font-weight: 800;
-    line-height: 28px;
-    letter-spacing: -0.4px;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 52px;
+    letter-spacing: -0.8px;
 
     color: var(--color-primary);
 }
 
-.featureText {
-    margin: 0;
+
+.description {
+    margin: 0 0 40px;
+
+    max-width: 560px;
 
     font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 22px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
     letter-spacing: -0.3px;
 
     color: #414844;
 }
+
+
+.desktopButtons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    margin-bottom: 48px;
+}
+
+.mobileButtons {
+    display: none;
+
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    max-width: 360px;
+
+    margin-bottom: 48px;
+}
+
+.downloadBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 14px 28px;
+
+    border-radius: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.downloadBtnPrimary {
+    background-color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+    color: #ffffff;
+}
+
+.downloadBtnPrimary:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.downloadBtnSecondary {
+    background-color: #ffffff;
+    border: 1.5px solid var(--color-border);
+    color: var(--color-primary);
+}
+
+.downloadBtnSecondary:hover {
+    border-color: var(--color-primary);
+}
+
+.btnIcon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.btnText {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+}
+
+.btnLabel {
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: -0.1px;
+}
+
+.btnOs {
+    font-family: var(--font-open-sans);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 22px;
+    letter-spacing: -0.3px;
+}
+
+
+.features {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.featureIcon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.featureText {
+    font-family: var(--font-open-sans);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.3px;
+
+    color: var(--color-primary);
+}
+

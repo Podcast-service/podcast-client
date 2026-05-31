@@ -25,6 +25,8 @@ import SearchSvg from "../../assets/icons/search.svg";
 import LeftSvg from "../../assets/icons/left.svg";
 import YoutubeSvg from "../../assets/icons/youtube.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
+import YoutubePublishModal from "../../components/YoutubePublishModal/YoutubePublishModal";
+import type { YoutubePublishStatus } from "../../components/YoutubePublishModal/YoutubePublishModal";
 import {
     addPodcastToPlaylist,
     createPlaylist,
@@ -36,8 +38,6 @@ import {
     type PodcastCard,
 } from "../../api/podcast";
 import { uploadPlaylistCover } from "../../api/mediaUpload";
-
-// ─── типы ────────────────────────────────────────────────────────────────────
 
 interface Podcast {
     id: string;
@@ -128,6 +128,9 @@ const CreatePlaylistPage: React.FC = () => {
 
     const canPublishToYoutube = false;
 
+    const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+    const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
+
 
     const getSourceList = (): Podcast[] => {
         if (activeTab === "likes") return likedPodcasts;
@@ -203,13 +206,8 @@ const CreatePlaylistPage: React.FC = () => {
         }
     };
 
-    const handlePublishToYoutube = async () => {
-        try {
-            showToast("Плейлист создан и опубликован на YouTube Music", "success");
-            navigate("/profile/playlists");
-        } catch {
-            showToast("Не удалось опубликовать плейлист. Попробуйте позже.", "error");
-        }
+    const handlePublishToYoutube = () => {
+        setIsYoutubeModalOpen(true);
     };
 
 
@@ -350,6 +348,19 @@ const CreatePlaylistPage: React.FC = () => {
 
                 </div>
             </div>
+
+            {isYoutubeModalOpen && (
+                <YoutubePublishModal
+                    status={youtubeStatus}
+                    onClose={() => setIsYoutubeModalOpen(false)}
+                    onLoginWithGoogle={() => setYoutubeStatus("authorized")}
+                    onPublish={() => setYoutubeStatus("processing")}
+                    onLogoutGoogle={() => setYoutubeStatus("not_authorized")}
+                    onSwitchAccount={() => console.log("switch account")}
+                    onRetry={() => setYoutubeStatus("processing")}
+                    onOpenYoutube={() => window.open("https://music.youtube.com", "_blank")}
+                />
+            )}
         </div>
     );
 };

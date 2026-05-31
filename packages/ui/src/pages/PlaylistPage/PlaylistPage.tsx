@@ -6,6 +6,8 @@ import PlaylistHero from "../../components/PlaylistHero/PlaylistHero";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import ConfirmDeleteModal from "../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import { useToast } from "../../components/Toast/useToast";
+import YoutubePublishModal from "../../components/YoutubePublishModal/YoutubePublishModal";
+import type { YoutubePublishStatus } from "../../components/YoutubePublishModal/YoutubePublishModal";
 
 import {
   getPlaylist,
@@ -36,6 +38,8 @@ const PlaylistPage: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+  const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,7 +54,6 @@ const PlaylistPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
 
-        // Профиль грузим параллельно, чтобы понять, владелец ли пользователь.
         const [detail, profile] = await Promise.all([
           getPlaylist(playlistId),
           isAuthenticated()
@@ -166,7 +169,6 @@ const PlaylistPage: React.FC = () => {
     }
   };
 
-  // Суммарная длительность плейлиста в минутах.
   const totalMinutes = Math.round(
     (playlist.podcasts ?? []).reduce(
       (sum, item) => sum + (item.durationSeconds ?? 0),
@@ -174,7 +176,6 @@ const PlaylistPage: React.FC = () => {
     ) / 60
   );
 
-  // Прослушивания как сумма просмотров входящих подкастов (proxy-метрика).
   const totalListeners = (playlist.podcasts ?? []).reduce(
     (sum, item) => sum + (item.viewsCount ?? 0),
     0
@@ -199,6 +200,7 @@ const PlaylistPage: React.FC = () => {
           onAddClick={handleToggleSave}
           onEdit={handleEdit}
           onDelete={() => setIsDeleteModalOpen(true)}
+          onPublishToYoutube={() => setIsYoutubeModalOpen(true)}
         />
 
         <div className={styles.list}>
@@ -219,6 +221,19 @@ const PlaylistPage: React.FC = () => {
         <ConfirmDeleteModal
           onConfirm={handleConfirmDelete}
           onClose={() => setIsDeleteModalOpen(false)}
+        />
+      )}
+
+      {isYoutubeModalOpen && (
+        <YoutubePublishModal
+          status={youtubeStatus}
+          onClose={() => setIsYoutubeModalOpen(false)}
+          onLoginWithGoogle={() => setYoutubeStatus("authorized")}
+          onPublish={() => setYoutubeStatus("processing")}
+          onLogoutGoogle={() => setYoutubeStatus("not_authorized")}
+          onSwitchAccount={() => console.log("switch account")}
+          onRetry={() => setYoutubeStatus("processing")}
+          onOpenYoutube={() => window.open("https://music.youtube.com", "_blank")}
         />
       )}
     </div>
