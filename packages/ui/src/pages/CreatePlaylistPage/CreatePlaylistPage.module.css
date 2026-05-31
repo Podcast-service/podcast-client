@@ -1,0 +1,374 @@
+.page {
+    width: 100%;
+    flex: 1;
+}
+
+.pageInner {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 40px 80px;
+    box-sizing: border-box;
+}
+
+
+.topBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+
+    flex-shrink: 0;
+
+    transition: opacity 0.15s ease;
+}
+
+.backBtn:hover {
+    opacity: 0.6;
+}
+
+.backIcon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumbLink {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+
+    color: var(--color-secondary);
+    transition: opacity 0.15s ease;
+}
+
+.breadcrumbLink:hover {
+    opacity: 0.7;
+}
+
+.breadcrumbSep {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    color: var(--color-placeholder);
+}
+
+.breadcrumbCurrent {
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--color-placeholder);
+}
+
+
+.pageTitle {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 40px;
+    letter-spacing: -0.6px;
+
+    color: #012D1D;
+}
+
+.pageDesc {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #414844;
+}
+
+
+.layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 24px;
+}
+
+
+.leftBlock {
+    flex: 1;
+    max-width: 770px;
+    flex-shrink: 0;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    padding: 28px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1.5px solid #C1C8C2;
+}
+
+
+.searchWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 14px;
+
+    background-color: #F8F9F8;
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border);
+
+    transition: border-color 0.2s ease;
+}
+
+.searchWrap:focus-within {
+    border-color: var(--color-border-hover);
+}
+
+.searchIcon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: block;
+    opacity: 0.5;
+}
+
+.searchInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    line-height: 20px;
+
+    color: var(--color-main);
+}
+
+.searchInput::placeholder {
+    color: var(--color-placeholder);
+}
+
+
+.podcastList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.rightBlock {
+    background-color: #ffffff;
+    border-radius: 12px;
+
+    padding: 28px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1.5px solid #C1C8C2;
+}
+
+.addedTitle {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+
+    color: #012D1D;
+}
+
+.emptyText {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+
+    color: #78716C;
+}
+
+
+.addedList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.addedItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.addedNumber {
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+
+    color: var(--color-placeholder);
+
+    width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    margin-top: 8px;
+}
+
+.btnCreate {
+    padding: 10px 100px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btnCreate:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btnCancel {
+    padding: 10px 80px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1.5px solid var(--color-secondary);
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btnCancel:hover {
+    background-color: #F5FEF6;
+}
+
+.rightColumn {
+    max-width: 520px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.btnYoutube {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 32px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: #1B4332;
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.btnYoutube:hover {
+    opacity: 0.85;
+}
+
+.youtubeIcon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.youtubeHint {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    padding: 14px 16px;
+
+    background-color: transparent;
+    border: 1.5px solid #F5EDDF;
+    border-radius: 10px;
+}
+
+.youtubeHintIcon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    display: block;
+    margin-top: 1px;
+}
+
+.youtubeHintText {
+    margin: 0;
+
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.1px;
+
+    color: #717973;
+}

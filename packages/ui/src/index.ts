@@ -23,10 +23,16 @@ export { default as ProfileSettingsPage } from "./pages/ProfileSettingsPage/Prof
 export { default as PlaylistPage } from "./pages/PlaylistPage/PlaylistPage";
 export { default as BecomeAuthorPage } from "./pages/BecomeAuthorPage/BecomeAuthorPage";
 export { default as ProfileMyPodcastsPage } from "./pages/ProfileMyPodcastsPage/ProfileMyPodcastsPage";
+export { default as CreatePlaylistPage } from "./pages/CreatePlaylistPage/CreatePlaylistPage";
+export { default as EditPlaylistPage } from "./pages/EditPlaylistPage/EditPlaylistPage";
 
 
 
-
+export { default as AudioUploadBlock } from "./components/AudioUploadBlock/AudioUploadBlock";
+export { default as PodcastPublishStatus } from "./components/PodcastPublishStatus/PodcastPublishStatus";
+export { default as CreatePodcastForm } from "./components/CreatePodcastForm/CreatePodcastForm";
+export { default as CreatePlaylistHeader } from "./components/CreatePlaylistHeader/CreatePlaylistHeader";
+export { default as PlaylistPodcastRow } from "./components/PlaylistPodcastRow/PlaylistPodcastRow";
 export { default as ProfileAuthorHero } from "./components/ProfileAuthorHero/ProfileAuthorHero";
 export { default as BecomeAuthorSuccessModal } from "./components/BecomeAuthorSuccessModal/BecomeAuthorSuccessModal";
 export { default as PlaylistHero } from "./components/PlaylistHero/PlaylistHero";

@@ -96,7 +96,7 @@ export async function resendVerification(email: string): Promise<void> {
  * Ответ 200: { access_token, refresh_token, expires_in }
  * Ошибки:
  *   401 — неверная почта или пароль
- *   403 — email не подтверждён (сервер сам отправит код)
+ *   403 — email не подтвержден (сервер сам отправит код)
  */
 export async function login(
   email: string,

@@ -93,7 +93,7 @@ const BecomeAuthorPage: React.FC = () => {
                             )}
                         </div>
 
-                        <p className={styles.avatarHint}>Аватар автора берётся из вашего профиля</p>
+                        <p className={styles.avatarHint}>Аватар автора берется из вашего профиля</p>
 
                         <Link to="/profile/edit" className={styles.avatarEditLink}>
                             Изменить в профиле →
