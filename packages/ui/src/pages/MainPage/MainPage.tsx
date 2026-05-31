@@ -47,8 +47,6 @@ interface MainLayoutContext {
   playPodcast: (podcast: Podcast) => void;
 }
 
-// Сколько подкастов тянем для главной: первые идут в "Топ подкастов",
-// из всей выборки собираем "Топ авторов".
 const TOP_FEED_SIZE = 50;
 
 const mapPodcast = (podcast: ApiPodcastCard): Podcast => ({
@@ -174,7 +172,6 @@ const MainPage: React.FC = () => {
     }
     const wasSubscribed = Boolean(author.isSubscribed);
 
-    // Оптимистичное обновление.
     setTopAuthors((prev) =>
       prev.map((item) =>
         item.id === authorId
@@ -199,7 +196,6 @@ const MainPage: React.FC = () => {
         )
       );
     } catch (err) {
-      // Откат при ошибке.
       setTopAuthors((prev) =>
         prev.map((item) =>
           item.id === authorId

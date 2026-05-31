@@ -1,5 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+
 import styles from "./PodcastRow.module.css";
 import LikeActiveSvg from "../../assets/icons/likePodRow.svg";
 import LikeDefaultSvg from "../../assets/icons/defHeart.svg";
@@ -24,6 +28,7 @@ interface PodcastRowProps {
   isLiked?: boolean;
   isPlaying?: boolean;
   isOwner?: boolean;
+  isAuthenticated?: boolean;
   onPlayClick?: () => void;
   onLikeClick?: () => void;
   onAddClick?: () => void;
@@ -72,6 +77,7 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
   isLiked = false,
   isPlaying = false,
   isOwner = false,
+  isAuthenticated = false,
   onPlayClick,
   onLikeClick,
   onAddClick,
@@ -80,6 +86,8 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
   const navigate = useNavigate();
 
   const hasProgress = progress !== undefined && progress > 0 && !isCompleted;
+  const { isModalOpen, closeModal, guard } =
+    useAuthAction(isAuthenticated);
 
   const handleEditClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -164,7 +172,12 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
         <button
           type="button"
           className={styles.actionBtn}
-          onClick={onAddClick}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            guard(onAddClick)();
+          }}
           aria-label="Добавить в плейлист"
         >
           <img
@@ -178,7 +191,12 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
         <button
           type="button"
           className={styles.actionBtn}
-          onClick={onLikeClick}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            guard(onLikeClick)();
+          }}
           aria-label={isLiked ? "Убрать лайк" : "Лайк"}
         >
           <img
@@ -203,6 +221,9 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
           />
         </button>
       </div>
+      {isModalOpen && (
+        <LoginPromptModal onClose={closeModal} />
+      )}
     </article>
   );
 };

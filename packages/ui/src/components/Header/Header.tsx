@@ -16,7 +16,6 @@ interface HeaderProps {
   onSearchClick?: () => void;
 }
 
-// Пункты навигации. authOnly показываются только авторизованным.
 const NAV_ITEMS = [
   { label: "Главная", path: "/", authOnly: false },
   { label: "Подкасты", path: "/podcasts", authOnly: false },
@@ -43,6 +42,8 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
   const [searchValue, setSearchValue] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestItem[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const isSearchPage = location.pathname === "/search";
 
   const trimmedSearch = useMemo(() => searchValue.trim(), [searchValue]);
 
@@ -82,13 +83,14 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
 
   return (
     <header className={styles.header}>
-      <div className={`container ${styles.headerWrap}`}>
+      <div className={`container ${styles.headerWrap} ${isSearchPage ? styles.headerWrapSearch : ""}`}>
+
         <Link to="/" className={styles.logo}>
           <img src={LogoSvg} alt="Podcast" className={styles.logoIcon} />
           <span className={styles.logoText}>Podcast</span>
         </Link>
 
-        <nav className={styles.nav}>
+        <nav className={`${styles.nav} ${isSearchPage ? styles.navCentered : ""}`}>
           {NAV_ITEMS.filter((item) => !item.authOnly || isAuthenticated).map(
             (item) => (
               <Link
@@ -104,65 +106,68 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
           )}
         </nav>
 
-        <div className={styles.right}>
-          <div className={styles.searchBox}>
-          <div className={styles.searchWrap}>
-            <img
-              src={SearchSvg}
-              alt=""
-              className={styles.searchIcon}
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Поиск подкастов и аудиокниг...."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onClick={onSearchClick}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => {
-                window.setTimeout(() => setIsSearchFocused(false), 120);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  submitSearch();
-                }
-              }}
-            />
-          </div>
+        <div className={`${styles.right} ${isSearchPage ? styles.rightSearch : ""}`}>
 
-          {showSuggestions && (
-            <div className={styles.suggestions}>
-              {suggestions.map((item) => (
-                <Link
-                  key={`${item.type}-${item.id}`}
-                  to={getSuggestionPath(item)}
-                  className={styles.suggestionItem}
-                  onClick={() => setIsSearchFocused(false)}
-                >
-                  {item.coverUrl ? (
-                    <img
-                      src={item.coverUrl}
-                      alt=""
-                      className={styles.suggestionImage}
-                    />
-                  ) : (
-                    <span className={styles.suggestionPlaceholder} />
-                  )}
+          {!isSearchPage && (
+            <div className={styles.searchBox}>
+              <div className={styles.searchWrap}>
+                <img
+                  src={SearchSvg}
+                  alt=""
+                  className={styles.searchIcon}
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Поиск подкастов и аудиокниг...."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onClick={onSearchClick}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => {
+                    window.setTimeout(() => setIsSearchFocused(false), 120);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      submitSearch();
+                    }
+                  }}
+                />
+              </div>
 
-                  <span className={styles.suggestionText}>
-                    <span className={styles.suggestionLabel}>{item.label}</span>
-                    <span className={styles.suggestionType}>
-                      {getSuggestionTypeLabel(item.type)}
-                    </span>
-                  </span>
-                </Link>
-              ))}
+              {showSuggestions && (
+                <div className={styles.suggestions}>
+                  {suggestions.map((item) => (
+                    <Link
+                      key={`${item.type}-${item.id}`}
+                      to={getSuggestionPath(item)}
+                      className={styles.suggestionItem}
+                      onClick={() => setIsSearchFocused(false)}
+                    >
+                      {item.coverUrl ? (
+                        <img
+                          src={item.coverUrl}
+                          alt=""
+                          className={styles.suggestionImage}
+                        />
+                      ) : (
+                        <span className={styles.suggestionPlaceholder} />
+                      )}
+
+                      <span className={styles.suggestionText}>
+                        <span className={styles.suggestionLabel}>{item.label}</span>
+                        <span className={styles.suggestionType}>
+                          {getSuggestionTypeLabel(item.type)}
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-          </div>
 
           {isAuthenticated ? (
             <>
@@ -203,6 +208,7 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
               </Link>
             </div>
           )}
+
         </div>
       </div>
     </header>

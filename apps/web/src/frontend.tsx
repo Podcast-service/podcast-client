@@ -47,8 +47,10 @@ import {
   DownloadAppBanner,
   PodcastsPage,
   DownloadAppPage,
-  AudioUploadBlock,
   useIsAuthenticated,
+  YoutubePublishModal,
+  CopyLinkModal,
+  NotFoundPage,
 } from "@podcast/ui";
 
 import "./styles/global.css";
@@ -295,6 +297,17 @@ function DevPage() {
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
+  const [youtubeStatus, setYoutubeStatus] = useState<"not_authorized" | "authorized" | "processing" | "success" | "error">("not_authorized");
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+
+  const mockGoogleAccount = {
+      name: "Alexey Podcaster",
+      email: "alex.creator@gmail.com",
+      avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
+  };
+
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(true);
+
   return (
     <div className="container">
       <div
@@ -324,6 +337,48 @@ function DevPage() {
   avatarUrl="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
   isAuthor={false}
 />
+
+{isCopyModalOpen && (
+    <CopyLinkModal
+        link={window.location.href}
+        onClose={() => setIsCopyModalOpen(false)}
+    />
+)}
+
+
+<section>
+  <h2 style={{ marginBottom: "16px", fontFamily: "var(--font-open-sans)", fontSize: "18px", fontWeight: 700 }}>
+    YoutubePublishModal
+  </h2>
+
+  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+    {(["not_authorized", "authorized", "processing", "success", "error"] as const).map((s) => (
+      <button
+        key={s}
+        onClick={() => { setYoutubeStatus(s); setIsYoutubeModalOpen(true); }}
+        style={{ padding: "8px 16px", cursor: "pointer" }}
+      >
+        {s}
+      </button>
+    ))}
+  </div>
+
+  {isYoutubeModalOpen && (
+    <YoutubePublishModal
+      status={youtubeStatus}
+      googleAccount={youtubeStatus !== "not_authorized" ? mockGoogleAccount : undefined}
+      onClose={() => setIsYoutubeModalOpen(false)}
+      onLoginWithGoogle={() => setYoutubeStatus("authorized")}
+      onPublish={() => setYoutubeStatus("processing")}
+      onLogoutGoogle={() => { setYoutubeStatus("not_authorized"); }}
+      onSwitchAccount={() => console.log("switch account")}
+      onRetry={() => setYoutubeStatus("processing")}
+      onOpenYoutube={() => window.open("https://music.youtube.com", "_blank")}
+    />
+  )}
+</section>
+
+
 
 <button onClick={() => setIsOtpOpen(true)}>Открыть OTP модалку</button>
 
@@ -588,6 +643,7 @@ function Frontend() {
             <Route path="history" element={<ProfileHistoryPage />} />
           </Route>
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

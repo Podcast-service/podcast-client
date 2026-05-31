@@ -271,3 +271,21 @@
 .registerBtn:hover {
     opacity: 0.9;
 }
+
+
+
+.headerWrapSearch {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+}
+
+.navCentered {
+    justify-self: center;
+}
+
+.rightSearch {
+    margin-left: 0;
+    justify-self: end;
+}

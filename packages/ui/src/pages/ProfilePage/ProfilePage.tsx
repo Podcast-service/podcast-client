@@ -35,7 +35,6 @@ const ProfilePage: React.FC = () => {
         if (cancelled) return;
         setProfile(me);
 
-        // Автор? GET /authors/me вернёт 200 для автора, иначе 403/404.
         const author = await getMyAuthorProfile().catch(() => null);
         if (!cancelled) {
           setAuthorProfile(author);

@@ -43,7 +43,7 @@ const ProfileSubscriptionsPage: React.FC = () => {
     try {
       await unsubscribeAuthor(authorId);
     } catch (err) {
-      setSubscriptions(snapshot); // откат
+      setSubscriptions(snapshot);
       console.error("Failed to unsubscribe", err);
     }
   };
