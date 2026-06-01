@@ -65,7 +65,7 @@ const VerifyEmailPage = () => {
     try {
       const tokens = await verifyEmail(userEmail, code);
       saveTokens(tokens);
-      navigate("/login");
+      navigate("/");
     } catch (err: any) {
       setIsCodeError(true);
       triggerShake();
