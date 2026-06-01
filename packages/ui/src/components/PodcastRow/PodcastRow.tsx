@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuthAction } from "../../hooks/useAuthAction";
 import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+import { useAddToPlaylist } from "../AddToPlaylist/useAddToPlaylist";
 
 import styles from "./PodcastRow.module.css";
 import LikeActiveSvg from "../../assets/icons/likePodRow.svg";
@@ -77,17 +78,20 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
   isLiked = false,
   isPlaying = false,
   isOwner = false,
-  isAuthenticated = false,
+  isAuthenticated = true,
   onPlayClick,
   onLikeClick,
   onAddClick,
   onEditClick,
 }) => {
   const navigate = useNavigate();
+  const addToPlaylist = useAddToPlaylist();
 
   const hasProgress = progress !== undefined && progress > 0 && !isCompleted;
   const { isModalOpen, closeModal, guard } =
     useAuthAction(isAuthenticated);
+  const handleAddClick =
+    onAddClick ?? (addToPlaylist ? () => addToPlaylist.open(id) : undefined);
 
   const handleEditClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -176,7 +180,7 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
             event.preventDefault();
             event.stopPropagation();
 
-            guard(onAddClick)();
+            handleAddClick?.();
           }}
           aria-label="Добавить в плейлист"
         >

@@ -48,6 +48,7 @@ import {
   PodcastsPage,
   DownloadAppPage,
   useIsAuthenticated,
+  AddToPlaylistProvider,
   YoutubePublishModal,
   CopyLinkModal,
   NotFoundPage,
@@ -94,6 +95,7 @@ function MainLayout() {
 
   return (
     <ToastProvider>
+      <AddToPlaylistProvider>
       <div className="app appMain">
         <Header />
         <main className="mainContent">
@@ -117,6 +119,7 @@ function MainLayout() {
         />
         <Footer />
       </div>
+      </AddToPlaylistProvider>
     </ToastProvider>
   );
 }

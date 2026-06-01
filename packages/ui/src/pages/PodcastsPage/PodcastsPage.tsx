@@ -208,8 +208,6 @@ const PodcastsPage: React.FC = () => {
                   {...podcast}
                   onPlayClick={() => playPodcast(podcast)}
                   onLikeClick={() => handleLike(podcast.id)}
-                  onAddClick={() => {
-                  }}
                 />
               ))}
             </div>

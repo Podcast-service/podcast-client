@@ -1,9 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./PodcastCard.module.css";
-
-import { useAuthAction } from "../../hooks/useAuthAction";
-import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
+import { useAddToPlaylist } from "../AddToPlaylist/useAddToPlaylist";
 
 import ListenersSvg from "../../assets/icons/listeners.svg";
 import LikeSvg from "../../assets/icons/like.svg";
@@ -27,7 +25,6 @@ interface PodcastCardProps {
   progress?: number;
   isLiked?: boolean;
   isPlaying?: boolean;
-  isAuthenticated?: boolean;
   onPlayClick?: () => void;
   onLikeClick?: () => void;
   onAddClick?: () => void;
@@ -53,14 +50,15 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
   progress,
   isLiked = false,
   isPlaying = false,
-  isAuthenticated = false,
   onPlayClick,
   onLikeClick,
   onAddClick,
 }) => {
   const hasProgress = progress !== undefined && progress > 0 && progress < 100;
-  const { isModalOpen, closeModal, guard } =
-  useAuthAction(isAuthenticated);
+
+  const addToPlaylist = useAddToPlaylist();
+  const handleAddClick =
+    onAddClick ?? (addToPlaylist ? () => addToPlaylist.open(id) : undefined);
 
   return (
     <article className={styles.card}>
@@ -89,7 +87,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
               className={styles.overlayBtn}
               onClick={(e) => {
                 e.preventDefault();
-                guard(onAddClick)();
+                handleAddClick?.();
               }}
               aria-label="Добавить"
             >
@@ -123,7 +121,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
               className={styles.overlayBtn}
               onClick={(e) => {
                 e.preventDefault();
-                guard(onLikeClick)();
+                onLikeClick?.();
               }}
               aria-label={isLiked ? "Убрать лайк" : "Поставить лайк"}
             >
@@ -180,9 +178,6 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
           </div>
         </div>
       </Link>
-      {isModalOpen && (
-        <LoginPromptModal onClose={closeModal} />
-      )}
     </article>
   );
 };

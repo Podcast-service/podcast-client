@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
 import CreatePodcastForm from "../../components/CreatePodcastForm/CreatePodcastForm";
@@ -18,6 +18,7 @@ import {
 } from "../../api/podcast";
 import { toPublishStatus, type PublishStatus } from "../../utils/mappers";
 import { uploadPodcastAudio, uploadPodcastCover } from "../../api/mediaUpload";
+import { generateTts } from "../../api/tts";
 
 import LeftSvg from "../../assets/icons/left.svg";
 import WarningSvg from "../../assets/icons/warning.svg";
@@ -40,14 +41,20 @@ const toCategoryOption = (category: CategoryResponse) => ({
     label: category.name,
 });
 
+const isFileType = (value: string | null): value is FileType =>
+    value === "audio" || value === "text";
+
 /** Подкаст с бэкенда → данные формы создания. Тип файла на бэкенде не хранится,
- *  поэтому загруженный черновик всегда открываем в режиме «Аудиофайл». */
-const toFormData = (p: PodcastDetailResponse): PodcastFormData => ({
+ *  поэтому берём его из URL, а без подсказки открываем в режиме «Аудиофайл». */
+const toFormData = (
+    p: PodcastDetailResponse,
+    fileType: FileType = "audio"
+): PodcastFormData => ({
     title: p.title,
     description: p.description ?? "",
     categoryId: p.category?.id ?? "",
     speakersCount: p.num_speakers,
-    fileType: "audio",
+    fileType,
 });
 
 /** Статусы, при которых исходный аудиофайл уже загружен на бэкенд. */
@@ -56,7 +63,9 @@ const AUDIO_UPLOADED_STATUSES = ["UPLOADED", "PROCESSING", "PROCESSED", "PUBLISH
 const CreatePodcastPage: React.FC = () => {
     const navigate = useNavigate();
     const { podcastId } = useParams<{ podcastId?: string }>();
+    const [searchParams] = useSearchParams();
     const { showToast } = useToast();
+    const urlFileType = searchParams.get("fileType");
 
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
     const [formData, setFormData] = useState<PodcastFormData | null>(null);
@@ -69,6 +78,17 @@ const CreatePodcastPage: React.FC = () => {
     const [loadError, setLoadError] = useState<string | null>(null);
 
     const pollRef = useRef<number | null>(null);
+
+    const rememberPodcastInUrl = (id: string, fileType?: FileType) => {
+        const params = new URLSearchParams();
+        if (fileType) {
+            params.set("fileType", fileType);
+        }
+        const query = params.toString();
+        navigate(`/podcasts/create/${id}${query ? `?${query}` : ""}`, {
+            replace: true,
+        });
+    };
 
     const stopPolling = () => {
         if (pollRef.current !== null) {
@@ -142,7 +162,9 @@ const CreatePodcastPage: React.FC = () => {
                 if (cancelled) return;
 
                 setPodcast(fresh);
-                setFormData(toFormData(fresh));
+                setFormData(
+                    toFormData(fresh, isFileType(urlFileType) ? urlFileType : "audio")
+                );
                 const status = toPublishStatus(fresh.status);
                 setPublishStatus(status);
                 // Если файл ещё обрабатывается — продолжаем следить за статусом.
@@ -165,7 +187,7 @@ const CreatePodcastPage: React.FC = () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [podcastId]);
+    }, [podcastId, urlFileType]);
 
     const handleFormSave = async (data: PodcastFormData) => {
         setIsSaving(true);
@@ -179,6 +201,7 @@ const CreatePodcastPage: React.FC = () => {
                 });
                 setPodcast(updated);
                 setFormData(data);
+                rememberPodcastInUrl(updated.id, data.fileType);
                 showToast("Черновик обновлён", "success");
                 return;
             }
@@ -196,7 +219,7 @@ const CreatePodcastPage: React.FC = () => {
             setPublishStatus(toPublishStatus(created.status));
             showToast("Черновик подкаста создан", "success");
             // Запоминаем id в URL: при перезагрузке черновик подтянется целиком.
-            navigate(`/podcasts/create/${created.id}`, { replace: true });
+            rememberPodcastInUrl(created.id, data.fileType);
         } catch (err) {
             console.error("Failed to save podcast draft", err);
             showToast("Не удалось сохранить черновик. Попробуйте позже.", "error");
@@ -215,6 +238,7 @@ const CreatePodcastPage: React.FC = () => {
         try {
             await uploadPodcastAudio(podcast.id, file);
             showToast("Аудиофайл загружен, идёт обработка", "success");
+            rememberPodcastInUrl(podcast.id, formData?.fileType);
             // Дальше статус двигает media worker (UPLOADED → PROCESSING →
             // PROCESSED): опрашиваем бэкенд, пока подкаст не будет готов.
             startPolling(podcast.id);
@@ -244,13 +268,45 @@ const CreatePodcastPage: React.FC = () => {
         }
     };
 
-    const handleGenerate = (_data: {
+    const handleGenerate = async (data: {
         speakers: string[];
         blocks: { speakerId: string; text: string }[];
         coverFile: File | null;
     }) => {
-        setPublishStatus("error");
-        showToast("Генерация подкаста из текста пока не подключена к API.", "error");
+        if (!podcast) {
+            showToast("Сначала сохраните данные подкаста", "error");
+            return;
+        }
+
+        const text = data.blocks
+            .filter((block) => block.text.trim() !== "")
+            .map((block) => ({
+                text: block.text.trim(),
+                voice: data.speakers[Number(block.speakerId)]?.trim() || "",
+            }));
+
+        if (text.length === 0) {
+            showToast("Добавьте хотя бы одну реплику с текстом", "error");
+            return;
+        }
+
+        setPublishStatus("processing");
+        try {
+            const result = await generateTts({ id_podcast: podcast.id, text });
+            const generatedPodcastId = result.id_podcast || podcast.id;
+            showToast("Текст отправлен на генерацию", "success");
+            rememberPodcastInUrl(generatedPodcastId, formData?.fileType ?? "text");
+            startPolling(generatedPodcastId);
+        } catch (err: any) {
+            console.error("Failed to start TTS generation", err);
+            setPublishStatus("error");
+            showToast(
+                err?.status === 422
+                    ? "Проверьте текст и спикеров: данные не прошли валидацию."
+                    : "Не удалось запустить генерацию. Попробуйте позже.",
+                "error"
+            );
+        }
     };
 
     const handlePublish = async () => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./BecomeAuthorPage.module.css";
 
@@ -6,16 +6,10 @@ import InputField from "../../components/InputField/InputField";
 import TextareaField from "../../components/TextareaField/TextareaField";
 import BecomeAuthorSuccessModal from "../../components/BecomeAuthorSuccessModal/BecomeAuthorSuccessModal";
 import { useToast } from "../../components/Toast/useToast";
-import { createAuthorProfile } from "../../api/podcast";
+import { createAuthorProfile, getMyProfile } from "../../api/podcast";
 
 import WarningSvg from "../../assets/icons/warning.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
-
-
-const MOCK_USER = {
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400",
-    username: "alex_johnson",
-};
 
 
 const validateAuthorName = (value: string): string => {
@@ -34,12 +28,32 @@ const BecomeAuthorPage: React.FC = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
 
-    const [authorName, setAuthorName] = useState(MOCK_USER.username);
+    const [username, setUsername] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+    const [authorName, setAuthorName] = useState("");
     const [authorNameError, setAuthorNameError] = useState("");
     const [authorBio, setAuthorBio] = useState("");
     const [authorBioError, setAuthorBioError] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+    // Имя и аватар берём из профиля пользователя; именем предзаполняем поле автора.
+    useEffect(() => {
+        let cancelled = false;
+
+        getMyProfile()
+            .then((profile) => {
+                if (cancelled) return;
+                setUsername(profile.username);
+                setAvatarUrl(profile.avatarUrl ?? undefined);
+                setAuthorName((prev) => prev || profile.username);
+            })
+            .catch((err) => console.error("Failed to load profile", err));
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const handleSubmit = async () => {
         const nameErr = validateAuthorName(authorName);
@@ -86,10 +100,10 @@ const BecomeAuthorPage: React.FC = () => {
 
                     <div className={styles.avatarSection}>
                         <div className={styles.avatarWrap}>
-                            {MOCK_USER.avatarUrl ? (
+                            {avatarUrl ? (
                                 <img
-                                    src={MOCK_USER.avatarUrl}
-                                    alt={MOCK_USER.username}
+                                    src={avatarUrl}
+                                    alt={username}
                                     className={styles.avatar}
                                 />
                             ) : (

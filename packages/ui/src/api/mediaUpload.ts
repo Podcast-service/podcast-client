@@ -1,7 +1,7 @@
 import { clearTokens, getAccessToken } from "./auth";
 
 const BASE_URL = (
-  (import.meta as any).env?.VITE_MEDIA_UPLOAD_API_URL ?? "http://castapp.ru"
+  (import.meta as any).env?.VITE_MEDIA_UPLOAD_API_URL ?? ""
 ).replace(/\/+$/, "");
 
 export const MAX_MEDIA_UPLOAD_SIZE = 50 * 1024 * 1024;

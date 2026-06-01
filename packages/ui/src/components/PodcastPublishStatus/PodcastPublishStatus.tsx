@@ -81,7 +81,7 @@ const PodcastPublishStatus: React.FC<PodcastPublishStatusProps> = ({
                             aria-hidden="true"
                             className={`${styles.processingIcon} ${styles.spinning}`}
                         />
-                        <span className={styles.processingText}>Обрабатывается...</span>
+                        <span className={styles.processingText}>Обработка файла</span>
                     </div>
                 </div>
             )}

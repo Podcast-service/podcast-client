@@ -1,5 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { AUTH_CHANGE_EVENT, getAccessToken } from "../api/auth";
+import {
+  AUTH_CHANGE_EVENT,
+  clearTokens,
+  getAccessToken,
+  getTokenClaims,
+} from "../api/auth";
 
 function subscribe(callback: () => void): () => void {
   window.addEventListener(AUTH_CHANGE_EVENT, callback);
@@ -13,7 +18,24 @@ function subscribe(callback: () => void): () => void {
 export function useIsAuthenticated(): boolean {
   return useSyncExternalStore(
     subscribe,
-    () => Boolean(getAccessToken()),
+    () => {
+      if (!getAccessToken()) {
+        return false;
+      }
+
+      const claims = getTokenClaims();
+      if (!claims) {
+        clearTokens();
+        return false;
+      }
+
+      if (typeof claims.exp === "number" && claims.exp * 1000 <= Date.now()) {
+        clearTokens();
+        return false;
+      }
+
+      return true;
+    },
     () => false
   );
 }

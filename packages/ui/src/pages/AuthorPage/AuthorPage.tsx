@@ -12,6 +12,8 @@ import {
   getAuthorPlaylists,
   subscribeAuthor,
   unsubscribeAuthor,
+  votePodcast,
+  removePodcastVote,
   isAuthenticated,
   type AuthorProfileResponse,
 } from "../../api/podcast";
@@ -135,6 +137,59 @@ const AuthorPage: React.FC = () => {
     }
   };
 
+  const handlePodcastLike = async (id: string) => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    const target = podcasts.find((podcast) => podcast.id === id);
+    if (!target) return;
+    const wasLiked = target.currentUserVote === "LIKE";
+
+    setPodcasts((prev) =>
+      prev.map((podcast) =>
+        podcast.id === id
+          ? {
+              ...podcast,
+              isLiked: !wasLiked,
+              currentUserVote: wasLiked ? null : "LIKE",
+            }
+          : podcast
+      )
+    );
+
+    try {
+      const result = wasLiked
+        ? await removePodcastVote(id)
+        : await votePodcast(id, "LIKE");
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: result.currentUserVote === "LIKE",
+                currentUserVote: result.currentUserVote ?? null,
+              }
+            : podcast
+        )
+      );
+    } catch (err) {
+      setPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: wasLiked,
+                currentUserVote: wasLiked ? "LIKE" : null,
+              }
+            : podcast
+        )
+      );
+      console.error("Failed to vote podcast", err);
+    }
+  };
+
   const filteredPodcasts = useMemo(() => {
     const query = searchValue.trim().toLowerCase();
     if (!query) {
@@ -206,6 +261,7 @@ const AuthorPage: React.FC = () => {
                   key={podcast.id}
                   {...podcast}
                   onPlayClick={() => playPodcast(podcast)}
+                  onLikeClick={() => handlePodcastLike(podcast.id)}
                 />
               ))
             )}

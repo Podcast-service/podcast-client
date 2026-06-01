@@ -32,6 +32,7 @@ export default defineConfig({
     proxy: {
       "^/podcast/v1(?:/|$)": proxyConfig,
       "^/auth(?:/|$)": proxyConfig,
+      "^/api/(?:media|tts)(?:/|$)": proxyConfig,
     },
   },
   preview: {

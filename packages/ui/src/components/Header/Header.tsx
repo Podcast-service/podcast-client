@@ -8,6 +8,7 @@ import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 import { useIsAuthenticated } from "../../hooks/useAuth";
 import {
   getSearchSuggestions,
+  getMyProfile,
   type SearchSuggestItem,
 } from "../../api/podcast";
 
@@ -42,10 +43,34 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
   const [searchValue, setSearchValue] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestItem[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [profileAvatar, setProfileAvatar] = useState<string | undefined>(
+    undefined
+  );
 
   const isSearchPage = location.pathname === "/search";
 
   const trimmedSearch = useMemo(() => searchValue.trim(), [searchValue]);
+
+  // Аватар текущего пользователя для шапки (prop avatarUrl имеет приоритет).
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setProfileAvatar(undefined);
+      return;
+    }
+
+    let cancelled = false;
+    getMyProfile()
+      .then((profile) => {
+        if (!cancelled) setProfileAvatar(profile.avatarUrl ?? undefined);
+      })
+      .catch((err) => console.error("Failed to load profile avatar", err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  const effectiveAvatar = avatarUrl ?? profileAvatar;
 
   useEffect(() => {
     if (trimmedSearch.length < 2) {
@@ -192,7 +217,7 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
                 aria-label="Профиль"
               >
                 <img
-                  src={avatarUrl || DefaultAvatarSvg}
+                  src={effectiveAvatar || DefaultAvatarSvg}
                   alt="Профиль"
                   className={styles.avatar}
                 />

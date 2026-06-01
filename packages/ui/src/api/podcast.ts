@@ -246,6 +246,14 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+const PROTECTED_GET_PREFIXES = [
+  "/users/me",
+  "/authors/me",
+];
+
+const canRetryAnonymously = (path: string): boolean =>
+  !PROTECTED_GET_PREFIXES.some((prefix) => path.startsWith(prefix));
+
 /**
  * GET-запрос к podcast-core. Bearer-токен добавляется автоматически,
  * если пользователь авторизован (часть ручек публичны, но при наличии
@@ -272,7 +280,9 @@ async function apiGet<T>(path: string, query?: object): Promise<T> {
   // повторяем запрос анонимно — публичные ручки должны работать без логина.
   if (res.status === 401 && token) {
     clearTokens();
-    res = await fetch(url.toString());
+    if (canRetryAnonymously(path)) {
+      res = await fetch(url.toString());
+    }
   }
 
   return handleResponse<T>(res);

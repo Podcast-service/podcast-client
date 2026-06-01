@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./CreatePodcastForm.module.css";
 import SelectField from "../SelectField/SelectField";
-
 
 type FileType = "audio" | "text";
 
@@ -30,7 +29,6 @@ interface CreatePodcastFormProps {
     loading?: boolean;
 }
 
-
 const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
     categories,
     initialTitle = "",
@@ -55,6 +53,24 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
     const [descriptionError, setDescriptionError] = useState("");
     const [speakersError, setSpeakersError] = useState("");
 
+    useEffect(() => {
+        setTitle(initialTitle);
+        setDescription(initialDescription);
+        setCategoryId(initialCategoryId);
+        setSpeakersCount(
+            initialSpeakersCount != null ? String(initialSpeakersCount) : ""
+        );
+        setFileType(initialFileType);
+        setTitleError("");
+        setDescriptionError("");
+        setSpeakersError("");
+    }, [
+        initialTitle,
+        initialDescription,
+        initialCategoryId,
+        initialSpeakersCount,
+        initialFileType,
+    ]);
 
     const validateTitle = (value: string): string => {
         if (!value.trim()) return "Название обязательно";
@@ -76,7 +92,6 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
         return "";
     };
 
-
     const isFormFilled =
         title.trim().length >= 2 &&
         description.trim().length > 0 &&
@@ -86,7 +101,6 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
         parseInt(speakersCount) >= 1 &&
         (fileType !== "text" || parseInt(speakersCount) <= 4) &&
         fileType !== null;
-
 
     const handleSpeakersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\D/g, "");
@@ -118,14 +132,12 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
             description,
             categoryId,
             speakersCount: parseInt(speakersCount),
-            fileType: fileType!,
+            fileType,
         });
     };
 
-
     return (
         <div className={styles.form}>
-
             <div className={styles.fieldWrap}>
                 <label className={styles.label}>Название подкаста *</label>
                 <div className={`${styles.inputWrap} ${titleError ? styles.inputError : ""}`}>
@@ -165,7 +177,6 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
             </div>
 
             <div className={styles.rowDouble}>
-
                 <SelectField
                     label="Категория *"
                     options={categories}
@@ -236,7 +247,6 @@ const CreatePodcastForm: React.FC<CreatePodcastFormProps> = ({
                     {loading ? "Сохраняем..." : "Сохранить"}
                 </button>
             </div>
-
         </div>
     );
 };
