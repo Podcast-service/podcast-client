@@ -17,3 +17,19 @@
 .content {
     padding-top: 32px;
 }
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 0 20px 48px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 0 16px 32px;
+    }
+
+    .content {
+        padding-top: 20px;
+    }
+}

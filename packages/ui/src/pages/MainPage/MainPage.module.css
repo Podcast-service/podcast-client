@@ -237,3 +237,134 @@
     gap: 28px;
 }
 
+@media (max-width: 1200px) {
+    .podcastsGrid,
+    .authorsGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding: 32px 40px 60px;
+    }
+
+    .heroTitle {
+        font-size: 36px;
+        line-height: 44px;
+    }
+
+    .podcastsGrid,
+    .authorsGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 24px 20px 48px;
+    }
+
+    .hero {
+        padding: 28px 24px;
+        min-height: 280px;
+        margin-bottom: 32px;
+    }
+
+    .heroGradient {
+        background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.92) 30%,
+            rgba(0, 0, 0, 0.72) 55%,
+            rgba(0, 0, 0, 0.45) 80%,
+            rgba(0, 0, 0, 0.18) 100%
+        );
+    }
+
+    .heroTitle {
+        font-size: 26px;
+        line-height: 34px;
+        letter-spacing: -0.8px;
+        margin-bottom: 16px;
+    }
+
+    .heroDesc {
+        font-size: 15px;
+        line-height: 24px;
+        margin-bottom: 16px;
+    }
+
+    .heroMeta {
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .sections {
+        gap: 36px;
+    }
+
+    .podcastsGrid,
+    .authorsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 16px 16px 40px;
+    }
+
+    .hero {
+        padding: 20px 16px;
+        min-height: 220px;
+        margin-bottom: 24px;
+        border-radius: 16px;
+    }
+
+    .heroBadge {
+        padding: 8px 14px;
+        margin-bottom: 14px;
+    }
+
+    .heroBadgeText {
+        font-size: 13px;
+    }
+
+    .heroTitle {
+        font-size: 20px;
+        line-height: 28px;
+        letter-spacing: -0.5px;
+        margin-bottom: 14px;
+    }
+
+    .heroDesc {
+        display: none;
+    }
+
+    .heroMeta {
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .heroMetaItem {
+        font-size: 12px;
+    }
+
+    .listenBtn,
+    .moreBtn {
+        padding: 10px 18px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .sections {
+        gap: 28px;
+    }
+
+    .podcastsGrid,
+    .authorsGrid {
+        gap: 14px;
+    }
+}
+

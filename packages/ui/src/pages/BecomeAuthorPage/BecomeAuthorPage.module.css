@@ -239,3 +239,59 @@
     opacity: 0.6;
     cursor: default;
 }
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding: 32px 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 24px 20px 40px;
+        gap: 24px;
+    }
+
+    .avatarWrap {
+        width: 160px;
+        height: 160px;
+    }
+
+    .avatarDefault {
+        width: 140px;
+        height: 140px;
+    }
+
+    .title {
+        font-size: 22px;
+        line-height: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 16px 16px 32px;
+    }
+
+    .avatarWrap {
+        width: 120px;
+        height: 120px;
+    }
+
+    .avatarDefault {
+        width: 100px;
+        height: 100px;
+    }
+
+    .actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btnCancel,
+    .btnSubmit {
+        width: 100%;
+        padding: 10px 24px;
+        text-align: center;
+    }
+}

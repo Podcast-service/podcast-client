@@ -298,3 +298,56 @@
 .btnCancel:hover {
     background-color: #F5FEF6;
 }
+
+.addedItem > *:last-child {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding: 32px 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 24px 20px 40px;
+    }
+
+    .layout {
+        flex-direction: column;
+    }
+
+    .leftBlock {
+        max-width: none;
+        width: 100%;
+    }
+
+    .rightBlock {
+        max-width: none;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 16px 16px 32px;
+    }
+
+    .leftBlock,
+    .rightBlock {
+        padding: 20px 16px;
+    }
+
+    .btnSave,
+    .btnCancel {
+        width: 100%;
+        padding: 10px 24px;
+    }
+
+    .btnYoutube {
+        width: 100%;
+        justify-content: center;
+    }
+}

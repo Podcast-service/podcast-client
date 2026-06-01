@@ -148,3 +148,55 @@
 .subscribeBtnActive:hover {
     background-color: #EEFDEF;
 }
+
+@media (max-width: 768px) {
+    .row {
+        gap: 16px;
+        padding: 16px 20px;
+    }
+
+    .avatarWrap {
+        width: 72px;
+        height: 72px;
+    }
+
+    .left {
+        gap: 16px;
+    }
+
+    .subscribeBtn {
+        padding: 8px 18px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .row {
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .avatarWrap {
+        width: 56px;
+        height: 56px;
+    }
+
+    .left {
+        gap: 12px;
+    }
+
+    .name {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .description {
+        display: none;
+    }
+
+    .subscribeBtn {
+        padding: 6px 14px;
+        font-size: 13px;
+        line-height: 18px;
+    }
+}

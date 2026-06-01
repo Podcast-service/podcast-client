@@ -83,3 +83,37 @@
     height: 42px;
     display: block;
 }
+
+@media (max-width: 768px) {
+    .cardWrap {
+        flex: 0 0 calc((100% - 24px) / 2);
+    }
+
+    .title {
+        font-size: 20px;
+        line-height: 28px;
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardWrap {
+        flex: 0 0 80%;
+    }
+
+    .carouselGrid {
+        grid-template-columns: 24px minmax(0, 1fr) 24px;
+        column-gap: 12px;
+    }
+
+    .arrowBtn,
+    .arrowSlot {
+        width: 32px;
+        height: 32px;
+    }
+
+    .arrowBtn img {
+        width: 32px;
+        height: 32px;
+    }
+}

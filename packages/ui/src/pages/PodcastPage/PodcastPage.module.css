@@ -57,3 +57,47 @@
 
     color: #414844;
 }
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding: 32px 40px 60px;
+        gap: 40px;
+    }
+
+    .content {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 24px 20px 48px;
+        gap: 32px;
+    }
+
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .sideColumn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 16px 16px 32px;
+        gap: 24px;
+    }
+
+    .sectionTitle {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .aboutText {
+        font-size: 15px;
+        line-height: 24px;
+    }
+}

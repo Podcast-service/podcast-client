@@ -353,3 +353,100 @@
     flex-shrink: 0;
     display: block;
 }
+
+@media (max-width: 900px) {
+    .coverWrap {
+        width: 300px;
+        height: 300px;
+    }
+
+    .title {
+        font-size: 36px;
+        line-height: 46px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column;
+        gap: 20px;
+        padding: 0 0 32px;
+    }
+
+    .coverWrap {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+    }
+
+    .title {
+        font-size: 28px;
+        line-height: 36px;
+    }
+
+    .meta {
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btnPlay,
+    .btnAdd,
+    .btnRemove,
+    .btnEdit,
+    .btnDelete {
+        padding: 10px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        gap: 16px;
+    }
+
+    .title {
+        font-size: 22px;
+        line-height: 30px;
+    }
+
+    .description {
+        font-size: 13px;
+        line-height: 20px;
+    }
+
+    .meta {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .metaText {
+        font-size: 13px;
+    }
+
+    .actions {
+        gap: 8px;
+    }
+
+    .btnPlay {
+        flex: 1;
+        padding: 10px 16px;
+    }
+
+    .btnAdd,
+    .btnRemove,
+    .btnEdit,
+    .btnDelete,
+    .voteBtn {
+        padding: 10px 16px;
+    }
+
+    .btnYoutube {
+        width: 100%;
+        justify-content: center;
+    }
+}

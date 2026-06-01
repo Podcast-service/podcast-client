@@ -45,52 +45,54 @@ const AuthorProfileHero: React.FC<AuthorProfileHeroProps> = ({
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   return (
     <section className={styles.hero}>
-      <div className={styles.avatarWrap}>
-        <img
-          src={avatarUrl || DefaultAvatarSvg}
-          alt={name}
-          className={styles.avatar}
-        />
-      </div>
+      <div className={styles.heroTop}>
+        <div className={styles.avatarWrap}>
+          <img
+            src={avatarUrl || DefaultAvatarSvg}
+            alt={name}
+            className={styles.avatar}
+          />
+        </div>
 
-      <div className={styles.content}>
-        {category && <span className={styles.category}>{category}</span>}
+        <div className={styles.content}>
+          {category && <span className={styles.category}>{category}</span>}
 
-        <h1 className={styles.name}>{name}</h1>
+          <h1 className={styles.name}>{name}</h1>
 
-        {description && <p className={styles.description}>{description}</p>}
+          <div className={styles.bottom}>
+            <div className={styles.subscribers}>
+              <span className={styles.subscribersCount}>
+                {formatSubscribers(subscribers)}
+              </span>
+              <span className={styles.subscribersText}>Подписчиков</span>
+            </div>
 
-        <div className={styles.bottom}>
-          <div className={styles.subscribers}>
-            <span className={styles.subscribersCount}>
-              {formatSubscribers(subscribers)}
-            </span>
-            <span className={styles.subscribersText}>Подписчиков</span>
+            <button
+              type="button"
+              className={`${styles.subscribeBtn} ${
+                isSubscribed ? styles.subscribeBtnActive : ""
+              }`}
+              onClick={guard(onSubscribeClick)}
+            >
+              {isSubscribed ? "Отписаться" : "Подписаться"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.shareBtn}
+              onClick={() => {
+                setIsCopyModalOpen(true);
+                onShareClick?.();
+              }}
+              aria-label="Поделиться"
+            >
+              <img src={ShareSvg} alt="" aria-hidden="true" />
+            </button>
           </div>
-
-          <button
-            type="button"
-            className={`${styles.subscribeBtn} ${
-              isSubscribed ? styles.subscribeBtnActive : ""
-            }`}
-            onClick={guard(onSubscribeClick)}
-          >
-            {isSubscribed ? "Отписаться" : "Подписаться"}
-          </button>
-
-          <button
-            type="button"
-            className={styles.shareBtn}
-            onClick={() => {
-              setIsCopyModalOpen(true);
-              onShareClick?.();
-            }}
-            aria-label="Поделиться"
-          >
-            <img src={ShareSvg} alt="" aria-hidden="true" />
-          </button>
         </div>
       </div>
+
+      {description && <p className={styles.description}>{description}</p>}
       {isModalOpen && (
         <LoginPromptModal onClose={closeModal} />
       )}

@@ -207,3 +207,73 @@
 
     display: block;
 }
+
+@media (max-width: 900px) {
+    .coverWrap {
+        width: 120px;
+        height: 120px;
+    }
+
+    .rowLink {
+        gap: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .row {
+        gap: 16px;
+        padding: 16px 20px;
+    }
+
+    .rowLink {
+        gap: 20px;
+    }
+
+    .coverWrap {
+        width: 96px;
+        height: 96px;
+    }
+
+    .description {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .row {
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .rowLink {
+        gap: 14px;
+    }
+
+    .coverWrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 8px;
+    }
+
+    .title {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .author {
+        font-size: 13px;
+    }
+
+    .meta {
+        display: none;
+    }
+
+    .actions {
+        gap: 10px;
+    }
+
+    .playIcon {
+        width: 32px;
+        height: 32px;
+    }
+}

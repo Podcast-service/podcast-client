@@ -245,3 +245,76 @@
 .volumeBar {
     width: 96px;
 }
+
+@media (max-width: 768px) {
+    .player {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        align-items: center;
+        column-gap: 16px;
+        row-gap: 8px;
+        padding: 10px 16px 14px;
+        min-height: unset;
+    }
+
+    .trackInfo {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .controls {
+        display: contents;
+    }
+
+    .controlButtons {
+        grid-column: 2;
+        grid-row: 1;
+        gap: 14px;
+    }
+
+    .controlButtons .controlBtn:first-child,
+    .controlButtons .controlBtn:last-child {
+        display: none;
+    }
+
+    .progressWrap {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        max-width: none;
+    }
+
+    .extra {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .player {
+        padding: 8px 12px 12px;
+        column-gap: 10px;
+        row-gap: 6px;
+    }
+
+    .coverWrap {
+        width: 40px;
+    }
+
+    .trackTitle {
+        font-size: 13px;
+    }
+
+    .trackEpisode {
+        font-size: 12px;
+    }
+
+    .controlButtons {
+        gap: 10px;
+    }
+
+    .playBtn img {
+        width: 32px;
+        height: 32px;
+    }
+}

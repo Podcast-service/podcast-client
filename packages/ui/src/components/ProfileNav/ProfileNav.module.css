@@ -30,6 +30,7 @@
     text-decoration: none;
 
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .itemText {
@@ -62,5 +63,26 @@
 
     color: var(--color-primary);
     border-bottom: 3px solid var(--color-primary);
+}
 
+@media (max-width: 768px) {
+    .list {
+        padding-left: 0;
+    }
+
+    .item {
+        padding: 12px 20px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .item {
+        padding: 10px 14px 0;
+    }
+
+    .itemText {
+        font-size: 14px;
+        line-height: 20px;
+        padding-bottom: 10px;
+    }
 }

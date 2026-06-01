@@ -4,6 +4,7 @@ import styles from "./Header.module.css";
 import LogoSvg from "../../assets/icons/logo.svg";
 import SearchSvg from "../../assets/icons/search.svg";
 import SettingsSvg from "../../assets/icons/settings.svg";
+import CloseSvg from "../../assets/icons/close.svg";
 import DefaultAvatarSvg from "../../assets/icons/defaultAvatar.svg";
 import { useIsAuthenticated } from "../../hooks/useAuth";
 import {
@@ -48,6 +49,11 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
   );
 
   const isSearchPage = location.pathname === "/search";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const trimmedSearch = useMemo(() => searchValue.trim(), [searchValue]);
 
@@ -194,6 +200,17 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
             </div>
           )}
 
+          {!isSearchPage && (
+            <button
+              type="button"
+              className={styles.searchIconBtn}
+              onClick={() => navigate("/search")}
+              aria-label="Поиск"
+            >
+              <img src={SearchSvg} alt="" aria-hidden="true" className={styles.searchIconBtnIcon} />
+            </button>
+          )}
+
           {isAuthenticated ? (
             <>
               <button
@@ -234,8 +251,42 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
             </div>
           )}
 
+          <button
+            type="button"
+            className={styles.menuBtn}
+            onClick={() => setIsMobileMenuOpen((v) => !v)}
+            aria-label={isMobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? (
+              <img src={CloseSvg} alt="" aria-hidden="true" className={styles.menuBtnIcon} />
+            ) : (
+              <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+                <rect width="22" height="2" rx="1" fill="currentColor" />
+                <rect y="7" width="22" height="2" rx="1" fill="currentColor" />
+                <rect y="14" width="22" height="2" rx="1" fill="currentColor" />
+              </svg>
+            )}
+          </button>
+
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <nav className={styles.mobileNav}>
+          {NAV_ITEMS.filter((item) => !item.authOnly || isAuthenticated).map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`${styles.mobileNavLink} ${
+                location.pathname === item.path ? styles.mobileNavLinkActive : ""
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 };

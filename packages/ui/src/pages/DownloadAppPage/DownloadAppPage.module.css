@@ -169,3 +169,54 @@
     color: var(--color-primary);
 }
 
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 40px 24px 60px;
+    }
+
+    .title {
+        font-size: 30px;
+        line-height: 40px;
+    }
+
+    .desktopButtons {
+        display: none;
+    }
+
+    .mobileButtons {
+        display: flex;
+    }
+
+    .features {
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 28px 16px 40px;
+    }
+
+    .title {
+        font-size: 24px;
+        line-height: 32px;
+    }
+
+    .description {
+        font-size: 14px;
+        line-height: 22px;
+    }
+
+    .mobileButtons {
+        max-width: 100%;
+    }
+
+    .features {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+}
+

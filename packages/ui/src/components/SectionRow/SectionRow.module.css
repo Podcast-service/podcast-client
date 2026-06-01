@@ -45,3 +45,18 @@
 .content {
     width: 100%;
 }
+
+@media (max-width: 480px) {
+    .header {
+        margin-bottom: 16px;
+    }
+
+    .title {
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    .actionLink {
+        font-size: 14px;
+    }
+}

@@ -267,3 +267,96 @@
     min-width: 0;
     scroll-snap-align: start;
 }
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .sectionTitle {
+        font-size: 26px;
+        line-height: 34px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding-top: 24px;
+        padding-bottom: 40px;
+        padding-left: 20px;
+        padding-right: 20px;
+        gap: 32px;
+    }
+
+    .sections {
+        gap: 32px;
+    }
+
+    .sectionTitle {
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    .carouselWrap {
+        grid-template-columns: 32px minmax(0, 1fr) 32px;
+        gap: 4px;
+    }
+
+    .arrowBtn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .arrowIcon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .rowCardWrap {
+        flex: 0 0 calc(85% - 8px);
+    }
+
+    .playlistCard {
+        flex: 0 0 calc(75% - 8px);
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding-top: 16px;
+        padding-bottom: 32px;
+        padding-left: 16px;
+        padding-right: 16px;
+        gap: 24px;
+    }
+
+    .sections {
+        gap: 24px;
+    }
+
+    .sectionTitle {
+        font-size: 18px;
+        line-height: 26px;
+    }
+
+    .carouselWrap {
+        grid-template-columns: 1fr;
+    }
+
+    .arrowBtn {
+        display: none;
+    }
+
+    .rowCardWrap {
+        flex: 0 0 92%;
+    }
+
+    .playlistCard {
+        flex: 0 0 80%;
+    }
+
+    .authorCard {
+        flex: 0 0 160px;
+    }
+}

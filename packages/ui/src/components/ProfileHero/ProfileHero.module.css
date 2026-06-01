@@ -130,3 +130,62 @@
 .becomeAuthorBtn:hover {
     background-color: var(--color-primary-hover);
 }
+
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 32px 0;
+        gap: 20px;
+    }
+
+    .left {
+        gap: 20px;
+        width: 100%;
+    }
+
+    .avatarWrap {
+        width: 160px;
+        height: 160px;
+    }
+
+    .name {
+        font-size: 28px;
+        line-height: 36px;
+    }
+
+    .email {
+        font-size: 15px;
+    }
+
+    .becomeAuthorBtn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 24px 0;
+        gap: 16px;
+    }
+
+    .left {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .avatarWrap {
+        width: 120px;
+        height: 120px;
+    }
+
+    .info {
+        align-items: center;
+    }
+
+    .name {
+        font-size: 22px;
+        line-height: 28px;
+    }
+}
