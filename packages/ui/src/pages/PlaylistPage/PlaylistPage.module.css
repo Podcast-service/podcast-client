@@ -20,6 +20,12 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    overflow: hidden;
+}
+
+.listItem > *:last-child {
+    flex: 1;
+    min-width: 0;
 }
 
 .listNumber {
@@ -33,4 +39,37 @@
     width: 20px;
     text-align: right;
     flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .pageInner {
+        padding: 0 40px 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pageInner {
+        padding: 0 20px 48px;
+        gap: 24px;
+    }
+
+    .listItem {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageInner {
+        padding: 0 16px 32px;
+        gap: 20px;
+    }
+
+    .listItem {
+        gap: 8px;
+    }
+
+    .listNumber {
+        font-size: 18px;
+        width: 16px;
+    }
 }

@@ -289,3 +289,128 @@
     margin-left: 0;
     justify-self: end;
 }
+
+.searchIconBtn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.searchIconBtnIcon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.menuBtn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    color: var(--color-main);
+    flex-shrink: 0;
+}
+
+.menuBtnIcon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.mobileNav {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-border-search);
+    background-color: var(--color-input-bg);
+    padding: 4px 0 12px;
+}
+
+.mobileNavLink {
+    padding: 14px 24px;
+    font-family: var(--font-work-sans);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-nav-link);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.mobileNavLink:hover {
+    color: var(--color-primary);
+    background-color: var(--color-bg-search);
+}
+
+.mobileNavLinkActive {
+    color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+    .headerWrap,
+    .headerWrapSearch {
+        display: flex;
+        grid-template-columns: unset;
+        padding: 12px 20px;
+        gap: 12px;
+    }
+
+    .nav {
+        display: none;
+    }
+
+    .searchBox {
+        display: none;
+    }
+
+    .menuBtn {
+        display: flex;
+    }
+
+    .searchIconBtn {
+        display: flex;
+    }
+
+    .navCentered {
+        display: none;
+    }
+
+    .rightSearch {
+        margin-left: auto;
+        justify-self: unset;
+    }
+}
+
+@media (max-width: 480px) {
+    .headerWrap,
+    .headerWrapSearch {
+        padding: 10px 16px;
+    }
+
+    .logoText {
+        display: none;
+    }
+
+    .registerBtn {
+        display: none;
+    }
+
+    .loginBtn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .mobileNavLink {
+        font-size: 16px;
+        padding: 13px 20px;
+    }
+}

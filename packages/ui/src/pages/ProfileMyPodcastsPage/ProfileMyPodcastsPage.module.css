@@ -65,3 +65,27 @@
 
     color: #717973;
 }
+
+@media (max-width: 768px) {
+    .page {
+        gap: 24px;
+    }
+
+    .list {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        gap: 20px;
+    }
+
+    .addBtn {
+        width: 100%;
+    }
+
+    .list {
+        gap: 8px;
+    }
+}

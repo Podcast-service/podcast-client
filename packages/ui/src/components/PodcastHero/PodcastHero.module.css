@@ -391,3 +391,62 @@
 .volumeBar {
     flex: 1;
 }
+
+@media (max-width: 900px) {
+    .hero {
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .coverWrap {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .coverWrap {
+        width: 100%;
+        height: auto;
+        min-height: unset;
+        aspect-ratio: 1 / 1;
+    }
+
+    .title {
+        font-size: 22px;
+        line-height: 32px;
+    }
+
+    .playerExtra {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 18px;
+        line-height: 26px;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .mainPlayBtn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+
+    .inlinePlayer {
+        padding: 14px;
+    }
+
+    .playerControls {
+        gap: 20px;
+    }
+}
