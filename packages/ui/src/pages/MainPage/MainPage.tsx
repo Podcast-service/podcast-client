@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./MainPage.module.css";
 
@@ -129,6 +130,7 @@ const formatListeners = (listeners: number) => {
 };
 
 const MainPage: React.FC = () => {
+  usePageTitle();
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
   const player = usePlayerOptional();

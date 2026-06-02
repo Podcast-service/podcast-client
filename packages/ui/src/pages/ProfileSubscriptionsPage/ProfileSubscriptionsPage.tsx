@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import AuthorRow from "../../components/AuthorRow/AuthorRow";
 import styles from "./ProfileSubscriptionsPage.module.css";
 
@@ -9,6 +10,7 @@ import {
 } from "../../api/podcast";
 
 const ProfileSubscriptionsPage: React.FC = () => {
+  usePageTitle("Подписки");
   const [subscriptions, setSubscriptions] = useState<SubscriptionResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

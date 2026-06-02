@@ -76,5 +76,6 @@ export { default as ProfileSettingsHero } from "./components/ProfileSettingsHero
 export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSessions";
 
 export { useIsAuthenticated } from "./hooks/useAuth";
+export { usePageTitle } from "./hooks/usePageTitle";
 
 

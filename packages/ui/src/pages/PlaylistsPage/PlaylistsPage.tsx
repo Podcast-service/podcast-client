@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./PlaylistsPage.module.css";
 
@@ -54,6 +55,7 @@ const formatPlaylistsCount = (count: number) =>
   `${count} ${pluralizeRu(count, ["плейлист", "плейлиста", "плейлистов"])}`;
 
 const PlaylistsPage: React.FC = () => {
+  usePageTitle("Плейлисты");
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
   const [activeSort, setActiveSort] = useState<SortPlaylists>("RATING");

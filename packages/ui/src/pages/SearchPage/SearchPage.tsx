@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
 import styles from "./SearchPage.module.css";
 
@@ -113,6 +114,7 @@ const CarouselSection: React.FC<CarouselSectionProps> = ({
 
 
 const SearchPage: React.FC = () => {
+  usePageTitle("Поиск");
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
   const [searchParams, setSearchParams] = useSearchParams();

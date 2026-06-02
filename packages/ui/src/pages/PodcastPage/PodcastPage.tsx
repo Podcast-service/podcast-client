@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import styles from "./PodcastPage.module.css";
 
@@ -46,6 +47,7 @@ const PodcastPage: React.FC = () => {
   const [recommended, setRecommended] = useState<RecommendedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  usePageTitle(podcast?.title);
 
   useEffect(() => {
     if (!podcastId) {
@@ -191,6 +193,7 @@ const PodcastPage: React.FC = () => {
       id: podcast.id,
       title: podcast.title,
       author: podcast.author.authorName,
+      authorId: podcast.author.id,
       duration: formatClock(podcast.durationSeconds),
       coverUrl: podcast.coverImageUrl ?? undefined,
       // Деталь уже загружена — отдаём audioUrl сразу, без повторного GET.
@@ -198,6 +201,16 @@ const PodcastPage: React.FC = () => {
       durationSeconds: podcast.durationSeconds ?? null,
       progressSeconds: podcast.progressSeconds ?? null,
     });
+
+  const summaryText =
+    typeof summary === "string" && summary.trim().length > 0 ? summary : null;
+  const transcriptLines =
+    typeof transcript === "string"
+      ? transcript
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0)
+      : [];
 
   return (
     <div className={styles.page}>
@@ -230,24 +243,21 @@ const PodcastPage: React.FC = () => {
               </section>
             )}
 
-            {summary && (
+            {summaryText && (
               <section className={styles.about}>
                 <h2 className={styles.sectionTitle}>Краткое содержание</h2>
-                <p className={styles.aboutText}>{summary}</p>
+                <p className={styles.aboutText}>{summaryText}</p>
               </section>
             )}
 
-            {transcript && (
+            {transcriptLines.length > 0 && (
               <section className={styles.about}>
                 <h2 className={styles.sectionTitle}>Транскрипт</h2>
-                {transcript
-                  .split(/\n+/)
-                  .filter((line) => line.trim().length > 0)
-                  .map((line, index) => (
-                    <p key={index} className={styles.aboutText}>
-                      {line}
-                    </p>
-                  ))}
+                {transcriptLines.map((line, index) => (
+                  <p key={index} className={styles.aboutText}>
+                    {line}
+                  </p>
+                ))}
               </section>
             )}
           </main>

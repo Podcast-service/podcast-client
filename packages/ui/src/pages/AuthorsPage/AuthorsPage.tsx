@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import styles from "./AuthorsPage.module.css";
 
@@ -42,6 +43,7 @@ const mapAuthor = (author: ApiAuthorCard): Author => ({
 });
 
 const AuthorsPage: React.FC = () => {
+  usePageTitle("Авторы");
   const navigate = useNavigate();
 
   const [activeSort, setActiveSort] = useState<SortAuthors>("POPULAR");

@@ -100,6 +100,64 @@ export interface PodcastSpeakersResponse {
   num_speakers: number;
 }
 
+const normalizeTextContent = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    const lines = value
+      .map((item) => normalizeTextContent(item))
+      .filter((item): item is string => Boolean(item?.trim()));
+    return lines.length > 0 ? lines.join("\n") : null;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of ["content", "text", "transcript", "summary", "value"]) {
+      const normalized = normalizeTextContent(record[key]);
+      if (normalized?.trim()) {
+        return normalized;
+      }
+    }
+  }
+
+  return null;
+};
+
+const normalizePodcastTextResponse = <
+  T extends PodcastTranscriptResponse | PodcastSummaryResponse
+>(
+  data: unknown,
+  podcastId: string,
+  fallbackKeys: string[]
+): T => {
+  const record =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+
+  const content =
+    normalizeTextContent(record.content) ??
+    normalizeTextContent(fallbackKeys.map((key) => record[key])) ??
+    normalizeTextContent(data) ??
+    "";
+
+  return {
+    ...record,
+    podcastId:
+      typeof record.podcastId === "string" ? record.podcastId : podcastId,
+    language: typeof record.language === "string" ? record.language : "",
+    content,
+    generatedAt:
+      typeof record.generatedAt === "string" ? record.generatedAt : "",
+  } as T;
+};
+
 export interface AuthorProfileResponse {
   id: string;
   userId: string;
@@ -342,14 +400,24 @@ export function getPodcast(podcastId: string): Promise<PodcastDetailResponse> {
 export function getPodcastTranscript(
   podcastId: string
 ): Promise<PodcastTranscriptResponse> {
-  return apiGet<PodcastTranscriptResponse>(`/podcasts/${podcastId}/transcript`);
+  return apiGet<unknown>(`/podcasts/${podcastId}/transcript`).then((data) =>
+    normalizePodcastTextResponse<PodcastTranscriptResponse>(data, podcastId, [
+      "transcript",
+      "text",
+    ])
+  );
 }
 
 /** Summary подкаста. GET /podcasts/{id}/summary — 404, если не готов. */
 export function getPodcastSummary(
   podcastId: string
 ): Promise<PodcastSummaryResponse> {
-  return apiGet<PodcastSummaryResponse>(`/podcasts/${podcastId}/summary`);
+  return apiGet<unknown>(`/podcasts/${podcastId}/summary`).then((data) =>
+    normalizePodcastTextResponse<PodcastSummaryResponse>(data, podcastId, [
+      "summary",
+      "text",
+    ])
+  );
 }
 
 /** Количество спикеров подкаста. GET /podcasts/{id}/speakers. */

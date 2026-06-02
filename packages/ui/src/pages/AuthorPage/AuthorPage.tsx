@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import styles from "./AuthorPage.module.css";
 
@@ -46,6 +47,7 @@ const AuthorPage: React.FC = () => {
   const [subscribers, setSubscribers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  usePageTitle(author?.authorName);
 
   useEffect(() => {
     if (!authorId) {

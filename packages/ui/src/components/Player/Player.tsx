@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Player.module.css";
 import { usePlayer } from "./PlayerProvider";
 
@@ -46,6 +47,22 @@ const Player: React.FC = () => {
     toggleRepeat,
   } = usePlayer();
 
+  // Плеер зафиксирован у нижнего края (position: fixed) — чтобы он не
+  // перекрывал контент и футер, в обычном потоке держим распорку той же
+  // высоты. Высота меряется реально, т.к. на мобильных layout двухрядный.
+  const playerRef = useRef<HTMLElement>(null);
+  const [reservedHeight, setReservedHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = playerRef.current;
+    if (!el) return;
+    const update = () => setReservedHeight(el.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [activePodcast]);
+
   // Плеер появляется только когда выбран подкаст.
   if (!activePodcast) {
     return null;
@@ -55,21 +72,47 @@ const Player: React.FC = () => {
 
   const title = activePodcast.title || "Без названия";
   const episode = activePodcast.author || "";
+  const podcastHref = `/podcasts/${activePodcast.id}`;
+  const authorHref = activePodcast.authorId
+    ? `/authors/${activePodcast.authorId}`
+    : null;
 
   return (
-    <section className={styles.player} aria-label="Плеер">
+    <>
+      <div
+        className={styles.spacer}
+        style={{ height: reservedHeight }}
+        aria-hidden="true"
+      />
+      <section ref={playerRef} className={styles.player} aria-label="Плеер">
       <div className={styles.trackInfo}>
-        <div className={styles.coverWrap}>
+        <Link
+          to={podcastHref}
+          className={styles.coverWrap}
+          aria-label={`Открыть подкаст «${title}»`}
+        >
           <img
             src={activePodcast.coverUrl || DefaultBookSvg}
             alt={title}
             className={styles.cover}
           />
-        </div>
+        </Link>
 
         <div className={styles.trackText}>
-          <span className={styles.trackTitle}>{title}</span>
-          <span className={styles.trackEpisode}>{episode}</span>
+          <Link to={podcastHref} className={styles.trackTitle} title={title}>
+            {title}
+          </Link>
+          {authorHref ? (
+            <Link
+              to={authorHref}
+              className={styles.trackEpisode}
+              title={episode}
+            >
+              {episode}
+            </Link>
+          ) : (
+            <span className={styles.trackEpisode}>{episode}</span>
+          )}
         </div>
       </div>
 
@@ -193,7 +236,8 @@ const Player: React.FC = () => {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 };
 

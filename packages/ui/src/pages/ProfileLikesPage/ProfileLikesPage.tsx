@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useOutletContext } from "react-router-dom";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import styles from "./ProfileLikesPage.module.css";
@@ -14,6 +15,7 @@ interface MainLayoutContext {
 }
 
 const ProfileLikesPage: React.FC = () => {
+  usePageTitle("Понравившиеся");
   const context = useOutletContext<MainLayoutContext | null>();
   const playPodcast = context?.playPodcast ?? (() => {});
 

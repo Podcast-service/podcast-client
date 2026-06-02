@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useOutletContext } from "react-router-dom";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
@@ -26,6 +27,7 @@ interface HistoryRow extends PodcastRowData {
 const PAGE_SIZE = 20;
 
 const ProfileHistoryPage: React.FC = () => {
+  usePageTitle("История прослушивания");
   const context = useOutletContext<MainLayoutContext | null>();
   const playPodcast = context?.playPodcast ?? (() => {});
 

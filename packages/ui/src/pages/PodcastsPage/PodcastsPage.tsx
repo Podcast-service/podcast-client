@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./PodcastsPage.module.css";
 import FilterTabs from "../../components/FilterTabs/FilterTabs";
@@ -30,6 +31,7 @@ const SORT_OPTIONS: { id: SortPodcasts; label: string }[] = [
 ];
 
 const PodcastsPage: React.FC = () => {
+  usePageTitle("Подкасты");
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
 

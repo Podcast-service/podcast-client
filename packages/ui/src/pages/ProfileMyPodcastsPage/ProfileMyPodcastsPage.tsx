@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./ProfileMyPodcastsPage.module.css";
 
@@ -12,6 +13,7 @@ import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 
 const ProfileMyPodcastsPage: React.FC = () => {
+  usePageTitle("Мои подкасты");
     const navigate = useNavigate();
     const context = useOutletContext<{ playPodcast?: (podcast: any, queue?: any[]) => void } | null>();
     const playPodcast = context?.playPodcast ?? (() => {});

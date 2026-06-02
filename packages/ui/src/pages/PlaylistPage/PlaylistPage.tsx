@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import styles from "./PlaylistPage.module.css";
 
@@ -46,6 +47,7 @@ const PlaylistPage: React.FC = () => {
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
   const [error, setError] = useState<string | null>(null);
+  usePageTitle(playlist?.title);
 
   useEffect(() => {
     if (!playlistId) {

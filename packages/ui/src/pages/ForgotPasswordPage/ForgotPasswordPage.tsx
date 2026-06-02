@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import InputField from "../../components/InputField/InputField";
@@ -10,6 +11,7 @@ import { requestPasswordReset } from "../../api/auth";
 const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const ForgotPasswordPage = () => {
+  usePageTitle("Восстановление пароля");
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");

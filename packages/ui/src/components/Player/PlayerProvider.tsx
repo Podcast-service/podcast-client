@@ -18,6 +18,8 @@ export interface PlayablePodcast {
   id: string;
   title?: string;
   author?: string;
+  /** id автора — для перехода на страницу автора из плеера. */
+  authorId?: string;
   coverUrl?: string;
   /** HLS .m3u8. Если не передан — догружается через getPodcast(id). */
   audioUrl?: string | null;
@@ -29,6 +31,7 @@ interface ActivePodcastMeta {
   id: string;
   title?: string;
   author?: string;
+  authorId?: string;
   coverUrl?: string;
 }
 
@@ -82,6 +85,7 @@ const normalize = (input: PlayablePodcast | Record<string, any>): PlayablePodcas
   title: input.title,
   author:
     typeof input.author === "string" ? input.author : input.author?.authorName,
+  authorId: input.authorId ?? input.author?.id ?? undefined,
   coverUrl: input.coverUrl ?? input.coverImageUrl ?? undefined,
   audioUrl: input.audioUrl ?? input.audio_url_file ?? null,
   durationSeconds: input.durationSeconds ?? null,
@@ -96,7 +100,7 @@ const randomOtherIndex = (len: number, current: number): number => {
   return idx;
 };
 
-const PROGRESS_SAVE_INTERVAL = 15; // сек между сохранениями прогресса
+const PROGRESS_SAVE_INTERVAL = 5; // сек между сохранениями прогресса
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -304,6 +308,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         id: podcast.id,
         title: podcast.title,
         author: podcast.author,
+        authorId: podcast.authorId,
         coverUrl: podcast.coverUrl,
       });
       setError(null);
@@ -329,6 +334,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
                   ...prev,
                   title: prev.title ?? detail.title,
                   author: prev.author ?? detail.author?.authorName,
+                  authorId: prev.authorId ?? detail.author?.id,
                   coverUrl: prev.coverUrl ?? detail.coverImageUrl ?? undefined,
                 }
               : prev
