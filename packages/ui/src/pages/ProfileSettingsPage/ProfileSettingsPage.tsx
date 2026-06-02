@@ -6,7 +6,6 @@ import styles from "./ProfileSettingsPage.module.css";
 import ProfileSettingsHero from "../../components/ProfileSettingsHero/ProfileSettingsHero";
 import InputField from "../../components/InputField/InputField";
 import TextareaField from "../../components/TextareaField/TextareaField";
-import OtpEmailModal from "../../components/OtpEmailModal/OtpEmailModal";
 import { useToast } from "../../components/Toast/useToast";
 
 import {
@@ -21,7 +20,6 @@ import { uploadProfileCover } from "../../api/mediaUpload";
 import PersonalInfoSvg from "../../assets/icons/personalInfo.svg";
 import SafetySvg from "../../assets/icons/safety.svg";
 import TickSvg from "../../assets/icons/tick.svg";
-import CrossSvg from "../../assets/icons/cros.svg";
 
 const validateUsername = (value: string): string => {
   if (!value.trim()) return "Имя пользователя обязательно";
@@ -70,9 +68,6 @@ const ProfileSettingsPage: React.FC = () => {
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  const [isEmailVerified] = useState(false);
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const [authorName, setAuthorName] = useState("");
   const [authorNameError, setAuthorNameError] = useState("");
@@ -407,26 +402,18 @@ const ProfileSettingsPage: React.FC = () => {
           <div className={styles.emailVerifyBlock}>
             <div className={styles.emailVerifyStatus}>
               <img
-                src={isEmailVerified ? TickSvg : CrossSvg}
+                src={TickSvg}
                 alt=""
                 aria-hidden="true"
                 className={styles.emailVerifyIcon}
               />
-              <span
-                className={
-                  isEmailVerified
-                    ? styles.emailVerifiedLabel
-                    : styles.emailNotVerifiedLabel
-                }
-              >
-                {isEmailVerified ? "Подтверждён" : "Не подтверждён"}
+              <span className={styles.emailVerifiedLabel}>
+                Подтверждён
               </span>
             </div>
 
             <p className={styles.emailVerifyText}>
-              {isEmailVerified
-                ? "Ваш электронный адрес подтверждён"
-                : "Ваш электронный адрес не подтверждён"}
+              Ваш электронный адрес подтверждён
             </p>
           </div>
         </section>
@@ -442,13 +429,6 @@ const ProfileSettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {isOtpModalOpen && (
-        <OtpEmailModal
-          email={email}
-          onConfirm={async () => setIsOtpModalOpen(false)}
-          onClose={() => setIsOtpModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

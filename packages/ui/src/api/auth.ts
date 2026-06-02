@@ -2,6 +2,14 @@
 // в проде — тот же origin (castapp.ru), в dev — прокси Vite на castapp.ru.
 // Можно переопределить абсолютным URL через VITE_AUTH_API_URL.
 const BASE_URL = (import.meta as any).env?.VITE_AUTH_API_URL ?? "";
+const API_ORIGIN =
+  (import.meta as any).env?.VITE_API_ORIGIN ?? "https://castapp.ru";
+
+interface TauriApiFetchResponse {
+  status: number;
+  headers?: Record<string, string>;
+  body?: string;
+}
 
 export interface AuthTokens {
   access_token: string;
@@ -55,6 +63,82 @@ export const setAccessToken = (accessToken: string) => {
 
 export const getAccessToken = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
+
+const isPackagedTauri = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const protocol = window.location.protocol;
+  return (
+    protocol !== "http:" &&
+    protocol !== "https:" &&
+    typeof (window as any).__TAURI_INTERNALS__?.invoke === "function"
+  );
+};
+
+const resolveNativeApiUrl = (input: string | URL): string => {
+  const raw = input instanceof URL ? input.toString() : input;
+  const apiOrigin = new URL(API_ORIGIN);
+  const parsed = new URL(raw, apiOrigin);
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return new URL(
+      `${parsed.pathname}${parsed.search}${parsed.hash}`,
+      apiOrigin
+    ).toString();
+  }
+
+  if (parsed.host === window.location.host && parsed.origin !== apiOrigin.origin) {
+    return new URL(
+      `${parsed.pathname}${parsed.search}${parsed.hash}`,
+      apiOrigin
+    ).toString();
+  }
+
+  return parsed.toString();
+};
+
+const headersToRecord = (headers?: HeadersInit): Record<string, string> => {
+  const record: Record<string, string> = {};
+  new Headers(headers).forEach((value, key) => {
+    record[key] = value;
+  });
+  return record;
+};
+
+/**
+ * API fetch для всех окружений.
+ * В packaged Tauri относительные запросы не должны идти в asset server
+ * приложения, поэтому прокидываем их через Rust-команду без browser CORS.
+ */
+export async function appFetch(
+  input: string | URL,
+  init: RequestInit = {}
+): Promise<Response> {
+  if (!isPackagedTauri()) {
+    return fetch(input, init);
+  }
+
+  if (init.body != null && typeof init.body !== "string") {
+    return fetch(input, init);
+  }
+
+  const invoke = (window as any).__TAURI_INTERNALS__.invoke;
+  const response = (await invoke("api_fetch", {
+    request: {
+      method: init.method ?? "GET",
+      url: resolveNativeApiUrl(input),
+      headers: headersToRecord(init.headers),
+      body: init.body ?? null,
+    },
+  })) as TauriApiFetchResponse;
+
+  return new Response(response.body ?? "", {
+    status: response.status,
+    headers: response.headers,
+  });
+}
 
 /** Claims из access-token (user_id, email, roles, ...). null, если токена нет/он битый. */
 export const getTokenClaims = (): Record<string, any> | null => {
@@ -169,7 +253,7 @@ export async function register(
   email: string,
   password: string
 ): Promise<RegisterResponse> {
-  const res = await fetch(`${BASE_URL}/auth/register`, {
+  const res = await appFetch(`${BASE_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, email, password }),
@@ -186,7 +270,7 @@ export async function verifyEmail(
   email: string,
   code: string
 ): Promise<AuthTokens> {
-  const res = await fetch(`${BASE_URL}/auth/verify-email`, {
+  const res = await appFetch(`${BASE_URL}/auth/verify-email`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, code }),
@@ -199,7 +283,7 @@ export async function verifyEmail(
  * POST /auth/resend-verification
  */
 export async function resendVerification(email: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/auth/resend-verification`, {
+  const res = await appFetch(`${BASE_URL}/auth/resend-verification`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -219,7 +303,7 @@ export async function login(
   email: string,
   password: string
 ): Promise<AuthTokens> {
-  const res = await fetch(`${BASE_URL}/auth/login`, {
+  const res = await appFetch(`${BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -236,7 +320,7 @@ export async function login(
  * POST /auth/password-reset/request
  */
 export async function requestPasswordReset(email: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/auth/password-reset/request`, {
+  const res = await appFetch(`${BASE_URL}/auth/password-reset/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -253,7 +337,7 @@ export async function confirmPasswordReset(
   code: string,
   new_password: string
 ): Promise<void> {
-  const res = await fetch(`${BASE_URL}/auth/password-reset/confirm`, {
+  const res = await appFetch(`${BASE_URL}/auth/password-reset/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, code, new_password }),
@@ -285,7 +369,7 @@ export async function refreshTokens(): Promise<AuthTokens> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      const res = await appFetch(`${BASE_URL}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token }),
@@ -370,17 +454,17 @@ export async function authedFetch(
   };
 
   let token = await getValidAccessToken();
-  let res = await fetch(input, withAuth(token));
+  let res = await appFetch(input, withAuth(token));
 
   if (res.status === 401 && token) {
     const refreshed = await tryRefresh();
     if (refreshed) {
-      res = await fetch(input, withAuth(refreshed));
+      res = await appFetch(input, withAuth(refreshed));
     }
     if (res.status === 401) {
       clearTokens();
       if (opts.retryAnonymously) {
-        res = await fetch(input, withAuth(null));
+        res = await appFetch(input, withAuth(null));
       }
     }
   }
@@ -395,7 +479,7 @@ export async function authedFetch(
 export async function logout(): Promise<void> {
   const access_token = getAccessToken();
   const refresh_token = getRefreshToken();
-  const res = await fetch(`${BASE_URL}/auth/logout`, {
+  const res = await appFetch(`${BASE_URL}/auth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -435,7 +519,7 @@ export async function changePassword(
   // Проактивно обновляем access, если он истёк, чтобы смена пароля не падала
   // на 401 у активного, но «засидевшегося» пользователя.
   const access_token = (await getValidAccessToken()) ?? getAccessToken();
-  const res = await fetch(`${BASE_URL}/auth/password-change`, {
+  const res = await appFetch(`${BASE_URL}/auth/password-change`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

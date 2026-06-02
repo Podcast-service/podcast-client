@@ -275,6 +275,72 @@ export interface PageOf<T> {
   meta: PageMeta;
 }
 
+const normalizePage = <T>(
+  data: unknown,
+  fallback: Partial<PageMeta> = {}
+): PageOf<T> => {
+  const record =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  const items = Array.isArray(record.items)
+    ? record.items
+    : Array.isArray(data)
+      ? data
+      : [];
+  const meta =
+    record.meta && typeof record.meta === "object" && !Array.isArray(record.meta)
+      ? (record.meta as Record<string, unknown>)
+      : {};
+
+  const page =
+    typeof meta.page === "number"
+      ? meta.page
+      : typeof fallback.page === "number"
+        ? fallback.page
+        : 1;
+  const size =
+    typeof meta.size === "number"
+      ? meta.size
+      : typeof fallback.size === "number"
+        ? fallback.size
+        : items.length;
+  const totalElements =
+    typeof meta.totalElements === "number" ? meta.totalElements : items.length;
+  const totalPages =
+    typeof meta.totalPages === "number"
+      ? meta.totalPages
+      : Math.max(1, Math.ceil(totalElements / Math.max(size, 1)));
+
+  return {
+    items: items as T[],
+    meta: {
+      page,
+      size,
+      totalElements,
+      totalPages,
+    },
+  };
+};
+
+const normalizeArray = <T>(data: unknown): T[] => {
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+
+  if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    if (Array.isArray(record.items)) {
+      return record.items as T[];
+    }
+    if (Array.isArray(record.data)) {
+      return record.data as T[];
+    }
+  }
+
+  return [];
+};
+
 export type PageOfPodcastCard = PageOf<PodcastCard>;
 export type PageOfPodcastDetail = PageOf<PodcastDetailResponse>;
 export type PageOfPlaylistCard = PageOf<PlaylistCard>;
@@ -342,9 +408,11 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
   const raw = await res.text();
   let data: any = undefined;
+  let isJson = false;
   if (raw) {
     try {
       data = JSON.parse(raw);
+      isJson = true;
     } catch {
       // Тело не JSON: при ошибке отдаём как message, при «успехе» это
       // признак того, что запрос не дошёл до API (напр. SPA index.html
@@ -360,10 +428,12 @@ async function handleResponse<T>(res: Response): Promise<T> {
   // Успех, но тело пустое или не-JSON — для ручек, ожидающих JSON, это
   // некорректный ответ. Бросаем, чтобы страница показала состояние ошибки,
   // а не падала на result.items / result.meta.
-  if (data === undefined || typeof data !== "object") {
+  if (!isJson || data === undefined || typeof data !== "object") {
     throw {
       status: res.status,
-      message: "Некорректный ответ сервера (ожидался JSON)",
+      message: raw
+        ? "Некорректный ответ сервера (ожидался JSON, получен не-JSON)"
+        : "Некорректный ответ сервера (ожидался JSON)",
     } as ApiError;
   }
 
@@ -440,7 +510,12 @@ export interface GetPodcastsParams {
 export function getPodcasts(
   params: GetPodcastsParams = {}
 ): Promise<PageOfPodcastCard> {
-  return apiGet<PageOfPodcastCard>("/podcasts", params);
+  return apiGet<unknown>("/podcasts", params).then((data) =>
+    normalizePage<PodcastCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Детальная карточка подкаста. GET /podcasts/{id}. */
@@ -567,7 +642,9 @@ export function savePodcastProgress(
 
 /** Список всех категорий. GET /categories — публичная ручка. */
 export function getCategories(): Promise<CategoryResponse[]> {
-  return apiGet<CategoryResponse[]>("/categories");
+  return apiGet<unknown>("/categories").then((data) =>
+    normalizeArray<CategoryResponse>(data)
+  );
 }
 
 export interface CreateCategoryRequest {
@@ -606,7 +683,12 @@ export function deleteCategory(categoryId: string): Promise<void> {
 export function getAuthors(
   params: { q?: string; sort?: SortAuthors; page?: number; size?: number } = {}
 ): Promise<PageOfAuthorCard> {
-  return apiGet<PageOfAuthorCard>("/authors", params);
+  return apiGet<unknown>("/authors", params).then((data) =>
+    normalizePage<AuthorCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Публичный профиль автора. GET /authors/{id}. */
@@ -619,7 +701,12 @@ export function getAuthorPodcasts(
   authorId: string,
   params: { q?: string; sort?: SortPodcasts; page?: number; size?: number } = {}
 ): Promise<PageOfPodcastCard> {
-  return apiGet<PageOfPodcastCard>(`/authors/${authorId}/podcasts`, params);
+  return apiGet<unknown>(`/authors/${authorId}/podcasts`, params).then((data) =>
+    normalizePage<PodcastCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Все подкасты текущего автора, включая черновики и обработку. GET /authors/me/podcasts. */
@@ -632,7 +719,12 @@ export function getMyAuthorPodcasts(
     size?: number;
   } = {}
 ): Promise<PageOfPodcastDetail> {
-  return apiGet<PageOfPodcastDetail>("/authors/me/podcasts", params);
+  return apiGet<unknown>("/authors/me/podcasts", params).then((data) =>
+    normalizePage<PodcastDetailResponse>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Публичные плейлисты автора. GET /authors/{id}/playlists. */
@@ -640,7 +732,12 @@ export function getAuthorPlaylists(
   authorId: string,
   params: { page?: number; size?: number } = {}
 ): Promise<PageOfPlaylistCard> {
-  return apiGet<PageOfPlaylistCard>(`/authors/${authorId}/playlists`, params);
+  return apiGet<unknown>(`/authors/${authorId}/playlists`, params).then((data) =>
+    normalizePage<PlaylistCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 // ───── Playlists ─────
@@ -649,7 +746,12 @@ export function getAuthorPlaylists(
 export function getPlaylists(
   params: { q?: string; sort?: SortPlaylists; page?: number; size?: number } = {}
 ): Promise<PageOfPlaylistCard> {
-  return apiGet<PageOfPlaylistCard>("/playlists", params);
+  return apiGet<unknown>("/playlists", params).then((data) =>
+    normalizePage<PlaylistCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Плейлист с треклистом. GET /playlists/{id}. */
@@ -822,21 +924,36 @@ export function getMyProfile(): Promise<UserProfilePrivateResponse> {
 export function getMyPlaylists(
   params: { page?: number; size?: number } = {}
 ): Promise<PageOfPlaylistCard> {
-  return apiGet<PageOfPlaylistCard>("/users/me/playlists", params);
+  return apiGet<unknown>("/users/me/playlists", params).then((data) =>
+    normalizePage<PlaylistCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Лайкнутые подкасты. GET /users/me/liked-podcasts. */
 export function getMyLikedPodcasts(
   params: { page?: number; size?: number; sort?: SortLikedPodcasts } = {}
 ): Promise<PageOfPodcastCard> {
-  return apiGet<PageOfPodcastCard>("/users/me/liked-podcasts", params);
+  return apiGet<unknown>("/users/me/liked-podcasts", params).then((data) =>
+    normalizePage<PodcastCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Сохранённые чужие плейлисты. GET /users/me/library/playlists. */
 export function getMyLibraryPlaylists(
   params: { page?: number; size?: number } = {}
 ): Promise<PageOfPlaylistCard> {
-  return apiGet<PageOfPlaylistCard>("/users/me/library/playlists", params);
+  return apiGet<unknown>("/users/me/library/playlists", params).then((data) =>
+    normalizePage<PlaylistCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Настройки пользователя. GET /users/me/settings. */
@@ -862,14 +979,24 @@ export type PageOfSubscription = PageOf<SubscriptionResponse>;
 export function getMySubscriptions(
   params: { page?: number; size?: number } = {}
 ): Promise<PageOfSubscription> {
-  return apiGet<PageOfSubscription>("/users/me/subscriptions", params);
+  return apiGet<unknown>("/users/me/subscriptions", params).then((data) =>
+    normalizePage<SubscriptionResponse>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Лента подписок. GET /users/me/subscriptions/feed. */
 export function getMySubscriptionsFeed(
   params: { sort?: SortPodcasts; page?: number; size?: number } = {}
 ): Promise<PageOfPodcastCard> {
-  return apiGet<PageOfPodcastCard>("/users/me/subscriptions/feed", params);
+  return apiGet<unknown>("/users/me/subscriptions/feed", params).then((data) =>
+    normalizePage<PodcastCard>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 export interface ListenHistoryItem {
@@ -886,7 +1013,12 @@ export type PageOfListenHistory = PageOf<ListenHistoryItem>;
 export function getMyHistory(
   params: { page?: number; size?: number } = {}
 ): Promise<PageOfListenHistory> {
-  return apiGet<PageOfListenHistory>("/users/me/history", params);
+  return apiGet<unknown>("/users/me/history", params).then((data) =>
+    normalizePage<ListenHistoryItem>(data, {
+      page: params.page ?? 1,
+      size: params.size,
+    })
+  );
 }
 
 /** Профиль автора текущего пользователя. GET /authors/me (200 — автор; 403/404 — нет). */
