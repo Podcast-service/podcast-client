@@ -6,6 +6,7 @@ import styles from "./PodcastPage.module.css";
 import PodcastHero from "../../components/PodcastHero/PodcastHero";
 import RecommendedPodcasts from "../../components/RecommendedPodcasts/RecommendedPodcasts";
 import PodcastTranscript from "../../components/PodcastTranscript/PodcastTranscript";
+import PodcastSummary from "../../components/PodcastSummary/PodcastSummary";
 
 import {
   getPodcast,
@@ -243,12 +244,7 @@ const PodcastPage: React.FC = () => {
               </section>
             )}
 
-            {summaryText && (
-              <section className={styles.about}>
-                <h2 className={styles.sectionTitle}>Краткое содержание</h2>
-                <p className={styles.aboutText}>{summaryText}</p>
-              </section>
-            )}
+            {summaryText && <PodcastSummary text={summaryText} />}
 
             {transcriptItems.length > 0 && (
               <PodcastTranscript items={transcriptItems} />

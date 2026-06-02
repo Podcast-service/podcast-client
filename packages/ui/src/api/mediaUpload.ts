@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken } from "./auth";
+import { authedFetch, getAccessToken } from "./auth";
 
 const BASE_URL = (
   (import.meta as any).env?.VITE_MEDIA_UPLOAD_API_URL ?? ""
@@ -63,19 +63,13 @@ async function uploadMedia(
   }
   formData.append(fileField, file);
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
+  // authedFetch сам подставит/обновит access-токен и при 401 попробует refresh.
+  const res = await authedFetch(`${BASE_URL}${endpoint}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
   });
 
   const data = (await res.json().catch(() => ({}))) as MediaUploadResponse;
-
-  if (res.status === 401) {
-    clearTokens();
-  }
 
   if (!res.ok || data.success === false) {
     throw {

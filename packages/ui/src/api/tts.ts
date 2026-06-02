@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken } from "./auth";
+import { authedFetch } from "./auth";
 
 /**
  * Базовый хост tts-сервиса. По умолчанию same-origin:
@@ -38,22 +38,13 @@ export interface TtsError {
 export async function generateTts(
   body: TtsGenerateRequest
 ): Promise<TtsGenerateResponse> {
-  const token = getAccessToken();
-
-  const res = await fetch(`${BASE_URL}/api/tts/generate`, {
+  const res = await authedFetch(`${BASE_URL}/api/tts/generate`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
   const data = (await res.json().catch(() => ({}))) as Record<string, any>;
-
-  if (res.status === 401) {
-    clearTokens();
-  }
 
   if (!res.ok) {
     throw {

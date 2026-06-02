@@ -1,4 +1,4 @@
-import { getAccessToken, clearTokens, setAccessToken } from "./auth";
+import { getAccessToken, setAccessToken, authedFetch } from "./auth";
 
 /**
  * Базовый путь podcast-core. По умолчанию относительный (/podcast/v1):
@@ -395,19 +395,14 @@ async function apiGet<T>(path: string, query?: object): Promise<T> {
     }
   }
 
-  const token = getAccessToken();
-  let res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-
-  // Токен не принят этим бэкендом (другой секрет / истёк): сбрасываем его и
-  // повторяем запрос анонимно — публичные ручки должны работать без логина.
-  if (res.status === 401 && token) {
-    clearTokens();
-    if (canRetryAnonymously(path)) {
-      res = await fetch(url.toString());
-    }
-  }
+  // authedFetch сам подставляет/обновляет access-токен и при 401 пробует
+  // refresh. Для публичных ручек разрешаем анонимный повтор, если refresh
+  // не удался (защищённые /users/me, /authors/me — нет).
+  const res = await authedFetch(
+    url.toString(),
+    {},
+    { retryAnonymously: canRetryAnonymously(path) }
+  );
 
   return handleResponse<T>(res);
 }
@@ -418,20 +413,11 @@ async function apiSend<T>(
   path: string,
   body?: unknown
 ): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await authedFetch(`${BASE_URL}${path}`, {
     method,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-    },
+    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-
-  // Невалидный токен → разлогиниваем (UI переключится на гостя).
-  if (res.status === 401 && token) {
-    clearTokens();
-  }
 
   return handleResponse<T>(res);
 }
