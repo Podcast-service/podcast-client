@@ -23,7 +23,7 @@ import LeftSvg from "../../assets/icons/left.svg";
 import RightSvg from "../../assets/icons/right.svg";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: PodcastRowData) => void;
+  playPodcast: (podcast: PodcastRowData, queue?: PodcastRowData[]) => void;
 }
 
 const PAGE_SIZE = 10;
@@ -295,7 +295,8 @@ const SearchPage: React.FC = () => {
                     <PodcastRow
                       key={podcast.id}
                       {...podcast}
-                      onPlayClick={() => playPodcast(podcast)}
+                      isAuthenticated={isAuthenticated()}
+                      onPlayClick={() => playPodcast(podcast, visiblePodcasts)}
                     />
                   ))}
                 </div>

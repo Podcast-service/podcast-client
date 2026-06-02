@@ -20,7 +20,7 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: any) => void;
+  playPodcast: (podcast: any, queue?: any[]) => void;
 }
 
 interface CarouselItem {
@@ -260,7 +260,8 @@ const AuthorPage: React.FC = () => {
                 <PodcastRow
                   key={podcast.id}
                   {...podcast}
-                  onPlayClick={() => playPodcast(podcast)}
+                  isAuthenticated={isAuthenticated()}
+                  onPlayClick={() => playPodcast(podcast, filteredPodcasts)}
                   onLikeClick={() => handlePodcastLike(podcast.id)}
                 />
               ))

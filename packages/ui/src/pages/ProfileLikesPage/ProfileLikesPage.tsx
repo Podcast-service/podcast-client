@@ -10,7 +10,7 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast?: (podcast: PodcastRowData) => void;
+  playPodcast?: (podcast: PodcastRowData, queue?: PodcastRowData[]) => void;
 }
 
 const ProfileLikesPage: React.FC = () => {
@@ -82,7 +82,7 @@ const ProfileLikesPage: React.FC = () => {
           key={podcast.id}
           {...podcast}
           isLiked={true}
-          onPlayClick={() => playPodcast(podcast)}
+          onPlayClick={() => playPodcast(podcast, podcasts)}
           onLikeClick={() => handleLike(podcast.id)}
         />
       ))}

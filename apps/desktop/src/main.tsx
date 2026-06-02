@@ -14,6 +14,8 @@ import {
   Header,
   Footer,
   Player,
+  PlayerProvider,
+  usePlayer,
   MainPage,
   PodcastsPage,
   SearchPage,
@@ -47,14 +49,6 @@ import {
 
 import "./styles/global.css";
 
-interface ActivePodcast {
-  id: string;
-  title: string;
-  author: string;
-  duration: string;
-  coverUrl?: string;
-}
-
 function AuthLayout() {
   return (
     <div className="app appAuth">
@@ -70,25 +64,23 @@ function AuthLayout() {
 }
 
 function MainLayout() {
-  const [activePodcast, setActivePodcast] = useState<ActivePodcast | null>(null);
+  return (
+    <PlayerProvider>
+      <MainLayoutInner />
+    </PlayerProvider>
+  );
+}
+
+function MainLayoutInner() {
+  const { playPodcast } = usePlayer();
 
   return (
     <div className="app appMain">
       <Header />
       <main className="mainContent">
-        <Outlet context={{ playPodcast: setActivePodcast }} />
+        <Outlet context={{ playPodcast }} />
       </main>
-      <Player
-        isVisible={Boolean(activePodcast)}
-        title={activePodcast?.title}
-        episode={activePodcast?.author}
-        totalTime={activePodcast?.duration}
-        coverUrl={activePodcast?.coverUrl}
-        currentTime="0:00"
-        progress={0}
-        volume={80}
-        downloadStatus="idle"
-      />
+      <Player />
       <Footer />
     </div>
   );

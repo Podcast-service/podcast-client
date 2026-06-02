@@ -124,6 +124,21 @@
     cursor: default;
 }
 
+/* Неактивные вперёд/назад, когда нет очереди для перехода. */
+.controlBtn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* Включённый режим (shuffle/repeat): подсветка-пилюля без сдвига соседних
+   кнопок (padding компенсируется отрицательным margin). */
+.controlActive {
+    background: rgba(27, 67, 50, 0.12);
+    border-radius: 999px;
+    padding: 6px;
+    margin: -6px;
+}
+
 .downloadLoading img {
     animation: downloadSpin 1s linear infinite;
 }

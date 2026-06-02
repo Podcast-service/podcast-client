@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthAction } from "../../hooks/useAuthAction";
 import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
 import { useAddToPlaylist } from "../AddToPlaylist/useAddToPlaylist";
+import { usePlayerOptional } from "../Player/PlayerProvider";
 
 import styles from "./PodcastRow.module.css";
 import LikeActiveSvg from "../../assets/icons/likePodRow.svg";
@@ -38,15 +39,30 @@ interface PodcastRowProps {
 
 const formatDuration = (duration: string): string => {
   const parts = duration.split(":").map(Number);
-  let totalMinutes = 0;
+  let totalSeconds = 0;
 
   if (parts.length === 3) {
-    totalMinutes = parts[0] * 60 + parts[1];
+    totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
   } else if (parts.length === 2) {
-    totalMinutes = parts[0];
+    totalSeconds = parts[0] * 60 + parts[1];
   }
 
-  return `${totalMinutes} мин`;
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+    return "";
+  }
+
+  // Меньше минуты — в секундах, меньше часа — в минутах, дальше — в часах.
+  if (totalSeconds < 60) {
+    return `${totalSeconds} сек`;
+  }
+
+  if (totalSeconds < 3600) {
+    return `${Math.floor(totalSeconds / 60)} мин`;
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return minutes > 0 ? `${hours} ч ${minutes} мин` : `${hours} ч`;
 };
 
 const calcTimeLeft = (duration: string, progress: number): string => {
@@ -59,10 +75,22 @@ const calcTimeLeft = (duration: string, progress: number): string => {
     totalSeconds = parts[0] * 60 + parts[1];
   }
 
-  const leftSeconds = Math.ceil(totalSeconds * (100 - progress) / 100);
-  const leftMinutes = Math.ceil(leftSeconds / 60);
+  const leftSeconds = Math.ceil((totalSeconds * (100 - progress)) / 100);
 
-  return `Осталось ${leftMinutes} мин`;
+  // Меньше минуты — в секундах, меньше часа — в минутах, дальше — в часах.
+  if (leftSeconds < 60) {
+    return `Осталось ${leftSeconds} сек`;
+  }
+
+  if (leftSeconds < 3600) {
+    return `Осталось ${Math.ceil(leftSeconds / 60)} мин`;
+  }
+
+  const hours = Math.floor(leftSeconds / 3600);
+  const minutes = Math.round((leftSeconds % 3600) / 60);
+  return minutes > 0
+    ? `Осталось ${hours} ч ${minutes} мин`
+    : `Осталось ${hours} ч`;
 };
 
 const PodcastRow: React.FC<PodcastRowProps> = ({
@@ -86,6 +114,12 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
 }) => {
   const navigate = useNavigate();
   const addToPlaylist = useAddToPlaylist();
+
+  // Иконка play/pause отражает реальное состояние глобального плеера.
+  const player = usePlayerOptional();
+  const playingNow = player
+    ? player.activePodcast?.id === id && player.isPlaying
+    : isPlaying;
 
   const hasProgress = progress !== undefined && progress > 0 && !isCompleted;
   const { isModalOpen, closeModal, guard } =
@@ -122,7 +156,9 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
 
           <div className={styles.meta}>
             <span className={styles.metaItem}>{date}</span>
-            <span className={styles.metaItem}>{formatDuration(duration)}</span>
+            {formatDuration(duration) && (
+              <span className={styles.metaItem}>{formatDuration(duration)}</span>
+            )}
 
             {category && <span className={styles.tag}>{category}</span>}
           </div>
@@ -180,7 +216,7 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
             event.preventDefault();
             event.stopPropagation();
 
-            handleAddClick?.();
+            guard(handleAddClick)();
           }}
           aria-label="Добавить в плейлист"
         >
@@ -215,10 +251,10 @@ const PodcastRow: React.FC<PodcastRowProps> = ({
           type="button"
           className={styles.playBtn}
           onClick={onPlayClick}
-          aria-label={isPlaying ? "Пауза" : "Воспроизвести"}
+          aria-label={playingNow ? "Пауза" : "Воспроизвести"}
         >
           <img
-            src={isPlaying ? PauseSvg : PlaySvg}
+            src={playingNow ? PauseSvg : PlaySvg}
             alt=""
             aria-hidden="true"
             className={styles.playIcon}

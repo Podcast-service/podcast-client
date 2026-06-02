@@ -2,6 +2,7 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import styles from "./PlaylistPodcastRow.module.css";
+import { usePlayerOptional } from "../Player/PlayerProvider";
 
 import PlusSvg from "../../assets/icons/plus.svg";
 import CheckSvg from "../../assets/icons/check.svg";
@@ -44,6 +45,11 @@ const PlaylistPodcastRow: React.FC<PlaylistPodcastRowProps> = ({
         transition,
         isDragging,
     } = useSortable({ id, disabled: variant === "selector" });
+
+    const player = usePlayerOptional();
+    const playingNow = player
+        ? player.activePodcast?.id === id && player.isPlaying
+        : isPlaying;
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -98,10 +104,10 @@ const PlaylistPodcastRow: React.FC<PlaylistPodcastRowProps> = ({
                             type="button"
                             className={styles.playBtn}
                             onClick={onPlayClick}
-                            aria-label={isPlaying ? "Пауза" : "Воспроизвести"}
+                            aria-label={playingNow ? "Пауза" : "Воспроизвести"}
                         >
                             <img
-                                src={isPlaying ? PauseSvg : PlaySvg}
+                                src={playingNow ? PauseSvg : PlaySvg}
                                 alt=""
                                 aria-hidden="true"
                                 className={styles.playIcon}

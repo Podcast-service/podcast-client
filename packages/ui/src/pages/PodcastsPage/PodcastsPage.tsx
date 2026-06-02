@@ -17,7 +17,7 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: any) => void;
+  playPodcast: (podcast: any, queue?: any[]) => void;
 }
 
 const PAGE_SIZE = 20;
@@ -206,7 +206,8 @@ const PodcastsPage: React.FC = () => {
                 <PodcastRow
                   key={podcast.id}
                   {...podcast}
-                  onPlayClick={() => playPodcast(podcast)}
+                  isAuthenticated={isAuthenticated()}
+                  onPlayClick={() => playPodcast(podcast, podcasts)}
                   onLikeClick={() => handleLike(podcast.id)}
                 />
               ))}

@@ -5,19 +5,24 @@ import styles from "./MainPage.module.css";
 import SectionRow from "../../components/SectionRow/SectionRow";
 import PodcastCard from "../../components/PodcastCard/PodcastCard";
 import AuthorCard from "../../components/AuthorCard/AuthorCard";
+import { usePlayerOptional } from "../../components/Player/PlayerProvider";
 
 import FireSvg from "../../assets/icons/fire.svg";
 import UserSvg from "../../assets/icons/user.svg";
 import ClockSvg from "../../assets/icons/clock.svg";
 import HeadphonesSvg from "../../assets/icons/listeners.svg";
 import PlaySvg from "../../assets/icons/playTop.svg";
+import PauseSvg from "../../assets/icons/pauseTop.svg";
 
 import {
   getPodcasts,
   subscribeAuthor,
   unsubscribeAuthor,
+  votePodcast,
+  removePodcastVote,
   isAuthenticated,
   type PodcastCard as ApiPodcastCard,
+  type VoteType,
 } from "../../api/podcast";
 import { formatClock } from "../../utils/format";
 
@@ -32,6 +37,8 @@ interface Podcast {
   coverUrl?: string;
   description?: string;
   progress?: number;
+  isLiked?: boolean;
+  currentUserVote?: VoteType | null;
 }
 
 interface Author {
@@ -44,7 +51,7 @@ interface Author {
 }
 
 interface MainLayoutContext {
-  playPodcast: (podcast: Podcast) => void;
+  playPodcast: (podcast: Podcast, queue?: Podcast[]) => void;
 }
 
 const TOP_FEED_SIZE = 50;
@@ -59,6 +66,8 @@ const mapPodcast = (podcast: ApiPodcastCard): Podcast => ({
   dislikes: podcast.dislikesCount,
   coverUrl: podcast.coverImageUrl ?? undefined,
   progress: podcast.progressPercent ?? undefined,
+  isLiked: podcast.currentUserVote === "LIKE",
+  currentUserVote: podcast.currentUserVote ?? null,
 });
 
 const deriveTopAuthors = (podcasts: ApiPodcastCard[]): Author[] => {
@@ -122,6 +131,7 @@ const formatListeners = (listeners: number) => {
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
+  const player = usePlayerOptional();
 
   const [topPodcasts, setTopPodcasts] = useState<Podcast[]>([]);
   const [topAuthors, setTopAuthors] = useState<Author[]>([]);
@@ -208,7 +218,66 @@ const MainPage: React.FC = () => {
     }
   };
 
+  const handlePodcastLike = async (id: string) => {
+    // Гостя перехватывает guard в PodcastCard (popup), сюда он не дойдёт.
+    if (!isAuthenticated()) return;
+
+    const target = topPodcasts.find((podcast) => podcast.id === id);
+    if (!target) return;
+    const wasLiked = target.currentUserVote === "LIKE";
+
+    setTopPodcasts((prev) =>
+      prev.map((podcast) =>
+        podcast.id === id
+          ? {
+              ...podcast,
+              isLiked: !wasLiked,
+              currentUserVote: wasLiked ? null : "LIKE",
+            }
+          : podcast
+      )
+    );
+
+    try {
+      const result = wasLiked
+        ? await removePodcastVote(id)
+        : await votePodcast(id, "LIKE");
+      setTopPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: result.currentUserVote === "LIKE",
+                currentUserVote: result.currentUserVote ?? null,
+              }
+            : podcast
+        )
+      );
+    } catch (err) {
+      setTopPodcasts((prev) =>
+        prev.map((podcast) =>
+          podcast.id === id
+            ? {
+                ...podcast,
+                isLiked: wasLiked,
+                currentUserVote: wasLiked ? "LIKE" : null,
+              }
+            : podcast
+        )
+      );
+      console.error("Failed to vote", err);
+    }
+  };
+
   const heroPodcast = useMemo(() => topPodcasts[0], [topPodcasts]);
+
+  // Активен ли подкаст из hero «Популярно сейчас» в глобальном плеере.
+  const heroPlaying = Boolean(
+    player &&
+      heroPodcast &&
+      player.activePodcast?.id === heroPodcast.id &&
+      player.isPlaying
+  );
 
   if (isLoading) {
     return (
@@ -308,16 +377,16 @@ const MainPage: React.FC = () => {
                 <button
                   type="button"
                   className={styles.listenBtn}
-                  onClick={() => playPodcast(heroPodcast)}
+                  onClick={() => playPodcast(heroPodcast, topPodcasts)}
                 >
                   <img
-                    src={PlaySvg}
+                    src={heroPlaying ? PauseSvg : PlaySvg}
                     alt=""
                     aria-hidden="true"
                     className={styles.listenIcon}
                   />
 
-                  Слушать
+                  {heroPlaying ? "Пауза" : "Слушать"}
                 </button>
 
                 <button
@@ -344,7 +413,9 @@ const MainPage: React.FC = () => {
                   <PodcastCard
                     key={podcast.id}
                     {...podcast}
-                    onPlayClick={() => playPodcast(podcast)}
+                    isAuthenticated={isAuthenticated()}
+                    onPlayClick={() => playPodcast(podcast, topPodcasts)}
+                    onLikeClick={() => handlePodcastLike(podcast.id)}
                   />
                 ))}
               </div>

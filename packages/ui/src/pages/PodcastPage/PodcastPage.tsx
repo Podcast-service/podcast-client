@@ -193,12 +193,17 @@ const PodcastPage: React.FC = () => {
       author: podcast.author.authorName,
       duration: formatClock(podcast.durationSeconds),
       coverUrl: podcast.coverImageUrl ?? undefined,
+      // Деталь уже загружена — отдаём audioUrl сразу, без повторного GET.
+      audioUrl: podcast.audioUrl ?? podcast.audio_url_file ?? null,
+      durationSeconds: podcast.durationSeconds ?? null,
+      progressSeconds: podcast.progressSeconds ?? null,
     });
 
   return (
     <div className={styles.page}>
       <div className={`container ${styles.pageInner}`}>
         <PodcastHero
+          podcastId={podcast.id}
           title={podcast.title}
           author={podcast.author.authorName}
           category={podcast.category?.name ?? ""}

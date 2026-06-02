@@ -13,7 +13,7 @@ import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 const ProfileMyPodcastsPage: React.FC = () => {
     const navigate = useNavigate();
-    const context = useOutletContext<{ playPodcast?: (podcast: any) => void } | null>();
+    const context = useOutletContext<{ playPodcast?: (podcast: any, queue?: any[]) => void } | null>();
     const playPodcast = context?.playPodcast ?? (() => {});
     const [podcasts, setPodcasts] = useState<PodcastRowData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -124,7 +124,7 @@ const ProfileMyPodcastsPage: React.FC = () => {
                                 key={podcast.id}
                                 {...podcast}
                                 isOwner={true}
-                                onPlayClick={() => playPodcast(podcast)}
+                                onPlayClick={() => playPodcast(podcast, podcasts)}
                                 onLikeClick={() => handleLike(podcast.id)}
                                 onEditClick={() => navigate(`/podcasts/${podcast.id}/edit`)}
                             />

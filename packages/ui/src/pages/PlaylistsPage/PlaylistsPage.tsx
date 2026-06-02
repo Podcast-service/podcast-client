@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./PlaylistsPage.module.css";
 
 import FilterTabs from "../../components/FilterTabs/FilterTabs";
@@ -8,6 +8,7 @@ import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
 
 import {
   getPlaylists,
+  getPlaylist,
   getMyLibraryPlaylists,
   isAuthenticated,
   removePlaylistFromLibrary,
@@ -15,7 +16,12 @@ import {
   type SortPlaylists,
   type PlaylistCard,
 } from "../../api/podcast";
+import { toPodcastRow } from "../../utils/mappers";
 import { formatRuDate, pluralizeRu } from "../../utils/format";
+
+interface MainLayoutContext {
+  playPodcast: (podcast: any, queue?: any[]) => void;
+}
 
 interface PlaylistRowData {
   id: string;
@@ -49,6 +55,7 @@ const formatPlaylistsCount = (count: number) =>
 
 const PlaylistsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { playPodcast } = useOutletContext<MainLayoutContext>();
   const [activeSort, setActiveSort] = useState<SortPlaylists>("RATING");
 
   const [playlists, setPlaylists] = useState<PlaylistRowData[]>([]);
@@ -182,6 +189,19 @@ const PlaylistsPage: React.FC = () => {
     }
   };
 
+  // На странице есть только метаданные плейлиста — подгружаем его треклист и
+  // запускаем первый подкаст, остальные кладём в очередь плеера.
+  const handlePlayPlaylist = async (playlistId: string) => {
+    try {
+      const detail = await getPlaylist(playlistId);
+      const rows = (detail.podcasts ?? []).map(toPodcastRow);
+      if (rows.length === 0) return;
+      playPodcast(rows[0], rows);
+    } catch (err) {
+      console.error("Failed to play playlist", err);
+    }
+  };
+
   const hasMore = page < totalPages;
 
   return (
@@ -226,6 +246,7 @@ const PlaylistsPage: React.FC = () => {
                   createdAt={playlist.createdAt}
                   isAdded={playlist.isSaved}
                   onAddClick={() => handleToggleSave(playlist.id)}
+                  onPlayClick={() => handlePlayPlaylist(playlist.id)}
                 />
               ))}
             </div>
