@@ -32,11 +32,13 @@ export const saveTokens = (tokens: AuthTokens) => {
   localStorage.setItem("access_token", tokens.access_token);
   localStorage.setItem("refresh_token", tokens.refresh_token);
   emitAuthChange();
+  scheduleAutoRefresh();
 };
 
 export const clearTokens = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
+  cancelAutoRefresh();
   emitAuthChange();
 };
 
@@ -48,6 +50,7 @@ export const clearTokens = () => {
 export const setAccessToken = (accessToken: string) => {
   localStorage.setItem("access_token", accessToken);
   emitAuthChange();
+  scheduleAutoRefresh();
 };
 
 export const getAccessToken = () => localStorage.getItem("access_token");
@@ -65,6 +68,57 @@ export const getTokenClaims = (): Record<string, any> | null => {
     return null;
   }
 };
+
+// ───── Срок жизни / автообновление access-токена ─────
+
+/** За сколько до истечения access-токена считаем его «пора обновить». */
+const REFRESH_SKEW_MS = 60_000;
+
+/** Момент истечения access-токена (ms, epoch) из claim `exp`. null — если неизвестен. */
+const getAccessTokenExpiry = (): number | null => {
+  const exp = getTokenClaims()?.exp;
+  return typeof exp === "number" ? exp * 1000 : null;
+};
+
+/**
+ * Истёк ли access-токен (или истечёт в ближайшие REFRESH_SKEW_MS).
+ * Если `exp` в токене нет — считаем, что не истёк (полагаемся на 401 от сервера).
+ */
+export const isAccessTokenExpired = (skewMs = REFRESH_SKEW_MS): boolean => {
+  const expiry = getAccessTokenExpiry();
+  if (expiry === null) return false;
+  return expiry - skewMs <= Date.now();
+};
+
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+const cancelAutoRefresh = () => {
+  if (refreshTimer !== null) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+};
+
+/**
+ * Запланировать фоновое обновление токена незадолго до его истечения, чтобы
+ * сессия не «протухала» через 30 минут при открытом приложении. Перевызов
+ * сбрасывает предыдущий таймер (после каждого saveTokens/setAccessToken).
+ */
+function scheduleAutoRefresh() {
+  if (typeof window === "undefined") return;
+  cancelAutoRefresh();
+
+  if (!getRefreshToken()) return;
+  const expiry = getAccessTokenExpiry();
+  if (expiry === null) return;
+
+  const delay = Math.max(expiry - Date.now() - REFRESH_SKEW_MS, 0);
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    // Ошибку глотаем: refreshTokens на «жёстком» отказе сам чистит токены.
+    refreshTokens().catch(() => {});
+  }, delay);
+}
 
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -207,18 +261,131 @@ export async function confirmPasswordReset(
   return handleResponse<void>(res);
 }
 
+/** Текущий «полёт» refresh-запроса — чтобы параллельные вызовы не плодили запросы. */
+let refreshPromise: Promise<AuthTokens> | null = null;
+
 /**
  * Обновление токенов
- * POST /auth/refresh
+ * POST /auth/refresh — тело { refresh_token }, ответ { access_token,
+ * refresh_token, expires_in } (refresh-токен ротируется).
+ *
+ * Сохраняет новую пару в localStorage. Параллельные вызовы разделяют один
+ * запрос (single-flight). На «жёстком» отказе (нет refresh-токена или сервер
+ * вернул не-2xx — токен невалиден/отозван) чистит токены и пробрасывает ошибку.
  */
 export async function refreshTokens(): Promise<AuthTokens> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
   const refresh_token = getRefreshToken();
-  const res = await fetch(`${BASE_URL}/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token }),
-  });
-  return handleResponse<AuthTokens>(res);
+  if (!refresh_token) {
+    return Promise.reject({ status: 401, error: "no_refresh_token" } as ApiError);
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token }),
+      });
+
+      if (!res.ok) {
+        // Refresh-токен невалиден/отозван/истёк — сессию не спасти, разлогиниваем.
+        clearTokens();
+        const data = await res.json().catch(() => ({}));
+        throw { status: res.status, ...data } as ApiError;
+      }
+
+      const tokens = (await res.json()) as AuthTokens;
+      saveTokens(tokens);
+      return tokens;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+/**
+ * Принудительно обновить access-токен (используется при 401 от ресурс-сервера,
+ * даже если по нашим часам токен ещё «жив»: секрет мог смениться, токен —
+ * быть отозван). Возвращает новый access или null, если refresh не удался.
+ */
+export async function tryRefresh(): Promise<string | null> {
+  if (!getRefreshToken()) {
+    return null;
+  }
+  try {
+    const tokens = await refreshTokens();
+    return tokens.access_token;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Валидный access-токен для запроса: если текущий истёк (или вот-вот истечёт) —
+ * проактивно обновляет его перед запросом. null — если пользователь не залогинен
+ * или refresh не удался.
+ */
+export async function getValidAccessToken(): Promise<string | null> {
+  const token = getAccessToken();
+  if (!token) {
+    return null;
+  }
+  if (!isAccessTokenExpired()) {
+    return token;
+  }
+  if (!getRefreshToken()) {
+    clearTokens();
+    return null;
+  }
+  return tryRefresh();
+}
+
+/**
+ * fetch с авто-управлением access-токеном:
+ *  1) перед запросом подставляет валидный access (обновив, если истёк);
+ *  2) при 401 один раз пробует refresh и повторяет запрос;
+ *  3) если и после refresh 401 — чистит токены; при retryAnonymously=true
+ *     (публичные GET) повторяет запрос без Authorization.
+ * Возвращает Response — разбор тела остаётся на вызывающем коде.
+ */
+export async function authedFetch(
+  input: string,
+  init: RequestInit = {},
+  opts: { retryAnonymously?: boolean } = {}
+): Promise<Response> {
+  const withAuth = (token: string | null): RequestInit => {
+    const headers = new Headers(init.headers);
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      headers.delete("Authorization");
+    }
+    return { ...init, headers };
+  };
+
+  let token = await getValidAccessToken();
+  let res = await fetch(input, withAuth(token));
+
+  if (res.status === 401 && token) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      res = await fetch(input, withAuth(refreshed));
+    }
+    if (res.status === 401) {
+      clearTokens();
+      if (opts.retryAnonymously) {
+        res = await fetch(input, withAuth(null));
+      }
+    }
+  }
+
+  return res;
 }
 
 /**
@@ -265,7 +432,9 @@ export async function changePassword(
   oldPassword: string,
   newPassword: string
 ): Promise<ChangePasswordResponse> {
-  const access_token = getAccessToken();
+  // Проактивно обновляем access, если он истёк, чтобы смена пароля не падала
+  // на 401 у активного, но «засидевшегося» пользователя.
+  const access_token = (await getValidAccessToken()) ?? getAccessToken();
   const res = await fetch(`${BASE_URL}/auth/password-change`, {
     method: "POST",
     headers: {
@@ -279,3 +448,8 @@ export async function changePassword(
   });
   return handleJsonOrText<ChangePasswordResponse>(res);
 }
+
+// При загрузке модуля (старт приложения / перезагрузка вкладки) поднимаем
+// таймер автообновления, если в localStorage уже лежит активная сессия. Если
+// access уже истёк — таймер сработает с нулевой задержкой и сразу обновит его.
+scheduleAutoRefresh();

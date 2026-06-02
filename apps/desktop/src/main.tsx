@@ -1,6 +1,14 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
+  useLocation,
+  useOutletContext,
+} from "react-router-dom";
 
 import {
   HeaderLogin,
@@ -38,6 +46,7 @@ import {
   ProfileHero,
   ProfileNav,
   ProfilePage,
+  ProfileMyPodcastsPage,
   ProfileLikesPage,
   ProfilePlaylistsPage,
   ProfileSubscriptionsPage,
@@ -45,7 +54,21 @@ import {
   AuthorPodcastDraftRow,
   ActiveSessions,
   ProfileSettingsPage,
+  PlaylistPage,
+  CreatePodcastPage,
+  EditPodcastPage,
+  CreatePlaylistPage,
+  EditPlaylistPage,
+  BecomeAuthorPage,
+  DownloadAppPage,
+  NotFoundPage,
+  ToastProvider,
+  AddToPlaylistProvider,
+  YoutubePublishProvider,
+  useIsAuthenticated,
 } from "@podcast/ui";
+
+import { youtubePublishApi } from "./cef/youtubePublishApi";
 
 import "./styles/global.css";
 
@@ -65,9 +88,15 @@ function AuthLayout() {
 
 function MainLayout() {
   return (
-    <PlayerProvider>
-      <MainLayoutInner />
-    </PlayerProvider>
+    <ToastProvider>
+      <AddToPlaylistProvider>
+        <YoutubePublishProvider value={youtubePublishApi}>
+          <PlayerProvider>
+            <MainLayoutInner />
+          </PlayerProvider>
+        </YoutubePublishProvider>
+      </AddToPlaylistProvider>
+    </ToastProvider>
   );
 }
 
@@ -84,6 +113,20 @@ function MainLayoutInner() {
       <Footer />
     </div>
   );
+}
+
+function RequireAuth() {
+  const isAuthenticated = useIsAuthenticated();
+  const location = useLocation();
+  // Пробрасываем контекст из MainLayout (playPodcast) дальше в защищённые
+  // страницы — иначе во вложенных профильных роутах он терялся.
+  const outletContext = useOutletContext();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return <Outlet context={outletContext} />;
 }
 
 const MOCK_CATEGORIES = [
@@ -750,24 +793,50 @@ function Main() {
       </Route>
 
       <Route element={<MainLayout />}>
+        {/* Публичные маршруты */}
         <Route path="/" element={<MainPage />} />
+        <Route path="/download" element={<DownloadAppPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
+        <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/authors/:authorId" element={<AuthorPage />} />
-
-        <Route path="/profile" element={<ProfilePage />}>
-          <Route index element={<Navigate to="likes" replace />} />
-          <Route path="likes" element={<ProfileLikesPage />} />
-          <Route path="playlists" element={<ProfilePlaylistsPage />} />
-          <Route path="subscriptions" element={<ProfileSubscriptionsPage />} />
-          <Route path="history" element={<ProfileHistoryPage />} />
-        </Route>
-        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
-
         <Route path="/dev" element={<DevPage />} />
+
+        {/* Маршруты, требующие авторизации */}
+        <Route element={<RequireAuth />}>
+          <Route path="/podcasts/create" element={<CreatePodcastPage />} />
+          <Route
+            path="/podcasts/create/:podcastId"
+            element={<CreatePodcastPage />}
+          />
+          <Route path="/podcasts/:podcastId/edit" element={<EditPodcastPage />} />
+
+          <Route path="/playlists/create" element={<CreatePlaylistPage />} />
+          <Route
+            path="/playlists/:playlistId/edit"
+            element={<EditPlaylistPage />}
+          />
+
+          <Route path="/become-author" element={<BecomeAuthorPage />} />
+
+          <Route path="/profile/edit" element={<ProfileSettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />}>
+            <Route index element={<Navigate to="podcasts" replace />} />
+            <Route path="podcasts" element={<ProfileMyPodcastsPage />} />
+            <Route path="likes" element={<ProfileLikesPage />} />
+            <Route path="playlists" element={<ProfilePlaylistsPage />} />
+            <Route
+              path="subscriptions"
+              element={<ProfileSubscriptionsPage />}
+            />
+            <Route path="history" element={<ProfileHistoryPage />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

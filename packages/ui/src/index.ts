@@ -67,6 +67,7 @@ export { default as AuthorRow } from "./components/AuthorRow/AuthorRow";
 export { default as PlaylistRow } from "./components/PlaylistRow/PlaylistRow";
 export { default as PodcastHero } from "./components/PodcastHero/PodcastHero";
 export { default as PodcastTranscript } from "./components/PodcastTranscript/PodcastTranscript";
+export { default as PodcastSummary } from "./components/PodcastSummary/PodcastSummary";
 export { default as RecommendedPodcasts } from "./components/RecommendedPodcasts/RecommendedPodcasts";
 export { default as PlaylistCard } from "./components/PlaylistCard/PlaylistCard";
 export { default as AuthorProfileHero } from "./components/AuthorProfileHero/AuthorProfileHero";
@@ -77,5 +78,14 @@ export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSes
 
 export { useIsAuthenticated } from "./hooks/useAuth";
 export { usePageTitle } from "./hooks/usePageTitle";
+export {
+  YoutubePublishProvider,
+  useYoutubePublish,
+} from "./components/YoutubePublish/YoutubePublishContext";
+export type {
+  YoutubePublishApi,
+  YoutubeGoogleUser,
+  YoutubePublishTarget,
+} from "./components/YoutubePublish/YoutubePublishContext";
 
 

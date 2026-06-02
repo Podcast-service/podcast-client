@@ -8,7 +8,7 @@ import PeopleTwoSvg from "../../assets/icons/peopleTwo.svg";
 interface TranscriptItem {
   id: string;
   speakerId: number;
-  time: string;
+  time?: string;
   text: string;
 }
 
@@ -113,7 +113,9 @@ const PodcastTranscript: React.FC<PodcastTranscriptProps> = ({
                     Человек {item.speakerId}
                   </span>
 
-                  <span className={styles.time}>{item.time}</span>
+                  {item.time && (
+                    <span className={styles.time}>{item.time}</span>
+                  )}
                 </div>
               </div>
 

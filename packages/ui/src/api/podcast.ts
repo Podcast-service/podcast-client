@@ -1,4 +1,4 @@
-import { getAccessToken, clearTokens, setAccessToken } from "./auth";
+import { getAccessToken, setAccessToken, authedFetch } from "./auth";
 
 /**
  * Базовый путь podcast-core. По умолчанию относительный (/podcast/v1):
@@ -81,10 +81,22 @@ export interface PodcastDetailResponse extends PodcastCard {
   hasSummary?: boolean | null;
 }
 
+/** Одна реплика транскрипта: текст + голос (спикер). */
+export interface PodcastTranscriptSegment {
+  text: string;
+  /** Идентификатор голоса из TTS (напр. "aidar", "xenia"). */
+  voice: string;
+  /** Порядковый номер спикера (1..N) — по порядку появления голоса. */
+  speakerId: number;
+}
+
 export interface PodcastTranscriptResponse {
   podcastId: string;
   language: string;
+  /** Плоский текст транскрипта (для поиска / обратной совместимости). */
   content: string;
+  /** Структурированные реплики по спикерам (если бэкенд их прислал). */
+  segments: PodcastTranscriptSegment[];
   generatedAt: string;
 }
 
@@ -127,6 +139,60 @@ const normalizeTextContent = (value: unknown): string | null => {
   }
 
   return null;
+};
+
+/**
+ * Разбирает поле content транскрипта в структурированные реплики.
+ * Новый формат бэкенда — массив { text, voice }; голосам назначаются
+ * speakerId по порядку первого появления. Старый формат (строка) тоже
+ * поддерживается: каждая непустая строка считается отдельной репликой.
+ */
+const parseTranscriptSegments = (
+  content: unknown
+): PodcastTranscriptSegment[] => {
+  const voiceToSpeaker = new Map<string, number>();
+  const speakerIdFor = (voice: string): number => {
+    const key = voice.trim().toLowerCase();
+    if (!voiceToSpeaker.has(key)) {
+      voiceToSpeaker.set(key, voiceToSpeaker.size + 1);
+    }
+    return voiceToSpeaker.get(key)!;
+  };
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => {
+        const record =
+          item && typeof item === "object"
+            ? (item as Record<string, unknown>)
+            : {};
+        const text = normalizeTextContent(record.text ?? item)?.trim() ?? "";
+        const voice =
+          typeof record.voice === "string" ? record.voice.trim() : "";
+        return { text, voice };
+      })
+      .filter((item) => item.text.length > 0)
+      .map((item) => ({
+        text: item.text,
+        voice: item.voice,
+        speakerId: speakerIdFor(item.voice || "speaker"),
+      }));
+  }
+
+  const flat = normalizeTextContent(content);
+  if (!flat) {
+    return [];
+  }
+
+  return flat
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line, index) => ({
+      text: line,
+      voice: "",
+      speakerId: (index % 2) + 1,
+    }));
 };
 
 const normalizePodcastTextResponse = <
@@ -329,19 +395,14 @@ async function apiGet<T>(path: string, query?: object): Promise<T> {
     }
   }
 
-  const token = getAccessToken();
-  let res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-
-  // Токен не принят этим бэкендом (другой секрет / истёк): сбрасываем его и
-  // повторяем запрос анонимно — публичные ручки должны работать без логина.
-  if (res.status === 401 && token) {
-    clearTokens();
-    if (canRetryAnonymously(path)) {
-      res = await fetch(url.toString());
-    }
-  }
+  // authedFetch сам подставляет/обновляет access-токен и при 401 пробует
+  // refresh. Для публичных ручек разрешаем анонимный повтор, если refresh
+  // не удался (защищённые /users/me, /authors/me — нет).
+  const res = await authedFetch(
+    url.toString(),
+    {},
+    { retryAnonymously: canRetryAnonymously(path) }
+  );
 
   return handleResponse<T>(res);
 }
@@ -352,20 +413,11 @@ async function apiSend<T>(
   path: string,
   body?: unknown
 ): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await authedFetch(`${BASE_URL}${path}`, {
     method,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-    },
+    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-
-  // Невалидный токен → разлогиниваем (UI переключится на гостя).
-  if (res.status === 401 && token) {
-    clearTokens();
-  }
 
   return handleResponse<T>(res);
 }
@@ -400,12 +452,37 @@ export function getPodcast(podcastId: string): Promise<PodcastDetailResponse> {
 export function getPodcastTranscript(
   podcastId: string
 ): Promise<PodcastTranscriptResponse> {
-  return apiGet<unknown>(`/podcasts/${podcastId}/transcript`).then((data) =>
-    normalizePodcastTextResponse<PodcastTranscriptResponse>(data, podcastId, [
-      "transcript",
-      "text",
-    ])
-  );
+  return apiGet<unknown>(`/podcasts/${podcastId}/transcript`).then((data) => {
+    const record =
+      data && typeof data === "object" && !Array.isArray(data)
+        ? (data as Record<string, unknown>)
+        : {};
+
+    // Сырое содержимое: либо массив { text, voice } в record.content,
+    // либо сам ответ — массив, либо строка под одним из fallback-ключей.
+    const rawContent =
+      record.content ??
+      (Array.isArray(data) ? data : undefined) ??
+      record.transcript ??
+      record.text ??
+      data;
+
+    const segments = parseTranscriptSegments(rawContent);
+    const content =
+      segments.length > 0
+        ? segments.map((segment) => segment.text).join("\n")
+        : normalizeTextContent(rawContent) ?? "";
+
+    return {
+      podcastId:
+        typeof record.podcastId === "string" ? record.podcastId : podcastId,
+      language: typeof record.language === "string" ? record.language : "",
+      content,
+      segments,
+      generatedAt:
+        typeof record.generatedAt === "string" ? record.generatedAt : "",
+    };
+  });
 }
 
 /** Summary подкаста. GET /podcasts/{id}/summary — 404, если не готов. */

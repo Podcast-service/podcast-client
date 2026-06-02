@@ -5,6 +5,8 @@ import styles from "./PodcastPage.module.css";
 
 import PodcastHero from "../../components/PodcastHero/PodcastHero";
 import RecommendedPodcasts from "../../components/RecommendedPodcasts/RecommendedPodcasts";
+import PodcastTranscript from "../../components/PodcastTranscript/PodcastTranscript";
+import PodcastSummary from "../../components/PodcastSummary/PodcastSummary";
 
 import {
   getPodcast,
@@ -15,6 +17,7 @@ import {
   removePodcastVote,
   isAuthenticated,
   type PodcastDetailResponse,
+  type PodcastTranscriptSegment,
   type VoteType,
 } from "../../api/podcast";
 import { formatClock, formatMinutes, formatRuDate } from "../../utils/format";
@@ -42,7 +45,7 @@ const PodcastPage: React.FC = () => {
 
   const [podcast, setPodcast] = useState<PodcastDetailResponse | null>(null);
   const [vote, setVote] = useState<VoteState>({ currentUserVote: null });
-  const [transcript, setTranscript] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<PodcastTranscriptSegment[]>([]);
   const [summary, setSummary] = useState<string | null>(null);
   const [recommended, setRecommended] = useState<RecommendedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,12 +74,12 @@ const PodcastPage: React.FC = () => {
         getPodcastTranscript(podcastId)
           .then((data) => {
             if (!cancelled) {
-              setTranscript(data.content);
+              setTranscript(data.segments);
             }
           })
           .catch(() => {
             if (!cancelled) {
-              setTranscript(null);
+              setTranscript([]);
             }
           });
 
@@ -204,13 +207,11 @@ const PodcastPage: React.FC = () => {
 
   const summaryText =
     typeof summary === "string" && summary.trim().length > 0 ? summary : null;
-  const transcriptLines =
-    typeof transcript === "string"
-      ? transcript
-          .split(/\n+/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0)
-      : [];
+  const transcriptItems = transcript.map((segment, index) => ({
+    id: `${index}`,
+    speakerId: segment.speakerId,
+    text: segment.text,
+  }));
 
   return (
     <div className={styles.page}>
@@ -243,22 +244,10 @@ const PodcastPage: React.FC = () => {
               </section>
             )}
 
-            {summaryText && (
-              <section className={styles.about}>
-                <h2 className={styles.sectionTitle}>Краткое содержание</h2>
-                <p className={styles.aboutText}>{summaryText}</p>
-              </section>
-            )}
+            {summaryText && <PodcastSummary text={summaryText} />}
 
-            {transcriptLines.length > 0 && (
-              <section className={styles.about}>
-                <h2 className={styles.sectionTitle}>Транскрипт</h2>
-                {transcriptLines.map((line, index) => (
-                  <p key={index} className={styles.aboutText}>
-                    {line}
-                  </p>
-                ))}
-              </section>
+            {transcriptItems.length > 0 && (
+              <PodcastTranscript items={transcriptItems} />
             )}
           </main>
 
