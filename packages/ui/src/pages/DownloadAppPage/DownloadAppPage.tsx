@@ -1,4 +1,5 @@
 import React from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import styles from "./DownloadAppPage.module.css";
 
 import DownloadImg from "../../assets/modalka/download.png";
@@ -10,6 +11,7 @@ import NoInternetSvg from "../../assets/icons/noInternet.svg";
 import FlashSvg from "../../assets/icons/flashh.svg";
 
 const DownloadAppPage: React.FC = () => {
+  usePageTitle("Скачать приложение");
     return (
         <div className={styles.page}>
             <div className={`container ${styles.pageInner}`}>

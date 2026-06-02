@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import styles from "./PlaylistPage.module.css";
 
@@ -28,7 +29,7 @@ import { formatRuDate } from "../../utils/format";
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: any) => void;
+  playPodcast: (podcast: any, queue?: any[]) => void;
 }
 
 const PlaylistPage: React.FC = () => {
@@ -46,6 +47,7 @@ const PlaylistPage: React.FC = () => {
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
   const [error, setError] = useState<string | null>(null);
+  usePageTitle(playlist?.title);
 
   useEffect(() => {
     if (!playlistId) {
@@ -132,7 +134,7 @@ const PlaylistPage: React.FC = () => {
 
   const handlePlayAll = () => {
     if (podcasts.length > 0) {
-      playPodcast(podcasts[0]);
+      playPodcast(podcasts[0], podcasts);
     }
   };
 
@@ -311,7 +313,7 @@ const PlaylistPage: React.FC = () => {
               <span className={styles.listNumber}>{index + 1}</span>
               <PodcastRow
                 {...podcast}
-                onPlayClick={() => playPodcast(podcast)}
+                onPlayClick={() => playPodcast(podcast, podcasts)}
                 onLikeClick={() => handlePodcastLike(podcast.id)}
               />
             </div>

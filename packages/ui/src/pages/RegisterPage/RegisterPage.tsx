@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import InputField from "../../components/InputField/InputField";
@@ -12,6 +13,7 @@ const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const cyrillicRegex = /[А-Яа-яЁё]/;
 
 const RegisterPage = () => {
+  usePageTitle("Регистрация");
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");

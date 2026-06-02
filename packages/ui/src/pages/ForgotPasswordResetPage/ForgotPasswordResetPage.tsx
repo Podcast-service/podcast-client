@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import InputField from "../../components/InputField/InputField";
@@ -10,6 +11,7 @@ import { confirmPasswordReset } from "../../api/auth";
 const cyrillicRegex = /[А-Яа-яЁё]/;
 
 const ForgotPasswordResetPage = () => {
+  usePageTitle("Новый пароль");
   const navigate = useNavigate();
   const location = useLocation();
 

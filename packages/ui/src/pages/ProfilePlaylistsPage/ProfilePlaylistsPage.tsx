@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import PlaylistCard from "../../components/PlaylistCard/PlaylistCard";
 import styles from "./ProfilePlaylistsPage.module.css";
@@ -15,6 +16,7 @@ interface ProfilePlaylistItem extends ApiPlaylistCard {
 }
 
 const ProfilePlaylistsPage: React.FC = () => {
+  usePageTitle("Мои плейлисты");
   const navigate = useNavigate();
 
   const [playlists, setPlaylists] = useState<ProfilePlaylistItem[]>([]);

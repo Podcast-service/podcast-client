@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styles from "./CreatePodcastPage.module.css";
 
@@ -61,6 +62,7 @@ const toFormData = (
 const AUDIO_UPLOADED_STATUSES = ["UPLOADED", "PROCESSING", "PROCESSED", "PUBLISHED"];
 
 const CreatePodcastPage: React.FC = () => {
+  usePageTitle("Создание подкаста");
     const navigate = useNavigate();
     const { podcastId } = useParams<{ podcastId?: string }>();
     const [searchParams] = useSearchParams();

@@ -2,6 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./PodcastCard.module.css";
 import { useAddToPlaylist } from "../AddToPlaylist/useAddToPlaylist";
+import { usePlayerOptional } from "../Player/PlayerProvider";
+import { useAuthAction } from "../../hooks/useAuthAction";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
 
 import ListenersSvg from "../../assets/icons/listeners.svg";
 import LikeSvg from "../../assets/icons/like.svg";
@@ -25,6 +28,7 @@ interface PodcastCardProps {
   progress?: number;
   isLiked?: boolean;
   isPlaying?: boolean;
+  isAuthenticated?: boolean;
   onPlayClick?: () => void;
   onLikeClick?: () => void;
   onAddClick?: () => void;
@@ -50,11 +54,23 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
   progress,
   isLiked = false,
   isPlaying = false,
+  isAuthenticated = true,
   onPlayClick,
   onLikeClick,
   onAddClick,
 }) => {
   const hasProgress = progress !== undefined && progress > 0 && progress < 100;
+
+  // Действия, требующие авторизации (лайк, добавление в плейлист): для гостя
+  // открываем popup «Добро пожаловать в Podcast!» вместо самого действия.
+  const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
+
+  // Подсветка: пауза-иконка показывается, только если именно этот подкаст
+  // сейчас играет в глобальном плеере. Вне провайдера — fallback на проп.
+  const player = usePlayerOptional();
+  const playingNow = player
+    ? player.activePodcast?.id === id && player.isPlaying
+    : isPlaying;
 
   const addToPlaylist = useAddToPlaylist();
   const handleAddClick =
@@ -87,7 +103,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
               className={styles.overlayBtn}
               onClick={(e) => {
                 e.preventDefault();
-                handleAddClick?.();
+                guard(handleAddClick)();
               }}
               aria-label="Добавить"
             >
@@ -106,10 +122,10 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
                 e.preventDefault();
                 onPlayClick?.();
               }}
-              aria-label={isPlaying ? "Пауза" : "Воспроизвести"}
+              aria-label={playingNow ? "Пауза" : "Воспроизвести"}
             >
               <img
-                src={isPlaying ? PauseCardSvg : PlayCardSvg}
+                src={playingNow ? PauseCardSvg : PlayCardSvg}
                 alt=""
                 aria-hidden="true"
                 className={styles.overlayPlayIcon}
@@ -121,7 +137,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
               className={styles.overlayBtn}
               onClick={(e) => {
                 e.preventDefault();
-                onLikeClick?.();
+                guard(onLikeClick)();
               }}
               aria-label={isLiked ? "Убрать лайк" : "Поставить лайк"}
             >
@@ -178,6 +194,8 @@ const PodcastCard: React.FC<PodcastCardProps> = ({
           </div>
         </div>
       </Link>
+
+      {isModalOpen && <LoginPromptModal onClose={closeModal} />}
     </article>
   );
 };

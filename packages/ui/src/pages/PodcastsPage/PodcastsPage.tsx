@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./PodcastsPage.module.css";
 import FilterTabs from "../../components/FilterTabs/FilterTabs";
@@ -17,7 +18,7 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: any) => void;
+  playPodcast: (podcast: any, queue?: any[]) => void;
 }
 
 const PAGE_SIZE = 20;
@@ -30,6 +31,7 @@ const SORT_OPTIONS: { id: SortPodcasts; label: string }[] = [
 ];
 
 const PodcastsPage: React.FC = () => {
+  usePageTitle("Подкасты");
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
 
@@ -206,7 +208,8 @@ const PodcastsPage: React.FC = () => {
                 <PodcastRow
                   key={podcast.id}
                   {...podcast}
-                  onPlayClick={() => playPodcast(podcast)}
+                  isAuthenticated={isAuthenticated()}
+                  onPlayClick={() => playPodcast(podcast, podcasts)}
                   onLikeClick={() => handleLike(podcast.id)}
                 />
               ))}

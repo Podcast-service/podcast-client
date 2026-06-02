@@ -51,6 +51,38 @@ export const formatRuDate = (iso?: string | null): string => {
   return `${date.getDate()} ${RU_MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`;
 };
 
+/**
+ * ISO-дата → относительная подпись для истории прослушивания:
+ * "Сегодня" / "Вчера" / "N дней назад", дальше — обычная дата "12 окт 2023".
+ */
+export const formatRelativeDate = (iso?: string | null): string => {
+  if (!iso) {
+    return "";
+  }
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfDate = new Date(date);
+  startOfDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round(
+    (startOfToday.getTime() - startOfDate.getTime()) / 86_400_000
+  );
+
+  if (diffDays <= 0) return "Сегодня";
+  if (diffDays === 1) return "Вчера";
+  if (diffDays < 7) {
+    return `${diffDays} ${pluralizeRu(diffDays, ["день", "дня", "дней"])} назад`;
+  }
+
+  return formatRuDate(iso);
+};
+
 /** Большие числа → "12,4K" / "1,2M". */
 export const formatCompact = (value?: number | null): string => {
   const num = value ?? 0;

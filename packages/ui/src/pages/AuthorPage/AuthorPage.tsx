@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import styles from "./AuthorPage.module.css";
 
@@ -20,7 +21,7 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast: (podcast: any) => void;
+  playPodcast: (podcast: any, queue?: any[]) => void;
 }
 
 interface CarouselItem {
@@ -46,6 +47,7 @@ const AuthorPage: React.FC = () => {
   const [subscribers, setSubscribers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  usePageTitle(author?.authorName);
 
   useEffect(() => {
     if (!authorId) {
@@ -260,7 +262,8 @@ const AuthorPage: React.FC = () => {
                 <PodcastRow
                   key={podcast.id}
                   {...podcast}
-                  onPlayClick={() => playPodcast(podcast)}
+                  isAuthenticated={isAuthenticated()}
+                  onPlayClick={() => playPodcast(podcast, filteredPodcasts)}
                   onLikeClick={() => handlePodcastLike(podcast.id)}
                 />
               ))

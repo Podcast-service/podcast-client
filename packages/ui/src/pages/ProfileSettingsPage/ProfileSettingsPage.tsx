@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import styles from "./ProfileSettingsPage.module.css";
 
@@ -50,6 +51,7 @@ const validateAuthorBio = (value: string): string => {
 };
 
 const ProfileSettingsPage: React.FC = () => {
+  usePageTitle("Настройки профиля");
   const navigate = useNavigate();
   const { showToast } = useToast();
 

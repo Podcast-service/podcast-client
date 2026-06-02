@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./EditPodcastPage.module.css";
 
@@ -24,6 +25,7 @@ const toCategoryOption = (category: CategoryResponse) => ({
 });
 
 const EditPodcastPage: React.FC = () => {
+  usePageTitle("Редактирование подкаста");
     const navigate = useNavigate();
     const { podcastId } = useParams<{ podcastId: string }>();
     const { showToast } = useToast();

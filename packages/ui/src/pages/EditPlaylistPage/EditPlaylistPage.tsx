@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     DndContext,
@@ -59,6 +60,7 @@ const mapPodcast = (podcast: PodcastCard | PlaylistPodcastItem): Podcast => ({
 
 
 const EditPlaylistPage: React.FC = () => {
+  usePageTitle("Редактирование плейлиста");
     const navigate = useNavigate();
     const { playlistId } = useParams<{ playlistId: string }>();
     const { showToast } = useToast();

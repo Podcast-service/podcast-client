@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import StepProgress from "../../components/StepProgress/StepProgress";
@@ -11,6 +12,7 @@ import { requestPasswordReset } from "../../api/auth";
 const INITIAL_TIMER = 60;
 
 const ForgotPasswordVerifyPage = () => {
+  usePageTitle("Восстановление пароля");
   const navigate = useNavigate();
   const location = useLocation();
 

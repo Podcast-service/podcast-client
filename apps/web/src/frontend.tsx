@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation, useOutletContext } from "react-router-dom";
 
 import {
   HeaderLogin,
@@ -14,6 +14,8 @@ import {
   Header,
   Footer,
   Player,
+  PlayerProvider,
+  usePlayer,
   MainPage,
   SearchPage,
   FilterTabs,
@@ -56,14 +58,6 @@ import {
 
 import "./styles/global.css";
 
-interface ActivePodcast {
-  id: string;
-  title: string;
-  author: string;
-  duration: string;
-  coverUrl?: string;
-}
-
 function AuthLayout() {
   return (
     <div className="app appAuth">
@@ -82,45 +76,48 @@ function AuthLayout() {
 function RequireAuth() {
   const isAuthenticated = useIsAuthenticated();
   const location = useLocation();
+  // Пробрасываем контекст из MainLayout (playPodcast) дальше в защищённые
+  // страницы — иначе во вложенных профильных роутах он терялся.
+  const outletContext = useOutletContext();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  return <Outlet />;
+  return <Outlet context={outletContext} />;
 }
 
 function MainLayout() {
-  const [activePodcast, setActivePodcast] = useState<ActivePodcast | null>(null);
-
   return (
     <ToastProvider>
       <AddToPlaylistProvider>
-      <div className="app appMain">
-        <Header />
-        <main className="mainContent">
-          <Outlet context={{ playPodcast: setActivePodcast }} />
-        </main>
-        <DownloadAppBanner
-          isPlayerVisible={Boolean(activePodcast)}
-          onDownloadClick={() => {}}
-        />
-
-        <Player
-          isVisible={Boolean(activePodcast)}
-          title={activePodcast?.title}
-          episode={activePodcast?.author}
-          totalTime={activePodcast?.duration}
-          coverUrl={activePodcast?.coverUrl}
-          currentTime="0:00"
-          progress={0}
-          volume={80}
-          downloadStatus="idle"
-        />
-        <Footer />
-      </div>
+        <PlayerProvider>
+          <MainLayoutInner />
+        </PlayerProvider>
       </AddToPlaylistProvider>
     </ToastProvider>
+  );
+}
+
+// Внутренний слой: имеет доступ к плееру через usePlayer и отдаёт playPodcast
+// страницам через outlet-context. Активный подкаст управляет видимостью баннера.
+function MainLayoutInner() {
+  const { playPodcast, activePodcast } = usePlayer();
+
+  return (
+    <div className="app appMain">
+      <Header />
+      <main className="mainContent">
+        <Outlet context={{ playPodcast }} />
+      </main>
+      <DownloadAppBanner
+        isPlayerVisible={Boolean(activePodcast)}
+        onDownloadClick={() => {}}
+      />
+
+      <Player />
+      <Footer />
+    </div>
   );
 }
 

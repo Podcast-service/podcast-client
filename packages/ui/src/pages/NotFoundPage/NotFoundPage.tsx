@@ -1,4 +1,5 @@
 import React from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 
 import styles from "./NotFoundPage.module.css";
@@ -6,6 +7,7 @@ import styles from "./NotFoundPage.module.css";
 import ErrorPageImage from "../../assets/modalka/errorPage.png";
 
 const NotFoundPage: React.FC = () => {
+  usePageTitle("Страница не найдена");
     const navigate = useNavigate();
 
     return (

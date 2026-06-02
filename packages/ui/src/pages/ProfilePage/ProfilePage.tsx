@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import styles from "./ProfilePage.module.css";
 import ProfileHero from "../../components/ProfileHero/ProfileHero";
 import ProfileAuthorHero from "../../components/ProfileAuthorHero/ProfileAuthorHero";
@@ -16,6 +16,8 @@ import { getTokenClaims } from "../../api/auth";
 const ProfilePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // Контекст из MainLayout (playPodcast) пробрасываем во вложенные страницы.
+  const outletContext = useOutletContext();
   const [profile, setProfile] = useState<UserProfilePrivateResponse | null>(
     null
   );
@@ -90,7 +92,7 @@ const ProfilePage: React.FC = () => {
         <ProfileNav isAuthor={isAuthor} />
 
         <div className={styles.content}>
-          {isProfileRoot ? null : <Outlet />}
+          {isProfileRoot ? null : <Outlet context={outletContext} />}
         </div>
       </div>
     </div>

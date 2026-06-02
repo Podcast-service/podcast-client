@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useOutletContext } from "react-router-dom";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import styles from "./ProfileLikesPage.module.css";
@@ -10,10 +11,11 @@ import {
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
 
 interface MainLayoutContext {
-  playPodcast?: (podcast: PodcastRowData) => void;
+  playPodcast?: (podcast: PodcastRowData, queue?: PodcastRowData[]) => void;
 }
 
 const ProfileLikesPage: React.FC = () => {
+  usePageTitle("Понравившиеся");
   const context = useOutletContext<MainLayoutContext | null>();
   const playPodcast = context?.playPodcast ?? (() => {});
 
@@ -82,7 +84,7 @@ const ProfileLikesPage: React.FC = () => {
           key={podcast.id}
           {...podcast}
           isLiked={true}
-          onPlayClick={() => playPodcast(podcast)}
+          onPlayClick={() => playPodcast(podcast, podcasts)}
           onLikeClick={() => handleLike(podcast.id)}
         />
       ))}

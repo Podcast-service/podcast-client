@@ -339,6 +339,11 @@
     cursor: pointer;
 }
 
+.playerBtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
 .playerBtn img {
     width: 24px;
     height: 24px;

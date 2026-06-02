@@ -58,6 +58,8 @@ export { default as PodcastCard } from "./components/PodcastCard/PodcastCard";
 export { default as AuthorCard } from "./components/AuthorCard/AuthorCard";
 export { default as SectionRow } from "./components/SectionRow/SectionRow";
 export { default as Player } from "./components/Player/Player";
+export { PlayerProvider, usePlayer, usePlayerOptional } from "./components/Player/PlayerProvider";
+export type { PlayablePodcast } from "./components/Player/PlayerProvider";
 export { default as FilterTabs } from "./components/FilterTabs/FilterTabs";
 export { default as PodcastRow } from "./components/PodcastRow/PodcastRow";
 export { default as LoadMoreButton } from "./components/LoadMoreButton/LoadMoreButton";
@@ -74,5 +76,6 @@ export { default as ProfileSettingsHero } from "./components/ProfileSettingsHero
 export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSessions";
 
 export { useIsAuthenticated } from "./hooks/useAuth";
+export { usePageTitle } from "./hooks/usePageTitle";
 
 

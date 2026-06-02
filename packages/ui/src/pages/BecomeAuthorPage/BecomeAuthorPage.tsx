@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./BecomeAuthorPage.module.css";
 
@@ -25,6 +26,7 @@ const validateAuthorBio = (value: string): string => {
 
 
 const BecomeAuthorPage: React.FC = () => {
+  usePageTitle("Стать автором");
     const navigate = useNavigate();
     const { showToast } = useToast();
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import InputField from "../../components/InputField/InputField";
@@ -7,6 +8,7 @@ import LogoSvg from "../../assets/icons/logo.svg";
 import { login, saveTokens } from "../../api/auth";
 
 const LoginPage = () => {
+  usePageTitle("Вход");
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");

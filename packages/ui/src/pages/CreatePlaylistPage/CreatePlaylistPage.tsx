@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import type { DragEndEvent } from "@dnd-kit/core";
 import {
@@ -56,6 +57,7 @@ const mapPodcast = (podcast: PodcastCard): Podcast => ({
 });
 
 const CreatePlaylistPage: React.FC = () => {
+  usePageTitle("Создание плейлиста");
     const navigate = useNavigate();
     const { showToast } = useToast();
 

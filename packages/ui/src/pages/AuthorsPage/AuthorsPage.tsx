@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import styles from "./AuthorsPage.module.css";
 
@@ -8,6 +9,7 @@ import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
 
 import {
   getAuthors,
+  getMyAuthorProfile,
   subscribeAuthor,
   unsubscribeAuthor,
   isAuthenticated,
@@ -41,6 +43,7 @@ const mapAuthor = (author: ApiAuthorCard): Author => ({
 });
 
 const AuthorsPage: React.FC = () => {
+  usePageTitle("Авторы");
   const navigate = useNavigate();
 
   const [activeSort, setActiveSort] = useState<SortAuthors>("POPULAR");
@@ -52,6 +55,21 @@ const AuthorsPage: React.FC = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // id профиля текущего пользователя как автора (если он автор) —
+  // себя в общем списке авторов показывать не нужно.
+  const myAuthorIdRef = useRef<string | null>(null);
+  const myAuthorIdResolvedRef = useRef(false);
+
+  const resolveMyAuthorId = async () => {
+    if (myAuthorIdResolvedRef.current) return myAuthorIdRef.current;
+    if (isAuthenticated()) {
+      const me = await getMyAuthorProfile().catch(() => null);
+      myAuthorIdRef.current = me?.id ?? null;
+    }
+    myAuthorIdResolvedRef.current = true;
+    return myAuthorIdRef.current;
+  };
+
   const loadPage = async (pageNumber: number, reset: boolean) => {
     const result = await getAuthors({
       sort: activeSort,
@@ -59,12 +77,20 @@ const AuthorsPage: React.FC = () => {
       size: PAGE_SIZE,
     });
 
-    setAuthors((prev) =>
-      reset ? result.items.map(mapAuthor) : [...prev, ...result.items.map(mapAuthor)]
-    );
+    const myAuthorId = myAuthorIdRef.current;
+    const mapped = result.items
+      .filter((author) => author.id !== myAuthorId)
+      .map(mapAuthor);
+
+    setAuthors((prev) => (reset ? mapped : [...prev, ...mapped]));
     setPage(pageNumber);
     setTotalPages(result.meta.totalPages);
-    setTotalCount(result.meta.totalElements);
+    // Если пользователь сам автор, он входит в общий счётчик — вычитаем себя.
+    setTotalCount(
+      myAuthorId
+        ? Math.max(result.meta.totalElements - 1, 0)
+        : result.meta.totalElements
+    );
   };
 
   useEffect(() => {
@@ -74,6 +100,7 @@ const AuthorsPage: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
+        await resolveMyAuthorId();
         if (!cancelled) {
           await loadPage(1, true);
         }

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./AddToPlaylist.module.css";
 import { AddToPlaylistContext } from "./useAddToPlaylist";
 import { useToast } from "../Toast/useToast";
+import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
 import {
   addPodcastToPlaylist,
   getMyPlaylists,
@@ -26,20 +27,19 @@ export const AddToPlaylistProvider: React.FC<{ children: React.ReactNode }> = ({
   const [playlists, setPlaylists] = useState<PlaylistCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const isOpen = podcastId !== null;
 
-  const open = useCallback(
-    (id: string) => {
-      // Добавлять в плейлист может только авторизованный пользователь.
-      if (!isAuthenticated()) {
-        navigate("/login");
-        return;
-      }
-      setPodcastId(id);
-    },
-    [navigate]
-  );
+  const open = useCallback((id: string) => {
+    // Добавлять в плейлист может только авторизованный пользователь — гостю
+    // показываем popup «Добро пожаловать в Podcast!», а не редиректим на /login.
+    if (!isAuthenticated()) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    setPodcastId(id);
+  }, []);
 
   const close = useCallback(() => {
     setPodcastId(null);
@@ -199,6 +199,9 @@ export const AddToPlaylistProvider: React.FC<{ children: React.ReactNode }> = ({
     <AddToPlaylistContext.Provider value={{ open }}>
       {children}
       {modal}
+      {showLoginPrompt && (
+        <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
+      )}
     </AddToPlaylistContext.Provider>
   );
 };

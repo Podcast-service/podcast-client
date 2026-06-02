@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ avatarUrl, onSearchClick }) => {
   const effectiveAvatar = avatarUrl ?? profileAvatar;
 
   useEffect(() => {
-    if (trimmedSearch.length < 2) {
+    if (trimmedSearch.length < 1) {
       setSuggestions([]);
       return;
     }

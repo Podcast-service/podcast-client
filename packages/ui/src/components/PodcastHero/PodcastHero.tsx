@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./PodcastHero.module.css";
 
+import { usePlayerOptional } from "../Player/PlayerProvider";
 import { useAuthAction } from "../../hooks/useAuthAction";
 import LoginPromptModal from "../LoginPromptModal/LoginPromptModal";
 import CopyLinkModal from "../CopyLinkModal/CopyLinkModal";
@@ -12,9 +13,6 @@ import StopSvg from "../../assets/icons/stop.svg";
 import DefHeartSvg from "../../assets/icons/defHeart.svg";
 import DefDislikeSvg from "../../assets/icons/defDislike.svg";
 import ShareSvg from "../../assets/icons/share.svg";
-import DownloadSvg from "../../assets/icons/download.svg";
-import DoneDownloadSvg from "../../assets/icons/doneDownload.svg";
-import ProgressDownloadSvg from "../../assets/icons/progressDownload.svg";
 import LeftTimerSvg from "../../assets/icons/leftTimer.svg";
 import RightTimerSvg from "../../assets/icons/rightTime.svg";
 import QueueSvg from "../../assets/icons/queue.svg";
@@ -26,6 +24,8 @@ import DefaultBookSvg from "../../assets/icons/defaultBook.svg";
 type DownloadStatus = "idle" | "loading" | "done";
 
 interface PodcastHeroProps {
+  /** id подкаста — для синхронизации инлайн-плеера с глобальным плеером. */
+  podcastId?: string;
   title: string;
   author: string;
   category: string;
@@ -50,7 +50,19 @@ interface PodcastHeroProps {
 
 const formatListeners = (value: number) => value.toLocaleString("en-US");
 
+/** Секунды → "m:ss" / "h:mm:ss". */
+const formatTime = (totalSeconds: number): string => {
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) totalSeconds = 0;
+  const s = Math.floor(totalSeconds);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = (v: number) => v.toString().padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+};
+
 const PodcastHero: React.FC<PodcastHeroProps> = ({
+  podcastId,
   title,
   author,
   category,
@@ -77,19 +89,35 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
   const { isModalOpen, closeModal, guard } = useAuthAction(isAuthenticated);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
 
-  const downloadIcon =
-    downloadStatus === "done"
-      ? DoneDownloadSvg
-      : downloadStatus === "loading"
-        ? ProgressDownloadSvg
-        : DownloadSvg;
+  // Если этот подкаст сейчас в глобальном плеере — инлайн-плеер показывает
+  // его реальные время/прогресс/громкость и управляет им; иначе работает
+  // в демонстрационном режиме на локальном стейте.
+  const player = usePlayerOptional();
+  const isActive = Boolean(
+    player && podcastId && player.activePodcast?.id === podcastId
+  );
+  const playingNow = isActive ? player!.isPlaying : isPlaying;
 
-  const downloadLabel =
-    downloadStatus === "done"
-      ? "Скачано"
-      : downloadStatus === "loading"
-        ? "Скачивается"
-        : "Скачать";
+  const liveProgress =
+    isActive && player!.duration > 0
+      ? (player!.currentTime / player!.duration) * 100
+      : null;
+  const displayProgress = liveProgress ?? currentProgress;
+  const displayVolume = isActive ? player!.volume : currentVolume;
+  const displayCurrentTime = isActive
+    ? formatTime(player!.currentTime)
+    : currentTime;
+  const displayDuration =
+    isActive && player!.duration > 0 ? formatTime(player!.duration) : duration;
+
+  const handleSeek = (value: number) => {
+    if (isActive) player!.seekToPercent(value);
+    else setCurrentProgress(value);
+  };
+  const handleVolume = (value: number) => {
+    if (isActive) player!.setVolumePercent(value);
+    else setCurrentVolume(value);
+  };
 
   return (
     <section className={styles.hero}>
@@ -132,11 +160,11 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
             onClick={onPlayClick}
           >
             <img
-              src={isPlaying ? StopSvg : PlayTopSvg}
+              src={playingNow ? StopSvg : PlayTopSvg}
               alt=""
               aria-hidden="true"
             />
-            {isPlaying ? "Остановить" : "Воспроизвести"}
+            {playingNow ? "Остановить" : "Воспроизвести"}
           </button>
 
           <button
@@ -170,43 +198,31 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
           >
             <img src={ShareSvg} alt="" aria-hidden="true" />
           </button>
-
-          <button
-            type="button"
-            className={`${styles.downloadBtn} ${
-              downloadStatus === "loading" ? styles.downloadLoading : ""
-            }`}
-            onClick={onDownloadClick}
-            disabled={downloadStatus === "loading"}
-            aria-label={downloadLabel}
-          >
-            <img src={downloadIcon} alt="" aria-hidden="true" />
-            {downloadLabel}
-          </button>
         </div>
 
         <div className={styles.inlinePlayer}>
           <div className={styles.progressRow}>
-            <span className={styles.time}>{currentTime}</span>
+            <span className={styles.time}>{displayCurrentTime}</span>
 
             <div className={styles.progressBar}>
               <div
                 className={styles.progressFill}
-                style={{ width: `${currentProgress}%` }}
+                style={{ width: `${displayProgress}%` }}
               />
 
               <input
                 type="range"
                 min={0}
                 max={100}
-                value={currentProgress}
-                onChange={(e) => setCurrentProgress(Number(e.target.value))}
+                step={0.1}
+                value={displayProgress}
+                onChange={(e) => handleSeek(Number(e.target.value))}
                 className={styles.rangeInput}
                 aria-label="Прогресс подкаста"
               />
             </div>
 
-            <span className={styles.time}>{duration}</span>
+            <span className={styles.time}>{displayDuration}</span>
           </div>
 
           <div className={styles.playerBottom}>
@@ -214,6 +230,8 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
               <button
                 type="button"
                 className={styles.playerBtn}
+                onClick={() => player!.seekBy(-10)}
+                disabled={!isActive}
                 aria-label="Назад на 10 секунд"
               >
                 <img src={LeftTimerSvg} alt="" aria-hidden="true" />
@@ -223,10 +241,10 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
                 type="button"
                 className={styles.playerPlayBtn}
                 onClick={onPlayClick}
-                aria-label={isPlaying ? "Пауза" : "Воспроизвести"}
+                aria-label={playingNow ? "Пауза" : "Воспроизвести"}
               >
                 <img
-                  src={isPlaying ? PauseSvg : PlaySvg}
+                  src={playingNow ? PauseSvg : PlaySvg}
                   alt=""
                   aria-hidden="true"
                 />
@@ -235,6 +253,8 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
               <button
                 type="button"
                 className={styles.playerBtn}
+                onClick={() => player!.seekBy(30)}
+                disabled={!isActive}
                 aria-label="Вперед на 30 секунд"
               >
                 <img src={RightTimerSvg} alt="" aria-hidden="true" />
@@ -261,15 +281,15 @@ const PodcastHero: React.FC<PodcastHeroProps> = ({
                 <div className={styles.volumeBar}>
                   <div
                     className={styles.volumeFill}
-                    style={{ width: `${currentVolume}%` }}
+                    style={{ width: `${displayVolume}%` }}
                   />
 
                   <input
                     type="range"
                     min={0}
                     max={100}
-                    value={currentVolume}
-                    onChange={(e) => setCurrentVolume(Number(e.target.value))}
+                    value={displayVolume}
+                    onChange={(e) => handleVolume(Number(e.target.value))}
                     className={styles.rangeInput}
                     aria-label="Громкость"
                   />

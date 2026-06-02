@@ -4,9 +4,12 @@
 }
 
 .headerLoginWrap {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    width: fit-content;
 }
 
 .icon {
