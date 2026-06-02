@@ -130,6 +130,36 @@
     top: 24px;
 }
 
+.publishBtn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 32px;
+
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.publishBtn:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+
+.publishBtn:disabled {
+    background-color: var(--color-disable-primary);
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
     .pageInner {
         padding: 32px 40px 60px;

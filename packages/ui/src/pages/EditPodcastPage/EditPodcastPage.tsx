@@ -10,6 +10,7 @@ import {
     deletePodcast,
     getCategories,
     getPodcast,
+    publishPodcast,
     updatePodcast,
     type CategoryResponse,
     type PodcastDetailResponse,
@@ -35,6 +36,7 @@ const EditPodcastPage: React.FC = () => {
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
 
     useEffect(() => {
         if (!podcastId) return;
@@ -132,6 +134,29 @@ const EditPodcastPage: React.FC = () => {
         }
     };
 
+    const handlePublish = async () => {
+        if (!podcastId) return;
+
+        setIsPublishing(true);
+        try {
+            const published = await publishPodcast(podcastId);
+            setPodcast(published);
+
+            if (toPublishStatus(published.status) === "published") {
+                showToast("Подкаст опубликован", "success");
+                navigate(`/podcasts/${published.id}`);
+            } else {
+                // 202: бэкенд принял публикацию в обработку.
+                showToast("Подкаст отправлен на публикацию", "success");
+            }
+        } catch (err) {
+            console.error("Failed to publish podcast", err);
+            showToast("Не удалось опубликовать подкаст. Попробуйте позже.", "error");
+        } finally {
+            setIsPublishing(false);
+        }
+    };
+
     if (isInitialLoading) {
         return (
             <div className={styles.page}>
@@ -153,6 +178,8 @@ const EditPodcastPage: React.FC = () => {
             </div>
         );
     }
+
+    const publishStatus = toPublishStatus(podcast.status);
 
     return (
         <div className={styles.page}>
@@ -207,9 +234,20 @@ const EditPodcastPage: React.FC = () => {
 
                     <div className={styles.rightBlock}>
                         <PodcastPublishStatus
-                            status={toPublishStatus(podcast.status)}
+                            status={publishStatus}
                             publishedAt={podcast.publishedAt ?? undefined}
                         />
+
+                        {publishStatus !== "published" && (
+                            <button
+                                type="button"
+                                className={styles.publishBtn}
+                                onClick={handlePublish}
+                                disabled={publishStatus !== "ready" || isPublishing}
+                            >
+                                {isPublishing ? "Публикация..." : "Опубликовать"}
+                            </button>
+                        )}
                     </div>
 
                 </div>

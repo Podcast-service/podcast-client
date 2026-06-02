@@ -13,6 +13,22 @@ interface TextBlock {
     text: string;
 }
 
+/**
+ * Доступные голоса TTS для озвучки спикеров. id — токен голоса, который уходит
+ * на бэкенд (поле voice), label — отображаемое имя. Один голос можно назначить
+ * нескольким спикерам (повторы разрешены).
+ */
+const VOICE_OPTIONS = [
+    { id: "aidar", label: "Aidar" },
+    { id: "baya", label: "Baya" },
+    { id: "kseniya", label: "Kseniya" },
+    { id: "xenia", label: "Xenia" },
+    { id: "eugene", label: "Eugene" },
+];
+
+const voiceLabel = (voiceId: string): string =>
+    VOICE_OPTIONS.find((v) => v.id === voiceId)?.label ?? voiceId;
+
 export interface TextUploadBlockProps {
     speakersCount: number;
     publishStatus: "draft" | "processing" | "ready" | "published" | "error";
@@ -68,7 +84,7 @@ const TextUploadBlock: React.FC<TextUploadBlockProps> = ({
 
     const speakerOptions = speakerNames.map((name, index) => ({
         id: String(index),
-        label: name.trim() || `Спикер №${index + 1}`,
+        label: name ? voiceLabel(name) : `Спикер №${index + 1}`,
     }));
 
 
@@ -172,20 +188,15 @@ const TextUploadBlock: React.FC<TextUploadBlockProps> = ({
                     <div className={styles.speakerInputs}>
                         {speakerNames.map((name, index) => (
                             <div key={index} className={styles.speakerInputWrap}>
-                                <p className={styles.speakerInputLabel}>
-                                    Спикер №{index + 1}
-                                </p>
-                                <div className={styles.inputWrap}>
-                                    <input
-                                        type="text"
-                                        className={styles.input}
-                                        placeholder="Иван"
-                                        value={name}
-                                        onChange={(e) =>
-                                            handleSpeakerNameChange(index, e.target.value)
-                                        }
-                                    />
-                                </div>
+                                <SelectField
+                                    label={`Спикер №${index + 1}`}
+                                    options={VOICE_OPTIONS}
+                                    value={name}
+                                    onChange={(val) =>
+                                        handleSpeakerNameChange(index, val)
+                                    }
+                                    placeholder="Выбрать голос"
+                                />
                             </div>
                         ))}
                     </div>
