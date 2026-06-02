@@ -7,6 +7,7 @@ import PlaylistCard from "../../components/PlaylistCard/PlaylistCard";
 import PodcastRow from "../../components/PodcastRow/PodcastRow";
 import LoadMoreButton from "../../components/LoadMoreButton/LoadMoreButton";
 import {
+  getSearchSuggestions,
   isAuthenticated,
   search,
   subscribeAuthor,
@@ -14,6 +15,7 @@ import {
   type AuthorCard as ApiAuthorCard,
   type PlaylistCard as ApiPlaylistCard,
   type SearchResponse,
+  type SearchSuggestItem,
 } from "../../api/podcast";
 import { formatRuDate } from "../../utils/format";
 import { toPodcastRow, type PodcastRowData } from "../../utils/mappers";
@@ -28,15 +30,7 @@ interface MainLayoutContext {
 
 const PAGE_SIZE = 10;
 const INITIAL_VISIBLE = 5;
-
-const SUGGESTIONS = [
-  "подкаст про природу",
-  "подкаст про то, как надо обращат...",
-  "подкаст про мир",
-  "подкаст про жизнь вне общества",
-];
-
-
+const SUGGEST_MIN_LENGTH = 1;
 
 
 const useCarousel = () => {
@@ -124,8 +118,10 @@ const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = useMemo(() => searchParams.get("q")?.trim() ?? "", [searchParams]);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(query);
   const [isFocused, setIsFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState<SearchSuggestItem[]>([]);
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -167,16 +163,49 @@ const SearchPage: React.FC = () => {
     return () => { cancelled = true; };
   }, [query]);
 
+  // Живые текстовые подсказки на странице поиска. GET /search/suggest.
+  const trimmedInput = inputValue.trim();
+  useEffect(() => {
+    if (!isFocused || trimmedInput.length < SUGGEST_MIN_LENGTH) {
+      setSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      getSearchSuggestions(trimmedInput)
+        .then((items) => {
+          if (!cancelled) setSuggestions(items);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setSuggestions([]);
+            console.error("Failed to load search suggestions", err);
+          }
+        });
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [trimmedInput, isFocused]);
+
   const handleSearch = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
     setIsFocused(false);
+    setSuggestions([]);
+    inputRef.current?.blur();
     setSearchParams({ q: trimmed });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch(inputValue);
-    if (e.key === "Escape") setIsFocused(false);
+    if (e.key === "Escape") {
+      setIsFocused(false);
+      inputRef.current?.blur();
+    }
   };
 
   const handleLoadMore = async () => {
@@ -236,7 +265,7 @@ const SearchPage: React.FC = () => {
     !isLoading && !error && query &&
     podcasts.length === 0 && authors.length === 0 && playlists.length === 0;
 
-  const showSuggestions = isFocused && inputValue.length > 0;
+  const showSuggestions = isFocused && trimmedInput.length > 0;
 
   return (
     <div className={styles.page}>
@@ -246,11 +275,12 @@ const SearchPage: React.FC = () => {
           <div className={`${styles.searchWrap} ${isFocused ? styles.searchWrapFocused : ""}`}>
             <img src={SearchSvg} alt="" aria-hidden="true" className={styles.searchIcon} />
             <input
+              ref={inputRef}
               type="text"
               className={styles.searchInput}
               placeholder="Поиск подкастов, авторов, плейлистов..."
               value={inputValue}
-              autoFocus
+              autoFocus={!query}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setTimeout(() => setIsFocused(false), 150)}
@@ -264,15 +294,15 @@ const SearchPage: React.FC = () => {
                 <img src={SearchSvg} alt="" aria-hidden="true" className={styles.suggestionIcon} />
                 <span className={styles.suggestionTextBold}>{inputValue}</span>
               </div>
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((item) => (
                 <button
-                  key={s}
+                  key={`${item.type}-${item.id}`}
                   type="button"
                   className={styles.suggestionItem}
-                  onMouseDown={() => handleSearch(s)}
+                  onMouseDown={() => handleSearch(item.label)}
                 >
                   <img src={SearchSvg} alt="" aria-hidden="true" className={styles.suggestionIcon} />
-                  <span className={styles.suggestionText}>{s}</span>
+                  <span className={styles.suggestionText}>{item.label}</span>
                 </button>
               ))}
             </div>
