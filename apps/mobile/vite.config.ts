@@ -41,5 +41,9 @@ export default defineConfig({
   },
   preview: {
     host: true,
+    proxy: {
+      "^/podcast/v1(?:/|$)": proxyConfig,
+      "^/auth(?:/|$)": proxyConfig,
+    },
   },
 });
