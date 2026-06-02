@@ -9,6 +9,7 @@ import ConfirmDeleteModal from "../../components/ConfirmDeleteModal/ConfirmDelet
 import { useToast } from "../../components/Toast/useToast";
 import YoutubePublishModal from "../../components/YoutubePublishModal/YoutubePublishModal";
 import type { YoutubePublishStatus } from "../../components/YoutubePublishModal/YoutubePublishModal";
+import { useYoutubePublish } from "../../components/YoutubePublish/YoutubePublishContext";
 
 import {
   getPlaylist,
@@ -37,6 +38,8 @@ const PlaylistPage: React.FC = () => {
   const navigate = useNavigate();
   const { playPodcast } = useOutletContext<MainLayoutContext>();
   const { showToast } = useToast();
+  // Доступно только в desktop-версии (там провайдер подключает CEF-реализацию).
+  const youtube = useYoutubePublish();
 
   const [playlist, setPlaylist] = useState<PlaylistDetailResponse | null>(null);
   const [podcasts, setPodcasts] = useState<PodcastRowData[]>([]);
@@ -46,6 +49,9 @@ const PlaylistPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [youtubeStatus, setYoutubeStatus] = useState<YoutubePublishStatus>("not_authorized");
+  const [youtubeAccount, setYoutubeAccount] = useState<
+    { name: string; email: string } | undefined
+  >(undefined);
   const [error, setError] = useState<string | null>(null);
   usePageTitle(playlist?.title);
 
@@ -152,6 +158,61 @@ const PlaylistPage: React.FC = () => {
       console.error("Failed to delete playlist", err);
       showToast("Не удалось удалить плейлист. Попробуйте позже.", "error");
     }
+  };
+
+  // При открытии модалки спрашиваем у CEF, есть ли уже вошедший Google-аккаунт,
+  // и показываем «authorized» (с аккаунтом) или «not_authorized».
+  const openYoutubeModal = async () => {
+    setYoutubeAccount(undefined);
+    setYoutubeStatus("checking");
+    setIsYoutubeModalOpen(true);
+    if (!youtube) {
+      setYoutubeStatus("not_authorized");
+      return;
+    }
+    try {
+      const user = await youtube.getCurrentUser();
+      if (user) {
+        setYoutubeAccount({ name: user.name ?? user.email, email: user.email });
+        setYoutubeStatus("authorized");
+      } else {
+        setYoutubeStatus("not_authorized");
+      }
+    } catch (err) {
+      console.error("YouTube auth check failed", err);
+      setYoutubeStatus("not_authorized");
+    }
+  };
+
+  // Один и тот же путь для «Войти и опубликовать», «Опубликовать» и «Повторить»:
+  // publish() сам показывает окно входа в Google, если нужно, и публикует.
+  const runYoutubePublish = async () => {
+    if (!youtube) return;
+    setYoutubeStatus("processing");
+    try {
+      const { user } = await youtube.publish({
+        id: playlist.id,
+        title: playlist.title,
+      });
+      if (user) {
+        setYoutubeAccount({ name: user.name ?? user.email, email: user.email });
+      }
+      setYoutubeStatus("success");
+    } catch (err) {
+      console.error("YouTube publish failed", err);
+      setYoutubeStatus("error");
+    }
+  };
+
+  const runYoutubeLogout = async () => {
+    if (!youtube) return;
+    try {
+      await youtube.logout();
+    } catch (err) {
+      console.error("YouTube logout failed", err);
+    }
+    setYoutubeAccount(undefined);
+    setYoutubeStatus("not_authorized");
   };
 
   const handlePlaylistVote = async (voteType: VoteType) => {
@@ -304,7 +365,8 @@ const PlaylistPage: React.FC = () => {
           onDelete={() => setIsDeleteModalOpen(true)}
           onLikeClick={() => handlePlaylistVote("LIKE")}
           onDislikeClick={() => handlePlaylistVote("DISLIKE")}
-          onPublishToYoutube={() => setIsYoutubeModalOpen(true)}
+          canPublishToYoutube={isOwner && !!youtube}
+          onPublishToYoutube={openYoutubeModal}
         />
 
         <div className={styles.list}>
@@ -331,13 +393,14 @@ const PlaylistPage: React.FC = () => {
       {isYoutubeModalOpen && (
         <YoutubePublishModal
           status={youtubeStatus}
+          googleAccount={youtubeAccount}
           onClose={() => setIsYoutubeModalOpen(false)}
-          onLoginWithGoogle={() => setYoutubeStatus("authorized")}
-          onPublish={() => setYoutubeStatus("processing")}
-          onLogoutGoogle={() => setYoutubeStatus("not_authorized")}
-          onSwitchAccount={() => console.log("switch account")}
-          onRetry={() => setYoutubeStatus("processing")}
-          onOpenYoutube={() => window.open("https://music.youtube.com", "_blank")}
+          onLoginWithGoogle={runYoutubePublish}
+          onPublish={runYoutubePublish}
+          onLogoutGoogle={runYoutubeLogout}
+          onSwitchAccount={runYoutubeLogout}
+          onRetry={runYoutubePublish}
+          onOpenYoutube={() => youtube?.openYoutube()}
         />
       )}
     </div>

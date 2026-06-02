@@ -77,5 +77,14 @@ export { default as ActiveSessions } from "./components/ActiveSessions/ActiveSes
 
 export { useIsAuthenticated } from "./hooks/useAuth";
 export { usePageTitle } from "./hooks/usePageTitle";
+export {
+  YoutubePublishProvider,
+  useYoutubePublish,
+} from "./components/YoutubePublish/YoutubePublishContext";
+export type {
+  YoutubePublishApi,
+  YoutubeGoogleUser,
+  YoutubePublishTarget,
+} from "./components/YoutubePublish/YoutubePublishContext";
 
 

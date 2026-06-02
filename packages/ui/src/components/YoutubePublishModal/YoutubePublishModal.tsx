@@ -15,6 +15,7 @@ import DarkErrorSvg from "../../assets/icons/darkError.svg";
 
 
 export type YoutubePublishStatus =
+    | "checking"
     | "not_authorized"
     | "authorized"
     | "processing"
@@ -103,6 +104,7 @@ const YoutubePublishModal: React.FC<YoutubePublishModalProps> = ({
     };
 
     const getTitle = () => {
+        if (status === "checking") return "Проверка авторизации";
         if (status === "processing") return "Подключение RSS";
         if (status === "success") return "YouTube Music Integration";
         return "Публикация контента";
@@ -123,6 +125,23 @@ const YoutubePublishModal: React.FC<YoutubePublishModalProps> = ({
                         <img src={CloseSvg} alt="" aria-hidden="true" className={styles.closeIcon} />
                     </button>
                 </div>
+
+                {status === "checking" && (
+                    <div className={styles.processingBlock}>
+                        <img
+                            src={LoadCrugSvg}
+                            alt=""
+                            aria-hidden="true"
+                            className={styles.loadingSpinner}
+                        />
+                        <p className={styles.processingTitle}>
+                            Проверяем авторизацию...
+                        </p>
+                        <p className={styles.processingHint}>
+                            Секундочку, проверяем вход в Google.
+                        </p>
+                    </div>
+                )}
 
                 {status === "not_authorized" && (
                     <>
@@ -173,13 +192,15 @@ const YoutubePublishModal: React.FC<YoutubePublishModalProps> = ({
                     </>
                 )}
 
-                {status === "processing" && googleAccount && (
+                {status === "processing" && (
                     <>
-                        <GoogleAccountBlock
-                            account={googleAccount}
-                            showSwitch
-                            onSwitch={onSwitchAccount}
-                        />
+                        {googleAccount && (
+                            <GoogleAccountBlock
+                                account={googleAccount}
+                                showSwitch
+                                onSwitch={onSwitchAccount}
+                            />
+                        )}
 
                         <span className={styles.sectionLabel}>Добавление RSS</span>
 
@@ -204,13 +225,15 @@ const YoutubePublishModal: React.FC<YoutubePublishModalProps> = ({
                     </>
                 )}
 
-                {status === "success" && googleAccount && (
+                {status === "success" && (
                     <>
-                        <GoogleAccountBlock
-                            account={googleAccount}
-                            showSwitch
-                            onSwitch={onSwitchAccount}
-                        />
+                        {googleAccount && (
+                            <GoogleAccountBlock
+                                account={googleAccount}
+                                showSwitch
+                                onSwitch={onSwitchAccount}
+                            />
+                        )}
 
                         <div className={styles.successBlock}>
                             <div className={styles.successHeader}>
@@ -236,13 +259,15 @@ const YoutubePublishModal: React.FC<YoutubePublishModalProps> = ({
                     </>
                 )}
 
-                {status === "error" && googleAccount && (
+                {status === "error" && (
                     <>
-                        <GoogleAccountBlock
-                            account={googleAccount}
-                            showSwitch
-                            onSwitch={onSwitchAccount}
-                        />
+                        {googleAccount && (
+                            <GoogleAccountBlock
+                                account={googleAccount}
+                                showSwitch
+                                onSwitch={onSwitchAccount}
+                            />
+                        )}
 
                         <div className={styles.errorBlock}>
                             <div className={styles.errorHeader}>

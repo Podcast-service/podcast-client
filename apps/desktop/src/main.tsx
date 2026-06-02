@@ -45,7 +45,13 @@ import {
   AuthorPodcastDraftRow,
   ActiveSessions,
   ProfileSettingsPage,
+  PlaylistPage,
+  ToastProvider,
+  AddToPlaylistProvider,
+  YoutubePublishProvider,
 } from "@podcast/ui";
+
+import { youtubePublishApi } from "./cef/youtubePublishApi";
 
 import "./styles/global.css";
 
@@ -65,9 +71,15 @@ function AuthLayout() {
 
 function MainLayout() {
   return (
-    <PlayerProvider>
-      <MainLayoutInner />
-    </PlayerProvider>
+    <ToastProvider>
+      <AddToPlaylistProvider>
+        <YoutubePublishProvider value={youtubePublishApi}>
+          <PlayerProvider>
+            <MainLayoutInner />
+          </PlayerProvider>
+        </YoutubePublishProvider>
+      </AddToPlaylistProvider>
+    </ToastProvider>
   );
 }
 
@@ -755,6 +767,7 @@ function Main() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/authors" element={<AuthorsPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         <Route path="/podcasts/:podcastId" element={<PodcastPage />} />
         <Route path="/authors/:authorId" element={<AuthorPage />} />
 

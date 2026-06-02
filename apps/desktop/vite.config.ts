@@ -7,7 +7,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // Бэкенд по умолчанию — сервер castapp.ru. Можно переопределить через API_TARGET.
 // @ts-expect-error process is a nodejs global
-const API_TARGET = process.env.API_TARGET ?? "http://castapp.ru";
+const API_TARGET = process.env.API_TARGET ?? "https://castapp.ru";
 
 // podcast-core на castapp.ru пускает по CORS только origin самого castapp.ru,
 // поэтому в dev проксируем /podcast и /auth через Vite и убираем заголовок

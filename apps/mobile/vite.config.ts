@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 // Бэкенд по умолчанию — сервер castapp.ru. Можно переопределить через API_TARGET.
-const API_TARGET = process.env.API_TARGET ?? "http://castapp.ru";
+const API_TARGET = process.env.API_TARGET ?? "https://castapp.ru";
 
 // podcast-core на castapp.ru пускает по CORS только origin самого castapp.ru,
 // поэтому в dev проксируем /podcast и /auth через Vite и убираем заголовок
